@@ -76,6 +76,25 @@ def MakeMagneticSpectra(oober,frame,density=0,debug=1):
     fname = shell_average(power,oober,frame,field_out,debug,mark_time)
     print(fname)
 
+def MakeHtotSpectra(oober,frame,density=0,debug=1):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+
+    field = 'magnetic_field_strength'
+    directory = oober.product_dir(frame) #"%s/%s%04d.products/"%(self.directory,self.name_dir,frame)
+    filename = "%s/fft_%s.%s"%(directory,field,'float32')
+    if len(glob.glob(filename))>0:
+        print("WE GOT ONE")
+    else:
+        print("ONE TO RUN")
+
+        Bhat = oober.fft(frame,field,num_ghost_zones=ngz,debug=debug)
+        power += (Bhat.conjugate()*Bhat)
+        field_out='Htotal'
+        fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+        print(fname)
+
+
 def MinK(TheY):
     TheY /= (TheY[ TheY != 0]).min()
     return TheY
@@ -88,8 +107,10 @@ class short_oober():
         self.last_frame=None
     def product_dir(self,frame):
         return "%s/DD%04d.products"%(self.directory,frame)
+    def get_ds_name(self,frame):
+        return "%s/DD%04d/data%04d"%(self.directory,frame,frame)
     def load(self,frame):
-        ds_name = "%s/DD%04d/data%04d"%(self.directory,frame,frame)
+        ds_name = self.get_ds_name(frame)
         if frame in self.ds_dict:
             self.ds = self.ds_dict[frame]
         else:
