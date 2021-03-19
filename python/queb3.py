@@ -28,6 +28,7 @@ import p49_fields
 import cmbtools
 from scipy.optimize import leastsq
 import davetools as dt
+import matplotlib.colors as colors
 reload(dt)
 import spectra_tools as st
 reload(st)
@@ -109,8 +110,15 @@ class queb_snapshot():
         self.bin_style=bin_style
     def __getitem__(self,item):
         """square bracket access method"""
-        #this is a kludge
         return self.__dict__[item]
+    def __setitem__(self,item,value):
+        """square bracket access method"""
+        if item in 'QUEBTH':
+             self.__dict__[item] = value
+
+
+
+
     def write(self):
         """saves E, B, and the spectra to the simulation location"""
         xd='DD'
@@ -327,6 +335,30 @@ class queb_snapshot():
         self.aspec=dt.dpy( "%s/DD%04d.products/power_acceleration.h5"%(self.simulation.directory,frame) , ['k','power'])
         self.dspec=dt.dpy( "%s/DD%04d.products/power_density.h5"%(self.simulation.directory,frame) , ['k','power'])
         self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic.h5"%(self.simulation.directory,frame) , ['k','power'])
+    def read_htotspectra(self,frame,ax='x'):
+        """read 3d spectra"""
+        self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic_field_strength..h5"%(self.simulation.directory,frame) , ['k','power'])
+    def tile(self,ntiles):
+        for field in 'QUT':
+            self[field] = np.vstack([np.hstack([self[field]]*ntiles)]*ntiles)
+    def untile(self,ntiles):
+        for field in 'QUTEB':
+            arr = self[field]
+            Nx = arr.shape[0]
+            if np.abs(Nx/ntiles - Nx//ntiles) > 0:
+                print( "Incompatable number of tiles", Nx, ntiles)
+            Nsub = int(Nx//ntiles)
+            subs = []
+            for i in range(ntiles):
+                for j in range(ntiles):
+                    SL1 = slice( i*Nsub, (i+1)*Nsub)
+                    SL2 = slice( j*Nsub, (j+1)*Nsub)
+                    subs.append( arr[SL1,SL2])
+            errors = []
+            for sub in subs[1:]:
+                error = np.sum( np.abs( sub - subs[0]))
+                errors.append(error)
+            print(errors)
 
 
 class simulation_package():
@@ -399,6 +431,13 @@ class simulation_package():
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)
 
+    def make_htotal_spectra(self,frame):
+        """This makes 3d power spectra of velocity, acceleration, 
+        magnetic field, and density.  Can be very slow.
+        FFTs are stored in DD????.products"""
+        oober = st.short_oober(self.directory, frame=frame)
+        st.MakeHtotSpectra(oober,frame)
+
     def read_queb(self,frame,ax='x',bin_style='dx1',theta=None,phi=None):
         """ Read Q,U,E,B,Density,and Magnetic field FRBs.
         All values default to None if the file is not found."""
@@ -434,6 +473,7 @@ class simulation_package():
         ts=queb_snapshot(q,u,d,H=h, E=e,B=b,axis=ax,simulation=self,frame=frame,bin_style=bin_style)
         return ts
 
+
     def image_fields(self,frame,axis='x',ts=None,field_list=[ 'T','H','Q','U','E','B'],theta=None,phi=None):
         if ts is None:
             ts=self.read_queb(frame,axis)
@@ -453,6 +493,32 @@ class simulation_package():
             fig.savefig(outname)
             print(outname)
             plt.close(fig)
+        return ts
+
+    def image_fields_6way(self,frame,axis='x',ts=None,field_list=[ 'T','H','Q','U','E','B'],theta=None,phi=None):
+        if ts is None:
+            ts=self.read_queb(frame,axis)
+            ts.compute_harmonic_products()
+        fig,ax=plt.subplots(3,2, figsize = (8,12))
+        axes=ax.flatten()
+        for np,name in enumerate(field_list):
+            if name not in ts.__dict__:
+                continue
+            array = ts[name]
+
+            #norm = mpl.colors.SymLogNorm(vmin = -2e-19, vmax = 2e-19, base=10, linthresh = 2e-20)
+            norm = mpl.colors.Normalize(vmin = -1e-20, vmax = 1e-20)#, linthresh=1e-22, base=10)
+            proj=axes[np].imshow(array - array.mean(),origin='lower',interpolation='nearest',norm=norm)
+            axes[np].set_title('%s %0.1f b'%(name,theta))
+            fig.colorbar(proj, ax=axes[np])
+            if theta is None:
+                outname = "%s/%s_%04d_%s_%s.png"%(self.plotdir,self.prefix,frame,name,axis)
+            else:
+                outname = "%s/%s_%04d_%s_th%04d_ph%04d.png"%(self.plotdir,self.prefix,frame,name,theta,phi)
+
+        fig.savefig(outname)
+        print(outname)
+        plt.close(fig)
         return ts
 
     def plot_eb(self,ts,fname='TEST.png', slopes=None):
