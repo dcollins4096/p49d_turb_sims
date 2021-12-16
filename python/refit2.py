@@ -101,15 +101,30 @@ if 1:
             for LOS in LOS_LIST:
                 print("DO", field, sim, LOS)
                 proj=rs.proj_dict[LOS][sim]
+                lcentf = proj.lcent
                 specf=spectra_dict[LOS][sim].spectra[field]
-                #specf = gaussian_filter1d( specf, 1, mode='nearest')
-                fit_range=proj.determine_fit_range()
+                if 1:
+                    fit_range=proj.determine_fit_range()
+                    x0_list = lcentf[2:10:2]
+                    x1_list = lcentf[14:51:8]
+                if 0:
+                    #fit_range=proj.determine_fit_range()
+                    fit_range = proj.lcent[2], proj.lcent[23] #two less than the fit range for dx1.  queb3 line 324
+                    specf = gaussian_filter1d( specf[2:], 1, mode='nearest')
+                    lcentf = lcentf[2:]
+                    x0_list = lcentf[0:10:2]
+                    x1_list = lcentf[12:51:8]
                 x0=fit_range[0]
                 x1=fit_range[1]
 
+                #x0_list = [x0]
+                #x1_list = [x1]
+                #x0_list = [2,3]
+                #x1_list = [45,51]
+
                 # fixed fit
-                ok = (proj.lcent>=x0)*(proj.lcent<=x1)
-                xvals = proj.lcent[ok]
+                ok = (lcentf>=x0)*(lcentf<=x1)
+                xvals = lcentf[ok]
                 spec=specf[ok]
                 popt_fixed, pcov_fixed= curve_fit( line, np.log10(xvals), np.log10(spec))
                 AlphaF = popt_fixed[1]
@@ -122,12 +137,6 @@ if 1:
                 axL[2].plot([1e-6,200],[10*1e-6,10*200],c='k')
 
 
-                #x0_list = [x0]
-                #x1_list = [x1]
-                #x0_list = [2,3]
-                #x1_list = [45,51]
-                x0_list = proj.lcent[2:10:2]
-                x1_list = proj.lcent[12:51:8]
 
                 counter2=0
                 slope_list = []
@@ -159,8 +168,8 @@ if 1:
                 #
                 for n0,x0 in enumerate(x0_list):
                     for n1,x1 in enumerate(x1_list):
-                        ok = (proj.lcent>=x0)*(proj.lcent<=x1)
-                        xvals = proj.lcent[ok]
+                        ok = (lcentf>=x0)*(lcentf<=x1)
+                        xvals = lcentf[ok]
                         spec=specf[ok]
                         popt_3, pcov_3= curve_fit( cube, np.log10(xvals), np.log10(spec))
                         popt_1, pcov_1= curve_fit( line, np.log10(xvals), np.log10(spec))
@@ -200,8 +209,8 @@ if 1:
                     for n1,x1 in enumerate(x1_list):
                         if not do_all_subplots:
                             continue
-                        ok = (proj.lcent>=x0)*(proj.lcent<=x1)
-                        xvals = proj.lcent[ok]
+                        ok = (lcentf>=x0)*(lcentf<=x1)
+                        xvals = lcentf[ok]
                         spec=specf[ok]
                         popt_3, pcov_3= curve_fit( cube, np.log10(xvals), np.log10(spec))
                         popt_1, pcov_1= curve_fit( line, np.log10(xvals), np.log10(spec))
@@ -225,7 +234,7 @@ if 1:
                         axL[0].clear()
                         axL[0].set_title(r'$\alpha_1 = %0.2f \alpha_3 = %0.2f \chi^2_1 = %0.1e \chi^2_3 = %0.1e$'%(popt_1[1], slope, chi_l, chi_c))
 
-                        compensate_plot(axL[0], -AlphaF, proj.lcent, specf, c=[0.5]*4)
+                        compensate_plot(axL[0], -AlphaF, lcentf, specf, c=[0.5]*4)
                         compensate_plot(axL[0], -AlphaF, xvals, this_c, c='b')
                         compensate_plot(axL[0], -AlphaF,  xvals, this_l,c='g')
                         compensate_plot(axL[0], -AlphaF,  xvals, line_from_cube,c='r')
@@ -236,7 +245,7 @@ if 1:
                         ylim=verts.minmax
                         ylim = [1e-7,1e-3]
 
-                        dt.axbonk(axL[0],xscale='log',yscale='log', ylim=ylim, xlim=[proj.lcent.min(),proj.lcent.max()])
+                        dt.axbonk(axL[0],xscale='log',yscale='log', ylim=ylim, xlim=[lcentf.min(),lcentf.max()])
 
                         axL[1].scatter( popt_1[1], slope)
                         dt.axbonk(axL[1],xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
@@ -305,9 +314,9 @@ if 1:
 
                 fig2,ax2=plt.subplots(1,1, figsize=(12,8))
                 x0=fit_range[0]; x1=fit_range[1]
-                ok = (proj.lcent>=x0)*(proj.lcent<=x1)
-                xvals = proj.lcent[ok]
-                compensate_plot(ax2,-AlphaC, proj.lcent, specf, c=[0.5]*4)
+                ok = (lcentf>=x0)*(lcentf<=x1)
+                xvals = lcentf[ok]
+                compensate_plot(ax2,-AlphaC, lcentf, specf, c=[0.5]*4)
 
 
 
@@ -317,7 +326,7 @@ if 1:
                 #
 
                 this_l=10**line(np.log10(xvals), popt_1[0],AlphaF)
-                kfit = proj.lcent[16]
+                kfit = lcentf[16]
                 index = np.argmin( np.abs( xvals-kfit))
                 this_l = this_l*specf[16]/this_l[index]
                 chi2 = np.sum( (this_l-specf[ok])**2/specf[ok])
@@ -333,9 +342,9 @@ if 1:
                 chi2 = np.sum( (line_from_cube-specf[ok])**2/specf[ok])
                 compensate_plot(ax2, -AlphaC, xvals, line_from_cube, c='r',label=r'$%0.2e \pm %0.2e$'%(AlphaC,chi2))
 
-                compensate_plot(ax_all, 3, proj.lcent, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
+                compensate_plot(ax_all, 3, lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                 compensate_plot(ax_all, 3, xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
-                #ax_all.plot( proj.lcent, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
+                #ax_all.plot( lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                 #ax_all.plot( xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
                 ax_all.legend(loc=0)
 
@@ -446,7 +455,7 @@ if 0:
         #fig_all.savefig('%s/Linearity_%s.png'%(plotdir,field))
         #print("FARTS %s"%field)
 
-                #ax.plot( proj.lcent, specf, c=[0.5]*4)
+                #ax.plot( lcentf, specf, c=[0.5]*4)
                 #ax.plot( xvals, 10**quad(np.log10(xvals), popt_2[0],popt_2[1],popt_2[2]), c='r')
                 #ax.plot( xvals, 10**line(np.log10(xvals), popt_1[0],popt_1[1]),c='g')
                 #dt.axbonk(ax,xscale='log',yscale='log')
