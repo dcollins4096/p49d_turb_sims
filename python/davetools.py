@@ -7,9 +7,12 @@ import os.path
 import tarfile
 import h5py
 class extents():
-    def __init__(self):
+    def __init__(self, array=None):
         self.minmax=[]
         self.errors=[]
+        if array:
+            self(array)
+
     def __call__(self,array):
         if len(self.minmax):
             self.minmax[0] = min([array.min(),self.minmax[0]])
