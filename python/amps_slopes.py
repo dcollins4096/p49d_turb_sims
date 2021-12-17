@@ -15,185 +15,19 @@ verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
-#
-# Read primitives
-# 
+#read_stuff reads spectra and average quantities
+#Reload to re-read, but don't do that every time.
+import read_stuff as rs
+#reload(read_stuff)  
+import refit3
+#spectra_dict = rs.spectra_dict
+spectra_dict = refit3.spectra_dict
+quan3 = rs.quan3
 
-if 'quand' not in dir():
-    quand = {}
-for i, sim in enumerate(sim_colors.simlist):
-    if sim in quand:
-        continue
-    print("=== %s ==="%sim)
-    ol = "%s/%s/OutputLog"%(sim_dir,sim)
-    quand[sim] = gaq.get_quantities_and_rms(ol)
+plot_dir =  "/home/dccollins/PigPen"
+plotdir =  "/home/dccollins/PigPen"
 
-#
-# Read spectra
-#
-
-plotdir = "//home/dccollins/PigPen"
-if 'clobber' not in dir():
-    clobber=False
-if 'spectra_dict' not in dir() or clobber==True:
-    spectra_dict={}
-    shortprefix='time'
-    for axes in ['x','y','z']:
-        print('axes',axes)
-        spectra_dict[axes]={}
-        for i, sim in enumerate(sim_colors.simlist):
-            spectra_dict[axes][sim]=slopes(sim) 
-
-            sim_dir = "/data/cb1/Projects/P49_EE_BB/512_frbs/%s"%sim
-            frb_name = ""
-            longprefix='%s_%s_%s'%(sim,shortprefix,axes)
-            spectra_fname = "avg_spectra_%s_%s.h5"%(sim,axes)
-            pack = queb3.simulation_package( directory=sim_dir,frames=sim_colors.frames[sim],prefix=longprefix,
-                                           frbname=frb_name)
-            proj=pack.read_queb(frame=sim_colors.frames[sim][0],ax=axes,bin_style='dx1')
-            fitrange=proj.determine_fit_range()  #something better
-            if os.path.exists(spectra_fname):
-                try:
-                    fptr=h5py.File(spectra_fname,'r')
-                    for field in fptr:
-                        spectra_dict[axes][sim].spectra[field]=fptr[field][()]
-                except:
-                    raise
-                finally:
-                    fptr.close()
-            spectra_dict[axes][sim].fit(proj.lcent,fitrange)
-
-#
-# Read analysis set.
-#
-
-if 'quan3' not in dir():
-    quan3={}
-    for ns, sim in enumerate(sim_colors.simlist):
-        quan3[sim]={}
-        v2avg=[]
-        msavg=[]
-        maavg=[]
-        for frame in sim_colors.framelist[ns]:
-            fname = '%s/%s/DD%04d/data%04d.AverageQuantities.h5'%(sim_colors.cloudbreak_base,sim,frame,frame)
-            if not os.path.exists(fname):
-                print(fname)
-                continue
-            quan4=h5py.File(fname,'r')
-            v2 = np.sqrt(quan4['vx_std'][:]**2+quan4['vy_std'][:]**2+quan4['vz_std'][:]**2)
-            bt = np.sqrt(quan4['bx_avg'][:]**2+quan4['by_avg'][:]**2+quan4['bz_avg'][:]**2)
-            ma=v2/bt
-            v2avg=np.append(v2avg,v2)
-            maavg=np.append(maavg,ma)
-            print(np.mean(ma), np.mean(maavg))
-        quan3[sim]['maavg'] =np.mean(maavg)
-        quan3[sim]['msavg'] =np.mean(v2avg)
-
-
-#
-# Primitives Amplitudes
-#
-if 1:
-    plt.close('all')
-    fig,ax = plt.subplots(3,2, figsize=(8,4))#,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axis = 'y'
-    simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"])
-    sublist=nar([["half_half","half_1","half_2"],["1_half","1_1","1_2"],["2_half","2_1","2_2"],["3_half","3_1","3_2"]]).transpose()
-
-    for nsub,sub  in enumerate(sublist):
-
-        # Nominal; measure with analysis set; measured with all frames (wonky)
-        
-        if 1:
-            this_Ms =[ quan3[sim]['msavg'].mean() for sim in sub]
-            this_Ma =[ quan3[sim]['maavg'].mean() for sim in sub]
-            measured_or_nominal = 'measured3'
-        elif 0:
-            this_Ms =[ quand[sim]['Ms'].mean() for sim in sub]
-            this_Ma =[ quand[sim]['Ma'].mean() for sim in sub]
-            measured_or_nominal = 'measured'
-        else:
-            this_Ms = [sim_colors.Ms[sim]]*len(sub)
-            this_Ma = [sim_colors.Ma[sim]]*len(sub)
-            measured_or_nominal = 'nominal'
-
-
-        #
-        # slopes or amplitudes
-        #
-        do_log=False
-        if 0:
-            #amplitudes
-            do_log=True
-            avg_v  = [spectra_dict[axis][sim].amps['avg_v'] for sim in sub]
-            avg_d  = [spectra_dict[axis][sim].amps['avg_d'] for sim in sub]
-            avg_h  = [spectra_dict[axis][sim].amps['avg_h'] for sim in sub]
-            aos = 'amps'
-            Aalpha = 'A'
-        else:
-            #spectra
-            avg_v  = [spectra_dict[axis][sim].slopes['avg_v'] for sim in sub]
-            avg_d  = [spectra_dict[axis][sim].slopes['avg_d'] for sim in sub]
-            avg_h  = [spectra_dict[axis][sim].slopes['avg_h'] for sim in sub]
-            aos = 'slopes'
-            Aalpha = "\\alpha"
-
-
-        MeanBeta = nar([(quand[sim]['Btot']**2/(8*np.pi)).mean() for sim in sub])
-        MeanB = nar([(quand[sim]['Btot']).mean() for sim in sub])
-        outname = '%s/prim_mach_%s_%s.pdf'%(plotdir, aos, measured_or_nominal)
-        colors =[sim_colors.color[sim] for sim in sub]
-        print(colors)
-        markers=[sim_colors.marker[sim] for sim in sub]
-
-        #Its dumb as hell that marker isn't a list
-        #and I have to make this loop
-        for i in range(len(markers)):
-            ax[0][0].scatter(this_Ms[i], avg_d[i], c=colors[i],marker=markers[i])
-            ax[1][0].scatter(this_Ms[i], avg_v[i], c=colors[i],marker=markers[i])
-            ax[2][0].scatter(this_Ms[i], avg_h[i], c=colors[i],marker=markers[i])
-
-            ax[0][1].scatter(this_Ma[i], avg_d[i], c=colors[i],marker=markers[i])
-            ax[1][1].scatter(this_Ma[i], avg_v[i], c=colors[i],marker=markers[i])
-            ax[2][1].scatter(this_Ma[i], avg_h[i], c=colors[i],marker=markers[i])
-
-            #ax[0][2].scatter(  MeanBeta[i], avg_d[i], c=colors[i],marker=markers[i])
-            #ax[1][2].scatter(  MeanBeta[i], avg_v[i], c=colors[i],marker=markers[i])
-            #ax[2][2].scatter(  MeanBeta[i], avg_h[i], c=colors[i],marker=markers[i])
-
-        fits_v = np.polyfit(MeanBeta, avg_v, 1)
-        fits_d = np.polyfit(MeanBeta, avg_d, 1)
-        fits_h = np.polyfit(MeanBeta, avg_h, 1)
-        #ax[0][2].plot(MeanB, fits_v[0]*MeanB+fits_v[1], c=colors[0])
-        #ax[1][2].plot(MeanB, fits_d[0]*MeanB+fits_d[1], c=colors[0])
-        #ax[2][2].plot(MeanB, fits_h[0]*MeanB+fits_h[1], c=colors[0])
-
-        matrix_d[:,nsub]=avg_d
-        matrix_v[:,nsub]=avg_v
-        matrix_h[:,nsub]=avg_h
-        the_x[:,nsub]=MeanBeta
-        the_y[:,nsub]=nar(this_Ms)
-
-
-        ax[0][0].set_ylabel(r'$%s_\rho$'%Aalpha)
-        ax[1][0].set_ylabel(r'$%s_v$'%Aalpha)
-        ax[2][0].set_ylabel(r'$%s_H$'%Aalpha)
-        ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
-        ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
-        #ax[2][2].set_xlabel(r'$\beta$')
-
-    for a in [ax[0][1],ax[1][1],ax[2][1]]:
-        a.set_yticks([])
-    for a in [ax[0][-1],ax[1][-1],ax[2][-1]]:
-        a.yaxis.tick_right()
-    if do_log:
-        for a in ax.flatten():
-            a.set_yscale('log')
-
-    fig.savefig(outname)
-    print(outname)
-
+print( spectra_dict['x']['1_1'].slope_bucket.cube_slope)
 if 0:
     nominal_Ma =nar([sim_colors.Ma[sim] for sim in sub])
     nominal_Ms =nar([sim_colors.Ms[sim] for sim in sub])
@@ -206,20 +40,42 @@ if 0:
     ax[0][3].plot(MMMa['v'],pfit[0]*MMMa['v']+pfit[1],c='k')
 
 #
-# TEB amplitudes
+# TEB amplitudes, slopes
 #
-
+LOS = 'y'
+range_ext=dt.extents()
+simlist = ['half_half','1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
 if 1:
     plt.close('all')
     #fig,ax = plt.subplots(1,3, sharex=True,sharey=True,figsize=(12,4))
     fig,ax = plt.subplots(3,2, figsize=(8,4))#,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
-    LOS = 'y'
 
     for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
-        for sim in sim_colors.simlist:
+        for sim in simlist: #sim_colors.simlist:
 
+            do_prim=False; do_TEB=False
+            do_amp=False; do_slope=False
+
+            if 1:
+                F1 = 'avg_cltt'
+                F2 = 'avg_clee'
+                F3 = 'avg_clbb'
+                S1 = 'TT'
+                S2 = 'EE'
+                S3 = 'BB'
+                which_quan = "TEB_%s"%LOS
+                do_TEB=True
+            else:
+                F1 = 'avg_d'
+                F2 = 'avg_v'
+                F3 = 'avg_h'
+                S1 = r'\rho'
+                S2 = 'v'
+                S3 = 'h'
+                which_quan = "prim"
+                do_prim=True
 
             #
             # slopes or amplitudes
@@ -228,26 +84,34 @@ if 1:
             if 0:
                 #amplitudes
                 do_log=True
-                the_y_T = spectra_dict[LOS][sim].amps['avg_cltt']
-                the_y_E = spectra_dict[LOS][sim].amps['avg_clee']
-                the_y_B = spectra_dict[LOS][sim].amps['avg_clbb']
+                do_amp=True
+                the_y_T = spectra_dict[LOS][sim].amps[F1]
+                the_y_E = spectra_dict[LOS][sim].amps[F2]
+                the_y_B = spectra_dict[LOS][sim].amps[F3]
                 aos = 'amps'
                 Aalpha = 'A'
-            else:
+            elif 1:
                 #slopes
-                the_y_T = spectra_dict[LOS][sim].slopes['avg_cltt']
-                the_y_E = spectra_dict[LOS][sim].slopes['avg_clee']
-                the_y_B = spectra_dict[LOS][sim].slopes['avg_clbb']
+                do_slope=True
+                the_y_T = spectra_dict[LOS][sim].slope_bucket.cube_slope[F1]
+                the_y_E = spectra_dict[LOS][sim].slope_bucket.cube_slope[F2]
+                the_y_B = spectra_dict[LOS][sim].slope_bucket.cube_slope[F3]
+                #the_y_T = spectra_dict[LOS][sim].slope_bucket.avg_slope[F1]
+                #the_y_E = spectra_dict[LOS][sim].slope_bucket.avg_slope[F2]
+                #the_y_B = spectra_dict[LOS][sim].slope_bucket.avg_slope[F3]
+                #the_std_T = spectra_dict[LOS][sim].slope_bucket.std_slope[F1]
+                #the_std_E = spectra_dict[LOS][sim].slope_bucket.std_slope[F2]
+                #the_std_B = spectra_dict[LOS][sim].slope_bucket.std_slope[F3]
+                #the_y_T = spectra_dict[LOS][sim].slopes[F1]
+                #the_y_E = spectra_dict[LOS][sim].slopes[F2]
+                #the_y_B = spectra_dict[LOS][sim].slopes[F3]
                 aos = 'slopes'
                 Aalpha = "\\alpha"
 
-                                                       
-                spectra_dict[LOS][sim].amps['avg_cltt']
-                spectra_dict[LOS][sim].amps['avg_clee']
-                spectra_dict[LOS][sim].amps['avg_clbb']
             this_Ms = quan3[sim]['msavg'].mean()
             this_Ma = quan3[sim]['maavg'].mean()
             kwargs = {"c":sim_colors.color[sim], "marker":sim_colors.marker[sim]}
+            print(sim, the_y_T)
             ax[0][0].scatter(this_Ms, the_y_T,  **kwargs)
             ax[1][0].scatter(this_Ms, the_y_E,  **kwargs)
             ax[2][0].scatter(this_Ms, the_y_B,  **kwargs)
@@ -255,19 +119,52 @@ if 1:
             ax[0][1].scatter(this_Ma, the_y_T,  **kwargs)
             ax[1][1].scatter(this_Ma, the_y_E,  **kwargs)
             ax[2][1].scatter(this_Ma, the_y_B,  **kwargs)
+            range_ext(the_y_T)
+            range_ext(the_y_E)
+            range_ext(the_y_B)
 
     if do_log:
         for aaa in axlist:
             aaa.set_yscale('log')
-    ax[0][0].set_ylabel(r'$%s_{\rm{TT}}$'%Aalpha)
-    ax[1][0].set_ylabel(r'$%s_{\rm{EE}}$'%Aalpha)
-    ax[2][0].set_ylabel(r'$%s_{\rm{BB}}$'%Aalpha)
+    ax[0][0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S1))
+    ax[1][0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S2))
+    ax[2][0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S3))
     ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
     ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
 
-    ax[0][0].set_title("%s %s"%(aos,LOS))
+    if do_TEB:
+        ax[0][0].set_title("%s %s"%(aos,LOS))
+
+
+    if (do_prim and do_amp):
+        for aaa in axlist:
+            aaa.set_ylim([4e-6,4e-2])
+    if (do_TEB and do_amp):
+        for aaa in axlist:
+            aaa.set_ylim([2e-7,2e-1])
+    if do_prim and do_slope:
+        for aaa in axlist:
+            pass
+            #aaa.set_ylim([-1.9,-0.9])
+    if do_TEB and do_slope:
+        for aaa in axlist:
+            pass
+            #aaa.set_ylim([-5,-1])
+
+    if do_log:
+        for aaa in axlist:
+            y_minor = matplotlib.ticker.LogLocator(base = 10.0, subs = np.arange(1.0, 10.0) * 0.1, numticks = 10)
+            aaa.yaxis.set_minor_locator(y_minor)
+            aaa.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    else:
+        for aaa in axlist:
+            aaa.minorticks_on()
+
+    for n in range(3):
+        ax[n][1].yaxis.tick_right()
+
             
 
-    outname = '%s/TEB_%s_mach_%s_%s.pdf'%(plotdir, LOS,aos,'measured3')
+    outname = '%s/%s_mach_%s_%s.pdf'%(plotdir, which_quan,aos,'measured3')
     fig.savefig(outname)
     print(outname)

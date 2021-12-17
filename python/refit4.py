@@ -1,8 +1,3 @@
-field_list=['avg_cltt','avg_clee','avg_clbb', 'avg_d','avg_v','avg_h']
-simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"])
-simlist = ['half_half','1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
-field_list = ['avg_clbb']
-do_all_subplots=False
 
 from GL import *
 from cycler import cycler
@@ -20,6 +15,14 @@ verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
+field_list=['avg_cltt','avg_clee','avg_clbb', 'avg_d','avg_v','avg_h']
+simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"])
+simlist = ['half_half','1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
+simlist = ['3_half']
+
+field_list = ['avg_clbb']
+do_all_subplots=True
+
 
 #read_stuff reads spectra and average quantities
 #Reload to re-read, but don't do that every time.
@@ -28,6 +31,8 @@ import read_stuff as rs
 #spectra_dict = rs.spectra_dict
 quan3 = rs.quan3
 import refit3
+#reload(refit3)
+
 spectra_dict = refit3.spectra_dict
 
 from scipy.optimize import curve_fit
@@ -37,21 +42,12 @@ from scipy.optimize import curve_fit
 #
 
 plotdir=os.environ['HOME']+"/PigPen"
-from scipy.stats import ks_2samp
-def do_ks_string(test_dist, original_dist):
-        KS_output = ks_2samp(test_dist, original_dist)
-        crit_stat = 1.36*np.sqrt( (original_dist.size + test_dist.size)/(original_dist.size*test_dist.size))
-        ks_string = r'$D=%0.2f (D_c=%0.2f, p=%f)$'%(KS_output.statistic,crit_stat, KS_output.pvalue)
-        return ks_string
-def do_ks(test_dist, original_dist):
-        KS_output = ks_2samp(test_dist, original_dist)
-        crit_stat = 1.36*np.sqrt( (original_dist.size + test_dist.size)/(original_dist.size*test_dist.size))
-        #ks_string = r'$D=%0.2f (D_c=%0.2f, p=%f)$'%(KS_output.statistic,crit_stat, KS_output.pvalue)
-        return KS_output.statistic,crit_stat, KS_output.pvalue
 
 from scipy.ndimage import gaussian_filter1d
 def compensate_plot(ax,alpha,x,y,**kwargs):
     ax.plot( x, x**alpha*y, **kwargs)
+def compensate_scatter(ax,alpha,x,y,**kwargs):
+    ax.scatter( x, x**alpha*y, **kwargs)
 if 1:
     #
     # Development code.  
@@ -73,121 +69,88 @@ if 1:
         for ns,sim in enumerate(simlist):
             
             for LOS in LOS_LIST:
+                mah_bucket = spectra_dict[LOS][sim].slopes3[field]
                 print("DO", field, sim, LOS)
                 proj=rs.proj_dict[LOS][sim]
-                lcentf = proj.lcent
-                specf=spectra_dict[LOS][sim].spectra[field]
                 fit_range=proj.determine_fit_range()
-                x0_list = lcentf[5:10:2]
-                x1_list = lcentf[14:51:2]
-                smooth=False
-                if 1:
-                    smooth=True
-                    specf_raw = specf[5:]
-                    specf = 10**gaussian_filter1d( np.log10(specf_raw), 1, mode='nearest')
-                    lcentf = lcentf[5:]
                 x0=fit_range[0]
                 x1=fit_range[1]
-
-
-                #x0_list = [x0]
-                #x1_list = [x1]
-                #x0_list = [2,3]
-                #x1_list = [45,51]
+                lcentf = mah_bucket.lcentf
+                specf =  mah_bucket.specf
 
                 # fixed fit
                 ok = (lcentf>=x0)*(lcentf<=x1)
                 xvals = lcentf[ok]
                 spec=specf[ok]
-                popt_fixed, pcov_fixed= curve_fit( line, np.log10(xvals), np.log10(spec))
+                popt_fixed, pcov_fixed= curve_fit( refit3.line, np.log10(xvals), np.log10(spec))
                 AlphaF = popt_fixed[1]
 
-                fig,axes=plt.subplots(2,3,figsize=(12,4))
+                counter2=0
+                slope_list =  nar(mah_bucket.line_slope_list)[:,1]
+                slope_list_3 =  mah_bucket.cube_slope_list
+                amp_list_3 =  mah_bucket.cube_amp_list
+
+                ok_list= mah_bucket.ok_list
+                color_3=[]
+                a_list=mah_bucket.cube_param_list[:,0]
+                b_list=mah_bucket.cube_param_list[:,1]
+                c_list=mah_bucket.cube_param_list[:,2]
+                d_list=mah_bucket.cube_param_list[:,3]
+
+                dof_list=[ok.sum() for ok in mah_bucket.ok_list]
+                verts=dt.extents()
+                for nlist, ok in enumerate(mah_bucket.ok_list):
+                    verts( refit3.minmax( -AlphaF, lcentf[ok], mah_bucket.line_list[nlist]))
+                    verts( refit3.minmax( -AlphaF, lcentf[ok], mah_bucket.cube_list[nlist]))
+                c_to_b=dt.extents( c_list/b_list)
+                d_to_b=dt.extents( d_list/b_list )
+                a3_ext=dt.extents( a_list)
+                a1_ext=dt.extents( slope_list)
+                chi_c_ext=dt.extents( nar([1e-3,1e3]))
+                chi_l_ext=dt.extents( nar([1e-3,1e3]))
+                a_ext=dt.extents( a_list)
+                b_ext=dt.extents( b_list )
+
+                #a3,b3,c3,d3=popt_3 #a + b k + c k^2 + d k ^3
+                #slope = b3 - c3**2/(3*d3)
+                #value = a3 - b3*c3/(3*d3) + c3**3/d3**2*(1./9-1./27)
+                #k_flat = -c3/(3*d3)
+
+                fig,axes = plt.subplots(2,2,figsize=(12,12))
                 axL = axes.flatten()
 
                 axL[2].plot([1e-6,200],[1e-6,200],c='k')
                 axL[2].plot([1e-6,200],[0.1*1e-6,0.1*200],c='k')
                 axL[2].plot([1e-6,200],[10*1e-6,10*200],c='k')
 
+                axL[0].scatter( slope_list, slope_list_3)
+                dt.axbonk(axL[0],xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
+
+                axL[1].scatter( c_list/b_list, d_list/b_list)
+                dt.axbonk(axL[1], xlabel=r'$c/b$', ylabel=r'$d/b$', xlim = c_to_b.minmax, ylim=d_to_b.minmax)
+
+                axL[3].scatter( a_list, b_list)
+                dt.axbonk(axL[3],xlabel='a',ylabel='b',xlim=a_ext.minmax,ylim=b_ext.minmax)
+
+                axL[2].scatter( mah_bucket.chi_l_list, mah_bucket.chi_c_list)
+                dt.axbonk(axL[2],xscale='log',yscale='log', xlim=chi_l_ext.minmax,ylim=chi_c_ext.minmax, xlabel=r'$\chi^2_1$',ylabel=r'$\chi^3_2$')
 
 
-                counter2=0
-                slope_list = []
-                amp_list = []
 
-                slope_list_3=[]
-                amp_list_3=[]
-                k_list_3=[]
-                ok_list=[]
-                color_3=[]
-                a_list=[]
-                b_list=[]
-                c_list=[]
-                d_list=[]
+                fig.savefig('%s/quad_%s_%s_%s.png'%(plotdir,field,sim,LOS))
 
-                dof_list=[]
-                verts = dt.extents()
-                c_to_b=dt.extents()
-                d_to_b=dt.extents()
-                a3_ext=dt.extents()
-                a1_ext=dt.extents()
-                chi_c_ext=dt.extents()
-                chi_l_ext=dt.extents()
-                a_ext=dt.extents()
-                b_ext=dt.extents()
-
-                #
-                # Loop for finding extents and filling arrays
-                #
-                for n0,x0 in enumerate(x0_list):
-                    for n1,x1 in enumerate(x1_list):
-                        ok = (lcentf>=x0)*(lcentf<=x1)
-                        xvals = lcentf[ok]
-                        spec=specf[ok]
-                        popt_3, pcov_3= curve_fit( cube, np.log10(xvals), np.log10(spec))
-                        popt_1, pcov_1= curve_fit( line, np.log10(xvals), np.log10(spec))
-
-                        a3,b3,c3,d3=popt_3 #a + b k + c k^2 + d k ^3
-                        slope = b3 - c3**2/(3*d3)
-                        value = a3 - b3*c3/(3*d3) + c3**3/d3**2*(1./9-1./27)
-                        k_flat = -c3/(3*d3)
-                        if 10**k_flat <= x0 or 10**k_flat >= x1:
-                            continue
-                        this_c=10**cube(np.log10(xvals), popt_3[0],popt_3[1],popt_3[2], popt_3[3])
-                        this_l=10**line(np.log10(xvals), popt_1[0],popt_1[1])
-
-                        chi_c = ((np.log10(this_c)-np.log10(spec))**2/spec).sum()/( ok.sum()-2)
-                        chi_l = ((np.log10(this_l)-np.log10(spec))**2/spec).sum()/( ok.sum()-2)
-                        chi_c_ext(chi_c)
-                        chi_l_ext(chi_l)
-                        c_to_b(c3/b3)
-                        d_to_b(d3/b3)
-                        a_ext(a3)
-                        b_ext(b3)
-                        a1_ext(popt_1[1])
-                        a3_ext(slope)
-                        slope_list.append(popt_1[1])
-                        amp_list.append(popt_1[0])
-                        ok_list.append(ok)
-                        dof_list.append(ok.sum())
-                        slope_list_3.append(slope)
-                        amp_list_3.append(value)
-                        k_list_3.append(k_flat)
-                        color_3.append(n0)
-
-                        a_list.append(a3);b_list.append(b3); c_list.append(c3); d_list.append(d3)
+                fig_sub,ax_sub=plt.subplots(1,1,figsize=(12,12))
                 #
                 # Do a bunch of plots
                 #
-                for n0,x0 in enumerate(x0_list):
-                    for n1,x1 in enumerate(x1_list):
-                        if not do_all_subplots:
-                            continue
-                        ok = (lcentf>=x0)*(lcentf<=x1)
-                        xvals = lcentf[ok]
-                        spec=specf[ok]
-                        popt_3, pcov_3= curve_fit( cube, np.log10(xvals), np.log10(spec))
-                        popt_1, pcov_1= curve_fit( line, np.log10(xvals), np.log10(spec))
+                if do_all_subplots:
+                    for nlist,ok in enumerate(mah_bucket.ok_list):
+                        #if counter2 > 4:
+                        #    continue
+
+                        xvals = mah_bucket.lcentf[ok]
+                        popt_1 = mah_bucket.line_slope_list[nlist]
+                        popt_3 = mah_bucket.cube_param_list[nlist]
 
                         a3,b3,c3,d3=popt_3 #a + b k + c k^2 + d k ^3
                         slope = b3 - c3**2/(3*d3)
@@ -195,49 +158,33 @@ if 1:
                         k_flat = -c3/(3*d3)
                         if 10**k_flat <= x0 or 10**k_flat >= x1:
                             continue
+                        print("x0 %0.4f kf %0.4f"%(x0,10**k_flat))
+                        #slope2 = mah_bucket.cube_slope_list[nlist]
+                        #print( slope, slope2)
+                        #if np.abs( slope-slope2)>1e-7:
+                        #    raise
 
-                        this_c=10**cube(np.log10(xvals), popt_3[0],popt_3[1],popt_3[2], popt_3[3])
-                        this_l=10**line(np.log10(xvals), popt_1[0],popt_1[1])
-
-                        chi_c = ((np.log10(this_c)-np.log10(spec))**2/spec).sum()/( ok.sum()-2)
-                        chi_l = ((np.log10(this_l)-np.log10(spec))**2/spec).sum()/( ok.sum()-2)
-
-                        line_from_cube =10**line(np.log10(xvals), popt_1[0],popt_1[1])
+                        this_l=10**refit3.line(np.log10(xvals), popt_1[0],popt_1[1])
                         line_from_cube = 10**( slope*(np.log10(xvals)-k_flat) + value)
+                        this_c = 10**refit3.cube( np.log10(xvals), popt_3[0], popt_3[1], popt_3[2], popt_3[3])
 
-                        axL[0].clear()
-                        axL[0].set_title(r'$\alpha_1 = %0.2f \alpha_3 = %0.2f \chi^2_1 = %0.1e \chi^2_3 = %0.1e$'%(popt_1[1], slope, chi_l, chi_c))
+                        ax_sub.clear()
+                        #axL[0].set_title(r'$\alpha_1 = %0.2f \alpha_3 = %0.2f \chi^2_1 = %0.1e \chi^2_3 = %0.1e$'%(popt_1[1], slope, chi_l, chi_c))
 
-                        compensate_plot(axL[0], -AlphaF, lcentf, specf, c=[0.5]*4)
-                        compensate_plot(axL[0], -AlphaF, xvals, this_c, c='b')
-                        compensate_plot(axL[0], -AlphaF,  xvals, this_l,c='g')
-                        compensate_plot(axL[0], -AlphaF,  xvals, line_from_cube,c='r')
+                        compensate_plot(ax_sub, -AlphaF, lcentf, specf, c=[0.5]*4)
+                        compensate_plot(ax_sub, -AlphaF, xvals, this_c, c='b')
+                        compensate_plot(ax_sub, -AlphaF,  xvals, this_l,c='g')
+                        compensate_plot(ax_sub, -AlphaF,  xvals, line_from_cube,c='r')
+                        compensate_scatter(ax_sub,-AlphaF, 10**k_flat, 10**value)
 
-                        verts( minmax(-AlphaF,xvals,line_from_cube))
-                        verts( minmax(-AlphaF,xvals,this_c))
-                        verts( minmax(-AlphaF,xvals,this_l))
-                        ylim=verts.minmax
-                        #ylim = [1e-7,1e-3]
+
 
                         xlim = [lcentf.min(),lcentf.max()]
                         xlim = [proj.lcent.min(),proj.lcent.max()]
-                        dt.axbonk(axL[0],xscale='log',yscale='log', ylim=ylim, xlim=xlim)
-
-                        axL[1].scatter( popt_1[1], slope)
-                        dt.axbonk(axL[1],xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
-
-
-                        axL[2].scatter( chi_l, chi_c)
-                        dt.axbonk(axL[2],xscale='log',yscale='log', xlim=chi_l_ext.minmax,ylim=chi_c_ext.minmax, xlabel=r'$\chi^2_1$',ylabel=r'$\chi^3_2$')
-
-                        axL[3].scatter( c3/b3, d3/b3)
-                        dt.axbonk(axL[3], xlabel=r'$c/b$', ylabel=r'$d/b$', xlim = c_to_b.minmax, ylim=d_to_b.minmax)
-
-                        axL[4].scatter( a3,b3)
-                        dt.axbonk(axL[4],xlabel='a',ylabel='b',xlim=a_ext.minmax,ylim=b_ext.minmax)
-
+                        dt.axbonk(ax_sub,xscale='log',yscale='log', ylim=verts.minmax, xlim=xlim)
                         counter2+=1
-                        fig.savefig('%s/quad_%s_%s_%s_%02d.png'%(plotdir,field,sim,LOS, counter2))
+                        fig_sub.savefig('%s/sub_spectrum_%s_%s_%s_%02d.png'%(plotdir,field,sim,LOS, counter2))
+
                         
 
 
@@ -249,19 +196,14 @@ if 1:
                 bins = np.mgrid[-5:0:51j]
                 hist, bins, visthings=ax_right.hist( slope_list_3, histtype='step', orientation='horizontal',bins=bins)
 
-                norm = mpl.colors.Normalize(vmin=min(color_3), vmax=max(color_3))
-                ax_alpha.scatter( slope_list, slope_list_3, c=color_3,norm=norm)
+                #norm = mpl.colors.Normalize(vmin=min(color_3), vmax=max(color_3))
+                ax_alpha.scatter( slope_list, slope_list_3)#, c=color_3,norm=norm)
                 ax_alpha.plot( [-5,0],[-5,0],c=[0.5]*3)
                 ax_top.hist( slope_list, histtype='step',bins=bins)
                 dt.axbonk(ax_alpha, xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=[-5,0],ylim=[-5,0])
 
                 ax_right.set_ylim( ax_alpha.get_ylim())
                 ax_top.set_xlim( ax_alpha.get_xlim())
-
-                a_list=nar(a_list)
-                b_list=nar(b_list)
-                c_list=nar(c_list)
-                d_list=nar(d_list)
 
                 most_probable_bin = np.argmax(hist)
                 bL = bins[most_probable_bin]
@@ -276,9 +218,9 @@ if 1:
 
                 ax_alpha.axvline(AlphaC, c=[0.5]*3)
                 ax_alpha.axhline(AlphaC, c=[0.5]*3)
-                AL = nar(amp_list_3)
-                Amp = AL[ most_probable ].mean()
-                KL = nar(k_list_3)
+                Amp = nar(amp_list_3)[ most_probable ].mean()
+                #k_flat = -c3/(3*d3)
+                KL = -c_list/(3*d_list)
                 Kfit = KL[ most_probable ].mean()
 
                 fig4.savefig('%s/alpha3_%s_%s_%s.png'%(plotdir,field,sim,LOS))
@@ -298,7 +240,7 @@ if 1:
                 # Fixed
                 #
 
-                this_l=10**line(np.log10(xvals), popt_1[0],AlphaF)
+                this_l=10**refit3.line(np.log10(xvals), popt_1[0],AlphaF)
                 kfit = lcentf[16]
                 index = np.argmin( np.abs( xvals-kfit))
                 this_l = this_l*specf[16]/this_l[index]
@@ -345,7 +287,7 @@ if 1:
                 #cube_from_mean = 10**cube( np.log10(xvals), popt_3[0], popt_3[1], popt_3[2], popt_3[3])
                 ####cube_from_mean = 10**cube( np.log10(xvals), mean_a, mean_b, mean_c, mean_d)
                 xvals_longest = lcentf[ ok_list[longest_index]]
-                cube_from_mean = 10**cube( np.log10(xvals_longest), a3,b3,c3,d3)
+                cube_from_mean = 10**refit3.cube( np.log10(xvals_longest), a3,b3,c3,d3)
                 #ax2.scatter( xvals[index],xvals[index]**(-AlphaC)*cube_from_mean[index])
                 #ax2.scatter( 10**Kfit, cube_from_mean.min())
                 chi2 = -42 #np.sum( (cube_from_mean-specf[ok])**2/specf[ok])
@@ -364,8 +306,7 @@ if 1:
                     compensate_plot(ax_all, 3, lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                     #compensate_plot(ax_all, 3, xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
                     compensate_plot(ax_all, 3, xvals, probable_line_from_cube,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
-                    if smooth:
-                        compensate_plot(ax_all, 3, lcentf, specf_raw,  c=[0.5]*3)
+                    compensate_plot(ax_all, 3, lcentf, mah_bucket.specf_raw,  c=[0.5]*3)
                 #ax_all.plot( lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                 #ax_all.plot( xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
                 ax_all.legend(loc=0)
@@ -438,4 +379,3 @@ if 0:
                 #ax.plot( xvals, 10**line(np.log10(xvals), popt_1[0],popt_1[1]),c='g')
                 #dt.axbonk(ax,xscale='log',yscale='log')
                 #fig.savefig('%s/quad_%s_%s_%s.png'%(plotdir,field,sim,LOS))
-
