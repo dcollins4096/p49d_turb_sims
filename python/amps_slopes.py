@@ -27,7 +27,6 @@ quan3 = rs.quan3
 plot_dir =  "/home/dccollins/PigPen"
 plotdir =  "/home/dccollins/PigPen"
 
-print( spectra_dict['x']['1_1'].slope_bucket.cube_slope)
 if 0:
     nominal_Ma =nar([sim_colors.Ma[sim] for sim in sub])
     nominal_Ms =nar([sim_colors.Ms[sim] for sim in sub])
@@ -53,6 +52,7 @@ if 1:
     axlist=ax.flatten()
 
     for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
+        print('aaa')
         for sim in simlist: #sim_colors.simlist:
 
             do_prim=False; do_TEB=False
@@ -93,9 +93,9 @@ if 1:
             elif 1:
                 #slopes
                 do_slope=True
-                the_y_T = spectra_dict[LOS][sim].slope_bucket.cube_slope[F1]
-                the_y_E = spectra_dict[LOS][sim].slope_bucket.cube_slope[F2]
-                the_y_B = spectra_dict[LOS][sim].slope_bucket.cube_slope[F3]
+                the_y_T = spectra_dict[LOS][sim].slopes3[field].AlphaPeak
+                the_y_E = spectra_dict[LOS][sim].slopes3[field].AlphaPeak
+                the_y_B = spectra_dict[LOS][sim].slopes3[field].AlphaPeak
                 #the_y_T = spectra_dict[LOS][sim].slope_bucket.avg_slope[F1]
                 #the_y_E = spectra_dict[LOS][sim].slope_bucket.avg_slope[F2]
                 #the_y_B = spectra_dict[LOS][sim].slope_bucket.avg_slope[F3]
@@ -111,8 +111,9 @@ if 1:
             this_Ms = quan3[sim]['msavg'].mean()
             this_Ma = quan3[sim]['maavg'].mean()
             kwargs = {"c":sim_colors.color[sim], "marker":sim_colors.marker[sim]}
-            print(sim, the_y_T)
+            print(sim, sim_colors.color[sim], the_y_T)
             ax[0][0].scatter(this_Ms, the_y_T,  **kwargs)
+            print('b')
             ax[1][0].scatter(this_Ms, the_y_E,  **kwargs)
             ax[2][0].scatter(this_Ms, the_y_B,  **kwargs)
 
