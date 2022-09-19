@@ -1,4 +1,4 @@
-def write_alignment_file(self, fields, filename):
+def write_rmc_fields(self, fields, filename):
     '''
     This method writes out fields in the format radmc3d needs to compute
     thermal dust emission. In particular, if you have a field called
@@ -20,7 +20,7 @@ def write_alignment_file(self, fields, filename):
     # write header
     fhandle.write('1 \n')
     fhandle.write(str(self.cell_count) + ' \n')
-    if len(field) == 1:
+    if len(fields) == 1:
         fhandle.write('1 \n')
 
     # now write fine layers:
