@@ -9,221 +9,249 @@ from matplotlib.pyplot import cm
 import sim_colors
 reload(sim_colors)
 reload(queb3)
+import get_all_quantities as gaq
+reload(gaq)
 verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
-class bin_tool():
-    def __init__(self,Nx,Ny):
-        self.N = np.array([Nx,Ny])
+#read_stuff reads spectra and average quantities
+#Reload to re-read, but don't do that every time.
+import read_stuff as rs
+#reload(read_stuff)  
+spectra_dict = rs.spectra_dict
+quan3 = rs.quan3
 
-    def compute_bins_dx1(self):
-        #We arrange things so that Delta=Delta x = 1.
-        #Thus Delta L = 2pi/N
-        #This is the best thing to use.
-        self.xsize = self.N[0]
-
-        self.size2d = np.array([self.xsize]*2)
-        self.Delta = self.size2d/self.N
-        self.Deltal = 2*np.pi/(self.N*self.Delta) #cmbtools.Delta2l(self.Delta,self.N) #2 pi/(N Delta)
-
-        self.lmax = self.Deltal[0]*self.N[0]/2
-        self.lbins = np.arange(0,self.N[0]//2) *self.Deltal[0]
-        self.lcent = self.lbins[:-1] + np.diff(self.lbins)/2.
-        return self.lcent
-
-a=bin_tool(512,512)
-lcent=a.compute_bins_dx1()
-
-
-
-class slopes():
-    def __init__(self,name):
-        self.name=name
-        self.spectra={}
-        self.slopes={}
-        self.amps={}
-        self.res={}
-        self.pack = None
-    def fit(self,lcent,fitrange):
-        for field in self.spectra:
-            slope,amp,res=plfit(lcent,self.spectra[field],fitrange)
-            self.amps[field]=amp
-            self.slopes[field]=slope
-            self.res[field]=res
-
-if 'spectra_dict' not in dir():
-    spectra_dict={}
-    shortprefix='time'
-    for axes in ['x','y','z']:
-        spectra_dict[axes]={}
-        for i, sim in enumerate(sim_colors.simlist):
-            spectra_dict[axes][sim]=slopes(sim) 
-
-            sim_dir = "/archive2/kas14d/512reruns/frbs/%s"%sim
-            longprefix='%s_%s_%s'%(sim,shortprefix,axes)
-            spectra_fname = "avg_spectra_%s_%s.h5"%(sim,axes)
-            pack = queb3.simulation_package( directory=sim_dir,frames=sim_colors.frames[sim],prefix=longprefix)
-            proj=pack.read_queb(frame=sim_colors.frames[sim][0],ax=axes,bin_style='dx1')
-            fitrange=proj.determine_fit_range()  #something better
-            if os.path.exists(spectra_fname):
-                try:
-                    fptr=h5py.File(spectra_fname,'r')
-                    for field in fptr:
-                        spectra_dict[axes][sim].spectra[field]=fptr[field][()]
-                except:
-                    raise
-                finally:
-                    fptr.close()
-            spectra_dict[axes][sim].fit(proj.lcent,fitrange)
 
 #
-# Spectra plots
+# TT EE BB vs Mach
 #
 
 if 0:
-    plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
-
-    for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
+    for xyz in 'xyz':
+        plt.close('all')
+        fig,ax = plt.subplots(3,2)#,sharey=True)
+        fig.subplots_adjust(wspace=0, hspace=0)
         for sim in sim_colors.simlist:
-            axlist[nf].plot(proj.lcent, spectra_dict['x'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-    for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
-        for sim in sim_colors.simlist:
-            axlist[nf+3].plot(proj.lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-            axlist[nf+3].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-    for a in axlist:
-        dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
-    for a in axlist[3:]:
-        a.set_xlabel(r'$k/k_max$')
-    for a in [axlist[0],axlist[3]]:
-        a.set_ylabel(r'$P(k)$')
+            #nominal or measured
+            if 1:
+                this_Ms = quand[sim]['Ms'].mean()
+                this_Ma = quand[sim]['Ma'].mean()
+                measured_or_nominal = 'measured'
+            else:
+                this_Ms = sim_colors.Ms[sim]
+                this_Ma = sim_colors.Ma[sim]
+                measured_or_nominal = 'nominal'
 
-    plotdir='/home/dcollins4096/PigPen'
-    fig.savefig('%s/TT_EE_BB.pdf'%plotdir)
+            if 1:
+                amps_or_slopes = spectra_dict[xyz][sim].amps
+                aos = 'amps'
+                Aalpha = 'A'
+                yscale='log'
+            else:
+                amps_or_slopes = spectra_dict[xyz][sim].slopes
+                aos = 'slopes'
+                Aalpha = "\\alpha"
+                yscale='linear'
+            outname = '%s/TTEEBB_%s_mach_%s_%s.pdf'%(plotdir, xyz, aos, measured_or_nominal)
 
+            label="%s %0.1f"%(sim, spectra_dict[xyz][sim].slopes['avg_cltt'])
+            ax[0][0].scatter(this_Ma, amps_or_slopes['avg_cltt'], c=sim_colors.color[sim], marker=sim_colors.marker[sim],label=label)
+            ax[1][0].scatter(this_Ma, amps_or_slopes['avg_clee'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[2][0].scatter(this_Ma, amps_or_slopes['avg_clbb'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            
+            ax[0][1].scatter(this_Ms, amps_or_slopes['avg_cltt'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[1][1].scatter(this_Ms, amps_or_slopes['avg_clee'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[2][1].scatter(this_Ms, amps_or_slopes['avg_clbb'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+            ax[0][0].set_ylabel(r'$%s_{TT}$'%Aalpha)
+            ax[1][0].set_ylabel(r'$%s_{EE}$'%Aalpha)
+            ax[2][0].set_ylabel(r'$%s_{BB}$'%Aalpha)
+            ax[2][0].set_xlabel(r'$M_{\rm{A}}$')
+            ax[2][1].set_xlabel(r'$M_{\rm{s}}$')
+            for a in [ax[0][1],ax[1][1],ax[2][1]]:
+                a.yaxis.tick_right()
+        ax[0][0].legend(loc=0)
+        for a in ax.flatten():
+            a.set_yscale(yscale)
+        fig.savefig(outname)
+        print(outname)
+
+
+#
+# Primitives vs Mach
+#
 if 0:
     plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
-
-    for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
-        for sim in sim_colors.simlist:
-            qu = field[-2:].upper()
-            label = r'$%s, \parallel$'%qu
-            axlist[nf  ].text(2.5,-5,label)
-            axlist[nf  ].scatter(sim_colors.Ms[sim], spectra_dict['x'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-            label = r'$%s, \perp$'%qu
-            axlist[nf+3].text(2.5,-5,label)
-            axlist[nf+3].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-            axlist[nf+3].scatter(sim_colors.Ms[sim], spectra_dict['z'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-    for a in axlist:
-        dt.axbonk(a,xscale='linear',yscale='linear',xlabel=None,ylabel=None)
-    for a in axlist[3:]:
-        a.set_xlabel(r'$M_s$')
-    for a in [axlist[0],axlist[3]]:
-        a.set_ylabel(r'$\alpha_{XX}$')
-
-    plotdir='/home/dcollins4096/PigPen'
-    fig.savefig('%s/Slopes_Ms.pdf'%plotdir)
-
-if 0:
-    plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
-
-    for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
-        for sim in sim_colors.simlist:
-            qu = field[-2:].upper()
-            label = r'$%s, \parallel$'%qu
-            axlist[nf  ].text(1.5,-5,label)
-            axlist[nf  ].scatter(sim_colors.Ma[sim], spectra_dict['x'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-            label = r'$%s, \perp$'%qu
-            axlist[nf+3].text(1.5,-5,label)
-            axlist[nf+3].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-            axlist[nf+3].scatter(sim_colors.Ma[sim], spectra_dict['z'][sim].slopes[field], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-    for a in axlist:
-        dt.axbonk(a,xscale='linear',yscale='linear',xlabel=None,ylabel=None)
-    for a in axlist[3:]:
-        a.set_xlabel(r'$M_a$')
-    for a in [axlist[0],axlist[3]]:
-        a.set_ylabel(r'$\alpha_{XX}$')
-
-    plotdir='/home/dcollins4096/PigPen'
-    fig.savefig('%s/Slopes_Ma.pdf'%plotdir)
-
-if 0:
-    plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
-
-    for nf,field in enumerate(['avg_reb', 'avg_rtb', 'avg_rte']):
-        for sim in sim_colors.simlist:
-            qu = field[-2:].upper()
-            label = r'$r_{%s} \parallel$'%qu
-            axlist[nf  ].text(0.1, -0.8, label)
-            label = r'$r_{%s} \perp$'%qu
-            axlist[nf+3].text(0.1, -0.8, label)
-            axlist[nf  ].plot(proj.lcent, spectra_dict['x'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-            axlist[nf+3].plot(proj.lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-            #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-    for a in axlist:
-        dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
-        a.set_yscale('symlog',linthresh=0.9)
-        #a.set_yscale('linear')
-        a.set_ylim([-1,1])
-    for a in axlist[3:]:
-        a.set_xlabel(r'$k/k_max$')
-    for a in [axlist[0],axlist[3]]:
-        a.set_ylabel(r'$r_{XY}$')
-        a.set_yticks([-1,-0.1,0.1,1])
-
-    plotdir='/home/dcollins4096/PigPen'
-    fig.savefig('%s/r_XY.pdf'%plotdir)
-
-if 1:
-    plt.close('all')
-    fig,ax = plt.subplots(3,2)#,sharey=True)
+    fig,ax = plt.subplots(3,3)#,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     for sim in sim_colors.simlist:
-        ax[0][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-        ax[1][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-        ax[2][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        #nominal or measured
+        if 1:
+            this_Ms = quan3[sim]['msavg'].mean()
+            this_Ma = quan3[sim]['maavg'].mean()
+            measured_or_nominal = 'measured3'
+        elif 0:
+            this_Ms = quand[sim]['Ms'].mean()
+            this_Ma = quand[sim]['Ma'].mean()
+            measured_or_nominal = 'measured'
+        else:
+            this_Ms = sim_colors.Ms[sim]
+            this_Ma = sim_colors.Ma[sim]
+            measured_or_nominal = 'nominal'
+
+        if 1:
+            amps_or_slopes = spectra_dict['y'][sim].amps
+            aos = 'amps'
+            Aalpha = 'A'
+        else:
+            amps_or_slopes = spectra_dict['y'][sim].slopes
+            aos = 'slopes'
+            Aalpha = "\\alpha"
+
+        MeanB = (quand[sim]['Btot']**2/(8*np.pi)).mean()
+        outname = '%s/prim_mach_%s_%s.pdf'%(plotdir, aos, measured_or_nominal)
+
+        ax[0][0].scatter(this_Ma, amps_or_slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][0].scatter(this_Ma, amps_or_slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][0].scatter(this_Ma, amps_or_slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        
+        ax[0][1].scatter(this_Ms, amps_or_slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][1].scatter(this_Ms, amps_or_slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][1].scatter(this_Ms, amps_or_slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+        ax[0][2].scatter(MeanB, amps_or_slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][2].scatter(MeanB, amps_or_slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][2].scatter(MeanB, amps_or_slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+        ax[0][0].set_ylabel(r'$%s_v$'%Aalpha)
+        ax[1][0].set_ylabel(r'$%s_\rho$'%Aalpha)
+        ax[2][0].set_ylabel(r'$%s_H$'%Aalpha)
+        ax[2][0].set_xlabel(r'$M_{\rm{A}}$')
+        ax[2][1].set_xlabel(r'$M_{\rm{s}}$')
+        for a in [ax[0][1],ax[1][1],ax[2][1]]:
+            a.yaxis.tick_right()
+    fig.savefig(outname)
+    print(outname)
+
+
+
+
+if 0:
+    for xyz in 'xyz':
+        plt.close('all')
+        fig,ax = plt.subplots(3,3,sharey=True, sharex=True)
+        axlist=ax.flatten()
+        fig.subplots_adjust(wspace=0, hspace=0)
+        for sim in sim_colors.simlist:
+            
+            ax[0][0].set_ylabel(r'$\alpha_v$')
+            ax[1][0].set_ylabel(r'$\alpha_\rho$')
+            ax[2][0].set_ylabel(r'$\alpha_H$')
+            ax[2][0].set_xlabel(r'$C_\ell^{TT}$')
+            ax[2][1].set_xlabel(r'$C_\ell^{EE}$')
+            ax[2][2].set_xlabel(r'$C_\ell^{BB}$')
+
+            ax[0][0].scatter(spectra_dict[xyz][sim].amps['avg_cltt'], spectra_dict[xyz][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[1][0].scatter(spectra_dict[xyz][sim].amps['avg_cltt'], spectra_dict[xyz][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[2][0].scatter(spectra_dict[xyz][sim].amps['avg_cltt'], spectra_dict[xyz][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+            ax[0][1].scatter(spectra_dict[xyz][sim].amps['avg_clee'], spectra_dict[xyz][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[1][1].scatter(spectra_dict[xyz][sim].amps['avg_clee'], spectra_dict[xyz][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[2][1].scatter(spectra_dict[xyz][sim].amps['avg_clee'], spectra_dict[xyz][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+            ax[0][2].scatter(spectra_dict[xyz][sim].amps['avg_clbb'], spectra_dict[xyz][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[1][2].scatter(spectra_dict[xyz][sim].amps['avg_clbb'], spectra_dict[xyz][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            ax[2][2].scatter(spectra_dict[xyz][sim].amps['avg_clbb'], spectra_dict[xyz][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            for a in [ax[0][2],ax[1][2],ax[2][2]]:
+                a.yaxis.tick_right()
+            for val in [0,1,2]:
+                ax[val][1].set_ylim( ax[val][0].get_ylim())
+                ax[val][2].set_ylim( ax[val][0].get_ylim())
+        for a in axlist:
+            a.set_xscale('log')
+        fig.savefig('%s/ee_bb_prim_amps_%s.pdf'%(plotdir,xyz))
+
+if 0:
+    plt.close('all')
+    fig,ax = plt.subplots(3,3,sharey=True, sharex=True)
+    fig.subplots_adjust(wspace=0, hspace=0)
+    for sim in sim_colors.simlist:
+        ax[0][0].scatter(spectra_dict['y'][sim].slopes['avg_cltt'], spectra_dict['y'][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][0].scatter(spectra_dict['y'][sim].slopes['avg_cltt'], spectra_dict['y'][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][0].scatter(spectra_dict['y'][sim].slopes['avg_cltt'], spectra_dict['y'][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+
+        ax[0][1].scatter(spectra_dict['y'][sim].slopes['avg_clee'], spectra_dict['y'][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][1].scatter(spectra_dict['y'][sim].slopes['avg_clee'], spectra_dict['y'][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][1].scatter(spectra_dict['y'][sim].slopes['avg_clee'], spectra_dict['y'][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
         print(sim_colors.Ma[sim], spectra_dict['y'][sim].slopes['avg_d'])
+        
+        ax[0][0].set_ylabel(r'$\alpha_v$')
+        ax[1][0].set_ylabel(r'$\alpha_\rho$')
+        ax[2][0].set_ylabel(r'$\alpha_H$')
+        ax[2][0].set_xlabel(r'$C_\ell^{TT}$')
+        ax[2][1].set_xlabel(r'$C_\ell^{EE}$')
+        ax[2][2].set_xlabel(r'$C_\ell^{BB}$')
+        ax[0][2].scatter(spectra_dict['y'][sim].slopes['avg_clbb'], spectra_dict['y'][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][2].scatter(spectra_dict['y'][sim].slopes['avg_clbb'], spectra_dict['y'][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][2].scatter(spectra_dict['y'][sim].slopes['avg_clbb'], spectra_dict['y'][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        for a in [ax[0][2],ax[1][2],ax[2][2]]:
+            a.yaxis.tick_right()
+        for val in [0,1,2]:
+            ax[val][1].set_ylim( ax[val][0].get_ylim())
+            ax[val][2].set_ylim( ax[val][0].get_ylim())
+    fig.savefig('%s/ee_bb_prim_spectra.pdf'%plotdir)
+
+#
+# Prim amps nominal, old code 
+#
+
+if 0:
+    plt.close('all')
+    fig,ax = plt.subplots(3,2)#,sharey=True)
+
+    fig.subplots_adjust(wspace=0, hspace=0)
+    for sim in sim_colors.simlist:
+        ax[0][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].amps['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].amps['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][0].scatter(sim_colors.Ma[sim], spectra_dict['y'][sim].amps['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
         
         ax[0][0].set_ylabel(r'$\alpha_v$')
         ax[1][0].set_ylabel(r'$\alpha_\rho$')
         ax[2][0].set_ylabel(r'$\alpha_H$')
         ax[2][0].set_xlabel(r'$M_{\rm{A}}$')
         ax[2][1].set_xlabel(r'$M_{\rm{s}}$')
-        ax[0][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].slopes['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-        ax[1][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].slopes['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-        ax[2][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].slopes['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[0][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].amps['avg_v'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].amps['avg_d'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[2][1].scatter(sim_colors.Ms[sim], spectra_dict['y'][sim].amps['avg_h'], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
         for a in [ax[0][1],ax[1][1],ax[2][1]]:
             a.yaxis.tick_right()
-    fig.savefig('%s/prim_spectra.pdf'%plotdir)
+    for a in ax.flatten():
+        a.set_yscale('log')
+    fig.savefig('%s/prim_amps.pdf'%plotdir)
 
-if 1:
+
+#
+# Measured vs. nominal Ms Ma
+#
+
+
+if 0:
     plt.close('all')
-    fig,ax = plt.subplots(1,1)#,sharey=True)
+    fig,ax = plt.subplots(2,2,sharex=True,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
-    for sim in sim_colors.simlist:
-        ax.scatter(sim_colors.Ma[sim], sim_colors.Ms[sim], c=sim_colors.color[sim], marker=sim_colors.marker[sim])
-        dt.axbonk(ax,xlabel=r'$M_{\rm{A}}$',ylabel=r'$M_{\rm{S}}$',xlim=[0.45,2.1],ylim=[0.45,3.2])
-
-    fig.savefig('%s/point_legend.pdf'%plotdir)
+    for i,sim in enumerate(sim_colors.simlist):
+        this_Ms = quand[sim]['Ms'].mean() 
+        this_Ma = quand[sim]['Ma'].mean() 
+        this_Ma2,this_Ms2=sim_colors.Ma[sim], sim_colors.Ms[sim]
+        ax[0][1].scatter(this_Ma, this_Ms, c=sim_colors.color[sim], marker=sim_colors.marker[sim],label=sim)
+        ax[0][1].plot( [this_Ma2, this_Ma], [this_Ms2,  this_Ms], c=sim_colors.color[sim])
+        ax[0][0].scatter(this_Ma2, this_Ms2, c=sim_colors.color[sim], marker=sim_colors.marker[sim],label=sim)
+        #ax.plot([this_Ma,this_Ma2],[this_Ms,this_Ms2])
+        ax[1][0].scatter( alfmachavg[i],sonicmachavg[i])
+        ax[1][1].scatter( quan3[sim]['maavg'], quan3[sim]['msavg'],c=sim_colors.color[sim], marker=sim_colors.marker[sim])
+        ax[1][1].plot( [this_Ma2, quan3[sim]['maavg']], [this_Ms2,  quan3[sim]['msavg']], c=sim_colors.color[sim])
+    dt.axbonk(ax[0][0],xlabel=r'$M_{\rm{A}}$',ylabel=r'$M_{\rm{S}}$')#,xlim=[0.45,2.1],ylim=[0.45,3.2])
+    fig.savefig('%s/point_legend_measured.pdf'%plotdir)
             
-
-            
-
-#dict_keys(['avg_clbb', 'avg_cleb', 'avg_clee', 'avg_cltb', 'avg_clte', 'avg_cltt', 'avg_d', 'avg_h', 'avg_reb', 'avg_rtb', 'avg_rte', 'avg_v'])
-
-
-
-
 
