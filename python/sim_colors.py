@@ -5,9 +5,12 @@ from GL import *
 
 #these need to stay in this order.
 simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"])
+#simlist=nar(["1_1"])
 color_list=nar(['r','g','b','r','g','b','r','g','b','r','g','b'])
 line_list=nar(['-','-','-','-.','-.','-.','--','--','--',':',':',':'])
+glyph_list = nar([a+b for a,b in zip(color_list,line_list)])
 marker_list = nar(['.','.','.','s','s','s','^','^','^','*','*','*'])
+
 
 framelist=[range(11,31),range(11,31),range(11,31),range(11,31),range(11,31),range(11,31),range(65,85),range(11,31),range(11,31),range(72,91),range(56,75),range(20,40)]
 
@@ -23,6 +26,7 @@ color=dict(zip(simlist,color_list))
 linestyle = dict(zip(simlist,line_list))
 marker = dict(zip(simlist,marker_list))
 frames = dict(zip(simlist,framelist))
+glyph = dict(zip(simlist,glyph_list))
 
 def vals_from_sim(sim):
     ms,ma = sim.split("_")
@@ -44,4 +48,7 @@ ms_list=nar(ms_list)
 ma_list=nar(ma_list)
 Ms = dict(zip(simlist,ms_list))
 Ma = dict(zip(simlist,ma_list))
+
+cloudbreak_base = "/data/cb1/Projects/P49_EE_BB/"
+cloudbreak_128 = "/data/cb1/Projects/P49_EE_BB/Downsample128"
 
