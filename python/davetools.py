@@ -10,15 +10,21 @@ class extents():
     def __init__(self, array=None):
         self.minmax=[]
         self.errors=[]
-        if array:
+        if array is not None:
             self(array)
 
     def __call__(self,array):
-        if len(self.minmax):
-            self.minmax[0] = min([array.min(),self.minmax[0]])
-            self.minmax[1] = max([array.max(),self.minmax[1]])
+        if hasattr(array,'min'):
+            the_min=array.min()
+            the_max=array.max()
         else:
-            self.minmax=[array.min(),array.max()]
+            the_min=min(array)
+            the_max=max(array)
+        if len(self.minmax):
+            self.minmax[0] = min([the_min,self.minmax[0]])
+            self.minmax[1] = max([the_max,self.minmax[1]])
+        else:
+            self.minmax=[the_min,the_max]
     def __getitem__(self,index):
         return self.minmax[index]
     def __str__(self):
