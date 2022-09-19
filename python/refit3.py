@@ -27,6 +27,12 @@ def line(x,a,b):
 def minmax(alpha,x,y):
     v = x**alpha*y
     return nar([min(v),max(v)])
+def broken_powerlaw(x, x0, A, m1, m2):
+    output=np.zeros_like(x)
+    ok = x-x0>0
+    output[  ok ] = (x-x0)[ok]*m1 + A
+    output[ ~ok ] = (x-x0)[~ok]*m2 + A
+    return output
                         
 class slope_bucket():
     def __init__(self):
@@ -45,6 +51,14 @@ class slope_bucket():
 
         self.line_list=[]
         self.cube_list=[]
+        self.xvals=[]
+
+        self.AlphaF=None
+        self.AlphaPeak=None
+
+        self.broken_spec=None
+        self.broken_xval=None
+        self.broken_fits=None
 
 
 
@@ -61,15 +75,24 @@ if 1:
                 proj=rs.proj_dict[LOS][sim]
                 x0_list = proj.lcent[5:10:2]
                 x1_list = proj.lcent[14:51:2]
+
+
+
                 max_npoints=np.argmax(x1_list)-np.argmin(x0_list)+1
                 mah_bucket.x0_list=x0_list
                 mah_bucket.x1_list=x1_list
                 specf_raw = spectra_dict[LOS][sim].spectra[field][5:]
                 specf = 10**gaussian_filter1d( np.log10(specf_raw), 1, mode='nearest')
-                mah_bucket.lcentf = proj.lcent[5:]
-                lcentf=mah_bucket.lcentf
                 mah_bucket.specf = specf
                 mah_bucket.specf_raw = specf_raw
+                mah_bucket.lcentf = proj.lcent[5:]
+                lcentf=mah_bucket.lcentf
+
+                mah_bucket.broken_spec = specf
+                mah_bucket.broken_xval = lcentf
+                fit, cov = curve_fit( broken_powerlaw, np.log10(lcentf), np.log10(specf))
+                mah_bucket.broken_fits=fit
+
                 for n0,x0 in enumerate(mah_bucket.x0_list):
                     for n1,x1 in enumerate(mah_bucket.x1_list):
 
@@ -93,6 +116,7 @@ if 1:
 
                         this_c=10**cube(np.log10(xvals), popt_3[0],popt_3[1],popt_3[2], popt_3[3])
                         this_l=10**line(np.log10(xvals), popt_1[0],popt_1[1])
+                        mah_bucket.xvals.append(xvals)
                         mah_bucket.line_list.append(this_l)
                         mah_bucket.cube_list.append(this_c)
 #
@@ -114,3 +138,14 @@ if 1:
                 AmpC = AL[ (SL >= bL)*(SL <= bR)].mean()
                 mah_bucket.AlphaC = AlphaC
                 mah_bucket.AmpC = AmpC
+
+                #do it again for the linear slope
+                bins = np.mgrid[-5:0:51j]
+                SL = nar(nar(mah_bucket.line_slope_list)[:,1])
+                hist1, bins1 = np.histogram(SL, bins=bins)
+                most_probable_bin = np.argmax(hist1)
+                bL = bins1[most_probable_bin]
+                bR = bins1[most_probable_bin+1]
+                most_probable =  (SL >= bL)*(SL <= bR)
+
+                mah_bucket.AlphaPeak = SL[most_probable].mean()

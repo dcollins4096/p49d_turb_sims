@@ -1,3 +1,14 @@
+"""
+refit 4.  
+Fits are done in refit3.
+Plotted here are 
+* sub_spectrum for all sub ranges (spectra, lines)
+* quad plots for (alpha_linear vs alpha_cubic; c/b vs d/b; a vs b; chi vs chi
+* alpha3  3way plots of alpha_linear vs alpha_cubic
+* Net compensated spectra with everything
+* Linearity non-compensated plots
+"""
+
 
 from GL import *
 from cycler import cycler
@@ -17,11 +28,11 @@ all_slopes=defaultdict(list)
 
 field_list=['avg_cltt','avg_clee','avg_clbb', 'avg_d','avg_v','avg_h']
 simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"])
-simlist = ['half_half','1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
+#simlist = ['half_half','1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
 simlist = ['3_half']
 
 field_list = ['avg_clbb']
-do_all_subplots=True
+do_all_subplots=False
 
 
 #read_stuff reads spectra and average quantities
@@ -77,6 +88,7 @@ if 1:
                 x1=fit_range[1]
                 lcentf = mah_bucket.lcentf
                 specf =  mah_bucket.specf
+                specf_raw =  mah_bucket.specf_raw
 
                 # fixed fit
                 ok = (lcentf>=x0)*(lcentf<=x1)
@@ -84,6 +96,7 @@ if 1:
                 spec=specf[ok]
                 popt_fixed, pcov_fixed= curve_fit( refit3.line, np.log10(xvals), np.log10(spec))
                 AlphaF = popt_fixed[1]
+                AlphaComp1 = AlphaF
 
                 counter2=0
                 slope_list =  nar(mah_bucket.line_slope_list)[:,1]
@@ -100,11 +113,11 @@ if 1:
                 dof_list=[ok.sum() for ok in mah_bucket.ok_list]
                 verts=dt.extents()
                 for nlist, ok in enumerate(mah_bucket.ok_list):
-                    verts( refit3.minmax( -AlphaF, lcentf[ok], mah_bucket.line_list[nlist]))
-                    verts( refit3.minmax( -AlphaF, lcentf[ok], mah_bucket.cube_list[nlist]))
+                    verts( refit3.minmax( -AlphaComp1, lcentf[ok], mah_bucket.line_list[nlist]))
+                    verts( refit3.minmax( -AlphaComp1, lcentf[ok], mah_bucket.cube_list[nlist]))
                 c_to_b=dt.extents( c_list/b_list)
                 d_to_b=dt.extents( d_list/b_list )
-                a3_ext=dt.extents( a_list)
+                a3_ext=dt.extents( slope_list_3)
                 a1_ext=dt.extents( slope_list)
                 chi_c_ext=dt.extents( nar([1e-3,1e3]))
                 chi_l_ext=dt.extents( nar([1e-3,1e3]))
@@ -116,39 +129,21 @@ if 1:
                 #value = a3 - b3*c3/(3*d3) + c3**3/d3**2*(1./9-1./27)
                 #k_flat = -c3/(3*d3)
 
-                fig,axes = plt.subplots(2,2,figsize=(12,12))
-                axL = axes.flatten()
-
-                axL[2].plot([1e-6,200],[1e-6,200],c='k')
-                axL[2].plot([1e-6,200],[0.1*1e-6,0.1*200],c='k')
-                axL[2].plot([1e-6,200],[10*1e-6,10*200],c='k')
-
-                axL[0].scatter( slope_list, slope_list_3)
-                dt.axbonk(axL[0],xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
-
-                axL[1].scatter( c_list/b_list, d_list/b_list)
-                dt.axbonk(axL[1], xlabel=r'$c/b$', ylabel=r'$d/b$', xlim = c_to_b.minmax, ylim=d_to_b.minmax)
-
-                axL[3].scatter( a_list, b_list)
-                dt.axbonk(axL[3],xlabel='a',ylabel='b',xlim=a_ext.minmax,ylim=b_ext.minmax)
-
-                axL[2].scatter( mah_bucket.chi_l_list, mah_bucket.chi_c_list)
-                dt.axbonk(axL[2],xscale='log',yscale='log', xlim=chi_l_ext.minmax,ylim=chi_c_ext.minmax, xlabel=r'$\chi^2_1$',ylabel=r'$\chi^3_2$')
 
 
-
-                fig.savefig('%s/quad_%s_%s_%s.png'%(plotdir,field,sim,LOS))
-
-                fig_sub,ax_sub=plt.subplots(1,1,figsize=(12,12))
                 #
                 # Do a bunch of plots
                 #
                 if do_all_subplots:
+                    fig_sub,ax_sub_arr=plt.subplots(1,2,figsize=(12,8))
+                    ax_sub=ax_sub_arr[0]
+                    ax_sub_1=ax_sub_arr[1]
                     for nlist,ok in enumerate(mah_bucket.ok_list):
-                        #if counter2 > 4:
+                        #if counter2 > 0:
                         #    continue
 
                         xvals = mah_bucket.lcentf[ok]
+                        #xvals = mah_bucket.lcentf
                         popt_1 = mah_bucket.line_slope_list[nlist]
                         popt_3 = mah_bucket.cube_param_list[nlist]
 
@@ -171,22 +166,48 @@ if 1:
                         ax_sub.clear()
                         #axL[0].set_title(r'$\alpha_1 = %0.2f \alpha_3 = %0.2f \chi^2_1 = %0.1e \chi^2_3 = %0.1e$'%(popt_1[1], slope, chi_l, chi_c))
 
-                        compensate_plot(ax_sub, -AlphaF, lcentf, specf, c=[0.5]*4)
-                        compensate_plot(ax_sub, -AlphaF, xvals, this_c, c='b')
-                        compensate_plot(ax_sub, -AlphaF,  xvals, this_l,c='g')
-                        compensate_plot(ax_sub, -AlphaF,  xvals, line_from_cube,c='r')
-                        compensate_scatter(ax_sub,-AlphaF, 10**k_flat, 10**value)
+                        compensate_plot(ax_sub, -AlphaComp1, lcentf, specf, c=[0.5]*4)
+                        compensate_plot(ax_sub, -AlphaComp1, xvals, this_c, c='b')
+                        compensate_plot(ax_sub, -AlphaComp1,  xvals, this_l,c='g')
+                        compensate_plot(ax_sub, -AlphaComp1,  xvals, line_from_cube,c='r')
+                        compensate_scatter(ax_sub,-AlphaComp1, 10**k_flat, 10**value)
 
 
 
                         xlim = [lcentf.min(),lcentf.max()]
                         xlim = [proj.lcent.min(),proj.lcent.max()]
                         dt.axbonk(ax_sub,xscale='log',yscale='log', ylim=verts.minmax, xlim=xlim)
+
+                        lX = np.log10(xvals)
+                        D1 = b3+2*c3*lX+3*d3*lX**2
+                        D2 = 2*c3+6*d3*lX
+                        compensate_plot(ax_sub_1,0, xvals, D2)
+                        #compensate_plot(ax_sub_1,-AlphaComp1, xvals, D1)
+                        #ax_sub_1.plot( xvals, D1)
+
                         counter2+=1
-                        fig_sub.savefig('%s/sub_spectrum_%s_%s_%s_%02d.png'%(plotdir,field,sim,LOS, counter2))
+                        fig_sub.savefig('%s/%s_%s_%s_sub_spectrum_%02d.png'%(plotdir,sim,field,LOS, counter2))
 
-                        
+                fig,axes = plt.subplots(2,2,figsize=(12,12))
+                axL = axes.flatten()
 
+                axL[2].plot([1e-6,200],[1e-6,200],c='k')
+                axL[2].plot([1e-6,200],[0.1*1e-6,0.1*200],c='k')
+                axL[2].plot([1e-6,200],[10*1e-6,10*200],c='k')
+
+                axL[0].scatter( slope_list, slope_list_3)
+                dt.axbonk(axL[0],xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
+
+                axL[1].scatter( c_list/b_list, d_list/b_list)
+                dt.axbonk(axL[1], xlabel=r'$c/b$', ylabel=r'$d/b$', xlim = c_to_b.minmax, ylim=d_to_b.minmax)
+
+                axL[3].scatter( a_list, b_list)
+                dt.axbonk(axL[3],xlabel='a',ylabel='b',xlim=a_ext.minmax,ylim=b_ext.minmax)
+
+                axL[2].scatter( mah_bucket.chi_l_list, mah_bucket.chi_c_list)
+                dt.axbonk(axL[2],xscale='log',yscale='log', xlim=chi_l_ext.minmax,ylim=chi_c_ext.minmax, xlabel=r'$\chi^2_1$',ylabel=r'$\chi^3_2$')
+
+                fig.savefig('%s/%s_%s_quad_%s.png'%(plotdir,sim,field,LOS))
 
                 plt.close('all')
                 import three_way_bean
@@ -194,20 +215,23 @@ if 1:
                 fig4, ax_alpha, ax_top, ax_right = three_way_bean.three_way_bean()
 
                 bins = np.mgrid[-5:0:51j]
-                hist, bins, visthings=ax_right.hist( slope_list_3, histtype='step', orientation='horizontal',bins=bins)
+                hist3, bins3, visthings3=ax_right.hist( slope_list_3, histtype='step', orientation='horizontal',bins=bins)
+                hist1, bins1, visthings1=ax_top.hist( slope_list, histtype='step',bins=bins)
 
                 #norm = mpl.colors.Normalize(vmin=min(color_3), vmax=max(color_3))
                 ax_alpha.scatter( slope_list, slope_list_3)#, c=color_3,norm=norm)
                 ax_alpha.plot( [-5,0],[-5,0],c=[0.5]*3)
-                ax_top.hist( slope_list, histtype='step',bins=bins)
-                dt.axbonk(ax_alpha, xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=[-5,0],ylim=[-5,0])
+                #ax_top.hist( slope_list, histtype='step',bins=bins)
+                xmin = min([-5, min(slope_list_3), min(slope_list)])
+                dt.axbonk(ax_alpha, xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=[xmin,0],ylim=[xmin,0])
+                #dt.axbonk(ax_alpha, xlabel=r'$\alpha_1$',ylabel=r'$\alpha_3$', xlim=a1_ext.minmax,ylim=a3_ext.minmax)
 
                 ax_right.set_ylim( ax_alpha.get_ylim())
                 ax_top.set_xlim( ax_alpha.get_xlim())
 
-                most_probable_bin = np.argmax(hist)
-                bL = bins[most_probable_bin]
-                bR = bins[most_probable_bin+1]
+                most_probable_bin = np.argmax(hist3)
+                bL = bins3[most_probable_bin]
+                bR = bins3[most_probable_bin+1]
                 SL = nar(slope_list_3)
                 most_probable =  (SL >= bL)*(SL <= bR)
                 a_mean=a_list.mean()
@@ -216,36 +240,52 @@ if 1:
 
                 AlphaC = SL[most_probable].mean()
 
+                most_probable_bin_1 = np.argmax(hist1)
+                bL = bins1[most_probable_bin_1]
+                bR = bins1[most_probable_bin_1+1]
+                SL = nar(slope_list)
+                most_probable_1 =  (SL >= bL)*(SL <= bR)
+
+                AlphaC_1 = SL[most_probable_1].mean()
+
+
                 ax_alpha.axvline(AlphaC, c=[0.5]*3)
                 ax_alpha.axhline(AlphaC, c=[0.5]*3)
+                ax_alpha.axvline(AlphaC_1, c=[0.5]*3, linestyle='--')
+                ax_alpha.axhline(AlphaC_1, c=[0.5]*3, linestyle='--')
                 Amp = nar(amp_list_3)[ most_probable ].mean()
                 #k_flat = -c3/(3*d3)
                 KL = -c_list/(3*d_list)
                 Kfit = KL[ most_probable ].mean()
 
-                fig4.savefig('%s/alpha3_%s_%s_%s.png'%(plotdir,field,sim,LOS))
+                fig4.savefig('%s/%s_%s_alpha3_%s.png'%(plotdir,sim,field,LOS))
                 plt.close(fig4)
 
                 #
                 # Slope Plot
                 #
 
-                fig2,ax2=plt.subplots(1,1, figsize=(12,8))
+                fig2,ax2_list=plt.subplots(1,2, figsize=(16,8))
+                ax2=ax2_list[0]
+                ax2_1=ax2_list[1]
+
                 x0=fit_range[0]; x1=fit_range[1]
                 ok = (lcentf>=x0)*(lcentf<=x1)
                 xvals = lcentf[ok]
                 compensate_plot(ax2,-AlphaC, lcentf, specf, c=[0.5]*4)
+                compensate_plot(ax2_1,0, lcentf, specf_raw, c=[0.5]*4)
 
                 #
                 # Fixed
                 #
 
-                this_l=10**refit3.line(np.log10(xvals), popt_1[0],AlphaF)
+                this_l=10**refit3.line(np.log10(xvals), 1.0 ,AlphaF)
                 kfit = lcentf[16]
                 index = np.argmin( np.abs( xvals-kfit))
                 this_l = this_l*specf[16]/this_l[index]
                 chi2 = np.sum( (this_l-specf[ok])**2/specf[ok])
                 compensate_plot(ax2, -AlphaC, xvals, this_l, c='g',label=r'$%0.2e \pm %0.2e$'%(AlphaF,chi2))
+                compensate_plot(ax2_1, 0, xvals, this_l, c='g',label=r'$%0.2e \pm %0.2e$'%(AlphaF,chi2), linestyle=':')
 
                 #
                 # Most Probable
@@ -254,6 +294,19 @@ if 1:
                 probable_line_from_cube = 10**( AlphaC*(np.log10(xvals)-Kfit) + Amp)
                 chi2 = np.sum( (probable_line_from_cube-specf[ok])**2/specf[ok])
                 compensate_plot(ax2, -AlphaC, xvals, probable_line_from_cube, c='r',label=r'$%0.2e \pm %0.2e$'%(AlphaC,chi2))
+                compensate_plot(ax2_1, 0, xvals, probable_line_from_cube, c='r',label=r'$%0.2e \pm %0.2e$'%(AlphaC,chi2), linestyle=':')
+
+                #
+                # most probable line
+                #
+
+                this_l=10**refit3.line(np.log10(xvals), 1.0 ,AlphaC_1)
+                kfit = lcentf[16]
+                index = np.argmin( np.abs( xvals-kfit))
+                this_l = this_l*specf[16]/this_l[index]
+                chi2 = np.sum( (this_l-specf[ok])**2/specf[ok])
+                compensate_plot(ax2, -AlphaC, xvals, this_l, c='k',label=r'$%0.2e \pm %0.2e$'%(AlphaC_1,chi2))
+                compensate_plot(ax2_1, 0, xvals, this_l, c='k',label=r'$%0.2e \pm %0.2e$'%(AlphaC_1,chi2), linestyle=':')
 
 
                 #
@@ -264,7 +317,6 @@ if 1:
                 # long one.  Using the average indices makes for bad plots.
                 #Most Probable
                 longest_index=np.argmax(dof_list)
-                print(longest_index)
                 a3 = a_list[longest_index]
                 b3 = b_list[longest_index]
                 c3 = c_list[longest_index]
@@ -275,7 +327,7 @@ if 1:
                 line_from_cube = 10**( slope*(np.log10(xvals)-k_flat) + value)
                 #line_from_cube = 10**( slope*(np.log10(xvals)-k_flat) + value)
                 chi2 = np.sum( (line_from_cube-specf[ok])**2/specf[ok])
-                compensate_plot(ax2, -AlphaC, xvals, line_from_cube, c='k',label=r'$%0.2e \pm %0.2e$'%(slope,chi2))
+                #compensate_plot(ax2, -AlphaC, xvals, line_from_cube, c='k',label=r'$%0.2e \pm %0.2e$'%(slope,chi2))
 
                 #ax2.scatter(10**(k_flat ), 10**(-AlphaC)*(value))
                 #ax2.axvline(10**k_flat)
@@ -292,6 +344,7 @@ if 1:
                 #ax2.scatter( 10**Kfit, cube_from_mean.min())
                 chi2 = -42 #np.sum( (cube_from_mean-specf[ok])**2/specf[ok])
                 compensate_plot(ax2, -AlphaC, xvals_longest, cube_from_mean, c='b',label=r'$%0.2e \pm %0.2e$'%(AlphaC,chi2))
+                #compensate_plot(ax2_1, 0, xvals_longest, cube_from_mean, c='b',label=r'$%0.2e \pm %0.2e$'%(AlphaC,chi2))
 
 #                if field in ['avg_cltt','avg_clee','avg_clbb']:
 #                    ylim = [1e-11,1e6] #whole range
@@ -300,13 +353,19 @@ if 1:
 #                    ylim = [1e-10,0.5]
                 ax2.legend(loc=0)
                 dt.axbonk( ax2, xscale='log',yscale='log')#, ylim=[1e-7,1e-3])#, ylim=ylim)
-                fig2.savefig('%s/Net_%s_%s_%s.png'%(plotdir,field,sim,LOS))
+                dt.axbonk( ax2_1, xscale='log',yscale='log')#, ylim=[1e-7,1e-3])#, ylim=ylim)
+                fig2.savefig('%s/%s_%s_Net_%s.png'%(plotdir,sim,field,LOS))
+
+
+                #
+                # Summary plot
+                #
 
                 if 1:
-                    compensate_plot(ax_all, 3, lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
+                    compensate_plot(ax_all, 0, lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                     #compensate_plot(ax_all, 3, xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
-                    compensate_plot(ax_all, 3, xvals, probable_line_from_cube,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
-                    compensate_plot(ax_all, 3, lcentf, mah_bucket.specf_raw,  c=[0.5]*3)
+                    compensate_plot(ax_all, 0, xvals, probable_line_from_cube,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
+                    compensate_plot(ax_all, 0, lcentf, mah_bucket.specf_raw,  c=[0.5]*3)
                 #ax_all.plot( lcentf, specf, c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim])
                 #ax_all.plot( xvals, this_l,  c=sim_colors.color[sim],linestyle=sim_colors.linestyle[sim], label=r'$\alpha_3=%0.2f$'%AlphaC)
                 ax_all.legend(loc=0)
