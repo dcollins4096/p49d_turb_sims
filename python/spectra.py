@@ -15,119 +15,49 @@ verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
-#
-# Read primitives
-# 
 
-class slopes():
-    def __init__(self,name):
-        self.name=name
-        self.spectra={}
-        self.slopes={}
-        self.amps={}
-        self.res={}
-        self.pack = None
-    def fit(self,lcent,fitrange):
-        for field in ['avg_cltt','avg_clee','avg_clbb', 'avg_d','avg_v','avg_h']:
+#read_stuff reads spectra and average quantities
+#Reload to re-read, but don't do that every time.
+import read_stuff as rs
+#reload(read_stuff)  
+spectra_dict = rs.spectra_dict
+quan3 = rs.quan3
 
-            slope,amp,res=plfit(lcent,self.spectra[field],fitrange)
-            self.amps[field]=amp
-            self.slopes[field]=slope
-            self.res[field]=res
-def pline(self,ax,field,norm=False,label=False,**kwargs):
-    """Plots the line we found onto *ax*.
-    Also update the label of the line to reflect the value
-    of the slope"""
-    m=self.slopes[field]
-    a=self.amps[field]
-    ellfit=1    
-    if norm:
-        ellfit = np.sqrt(self.fit_range[0]*self.fit_range[1])
-    y0 = a*(self.fit_range[0]/ellfit)**m
-    y1 = a*(self.fit_range[1]/ellfit)**m
-    if label:
-        label=kwargs.get('label','')
-        label += r' $%0.1f$'%m
-        kwargs['label']=label
-    ax.plot( self.fit_range,[y0,y1],**kwargs)
-if 'quand' not in dir():
-    quand = {}
-for i, sim in enumerate(sim_colors.simlist):
-    if sim in quand:
-        continue
-    print("=== %s ==="%sim)
-    ol = "%s/%s/OutputLog"%(sim_dir,sim)
-    quand[sim] = gaq.get_quantities_and_rms(ol)
+plotdir="%s/PigPen"%os.environ['HOME']
+if 1:
+    plt.close('all')
+    fig,ax = plt.subplots(1,3, figsize=(12,4))#, sharex=True,sharey=True,figsize=(12,4))
+    #fig.subplots_adjust(wspace=0, hspace=0)
+    axlist=ax.flatten()
+
+    for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
+        for sim in sim_colors.simlist:
+
+            proj=rs.proj_dict['x'][sim]
+            label="%s %0.1f"%(sim, spectra_dict['y'][sim].slopes[field])
+            axlist[nf].plot(proj.lcent,   spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
+            axlist[nf].set_title(r'$C_\ell^{%s}$'%( field[-2:].upper()))
+
+            #proj=rs.proj_dict['y'][sim]
+            #label="%s %0.1f"%(sim, spectra_dict['y'][sim].slopes[field])
+            #axlist[nf+3].plot(proj.lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
+            #axlist[nf+3].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+    for a in axlist:
+        dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
+#    for a in axlist[:3]:
+#        a.legend(loc=0)
+    for a in axlist:
+        a.set_xlabel(r'$k/k_{max}$')
+    for a in [axlist[0]]:#,axlist[3]]:
+        a.set_ylabel(r'$P(k)$')
+
+    fig.savefig('%s/alpha_TEB.pdf'%plotdir)
 
 #
-# Read spectra
+# Spectra plots (both in two rows.  Don't use this.)
 #
 
-plotdir = "//home/dccollins/PigPen"
-if 'clobber' not in dir():
-    clobber=False
-if 'spectra_dict' not in dir() or clobber==True:
-    spectra_dict={}
-    shortprefix='time'
-    for axes in ['x','y','z']:
-        print('axes',axes)
-        spectra_dict[axes]={}
-        for i, sim in enumerate(sim_colors.simlist):
-            spectra_dict[axes][sim]=slopes(sim) 
-
-            sim_dir = "/data/cb1/Projects/P49_EE_BB/512_frbs/%s"%sim
-            frb_name = ""
-            longprefix='%s_%s_%s'%(sim,shortprefix,axes)
-            spectra_fname = "avg_spectra_%s_%s.h5"%(sim,axes)
-            pack = queb3.simulation_package( directory=sim_dir,frames=sim_colors.frames[sim],prefix=longprefix,
-                                           frbname=frb_name)
-            proj=pack.read_queb(frame=sim_colors.frames[sim][0],ax=axes,bin_style='dx1')
-            fitrange=proj.determine_fit_range()  #something better
-            if os.path.exists(spectra_fname):
-                try:
-                    fptr=h5py.File(spectra_fname,'r')
-                    for field in fptr:
-                        spectra_dict[axes][sim].spectra[field]=fptr[field][()]
-                except:
-                    raise
-                finally:
-                    fptr.close()
-            spectra_dict[axes][sim].fit(proj.lcent,fitrange)
-            spectra_dict[axes][sim].lcent = proj.lcent
-            spectra_dict[axes][sim].fit_range = fitrange    
-
-
-#
-# Read restricted set.
-#
-
-if 'quan3' not in dir():
-    quan3={}
-    for ns, sim in enumerate(sim_colors.simlist):
-        quan3[sim]={}
-        v2avg=[]
-        msavg=[]
-        maavg=[]
-        for frame in sim_colors.framelist[ns]:
-            fname = '%s/%s/DD%04d/data%04d.AverageQuantities.h5'%(sim_colors.cloudbreak_base,sim,frame,frame)
-            if not os.path.exists(fname):
-                print(fname)
-                continue
-            quan4=h5py.File(fname,'r')
-            v2 = np.sqrt(quan4['vx_std'][:]**2+quan4['vy_std'][:]**2+quan4['vz_std'][:]**2)
-            bt = np.sqrt(quan4['bx_avg'][:]**2+quan4['by_avg'][:]**2+quan4['bz_avg'][:]**2)
-            ma=v2/bt
-            v2avg=np.append(v2avg,v2)
-            maavg=np.append(maavg,ma)
-            print(np.mean(ma), np.mean(maavg))
-        quan3[sim]['maavg'] =np.mean(maavg)
-        quan3[sim]['msavg'] =np.mean(v2avg)
-
-#
-# Spectra plots
-#
-
-
+plotdir=os.environ['HOME']+"/PigPen"
 if 0:
     plt.close('all')
     fig,ax = plt.subplots(2,3, sharex=True,sharey=True,figsize=(12,4))
@@ -136,9 +66,12 @@ if 0:
 
     for nf,field in enumerate(['avg_cltt','avg_clee','avg_clbb']):
         for sim in sim_colors.simlist:
+
+            proj=rs.proj_dict['x'][sim]
             label="%s %0.1f"%(sim, spectra_dict['x'][sim].slopes[field])
             axlist[nf].plot(proj.lcent,   spectra_dict['x'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
 
+            proj=rs.proj_dict['y'][sim]
             label="%s %0.1f"%(sim, spectra_dict['y'][sim].slopes[field])
             axlist[nf+3].plot(proj.lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
             #axlist[nf+3].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
