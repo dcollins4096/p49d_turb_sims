@@ -49,12 +49,12 @@ def powerlaw_fit(x,y,fitrange):
     ellmask = np.logical_and( ellmask, y>0 )
     logx = np.log10(x[ellmask])
     logy = np.log10(y[ellmask])
-    fig,ax=plt.subplots(1,1)
-    ax.plot(logx,logy)
     res = np.polyfit(logx,logy,1)
     slope = res[0]
     amp = pow(10,res[1])
-    ax.plot(logx, slope*logx+res[1],c='k')
+    #fig,ax=plt.subplots(1,1)
+    #ax.plot(logx,logy)
+    #ax.plot(logx, slope*logx+res[1],c='k')
     return slope,amp, res
 def linear_chi2(par,x,y) :
     """for use with some fitting techniques"""
@@ -271,6 +271,29 @@ class queb_snapshot():
         self.ClTB = cmbtools.harm2clcross_samegrid(self.Tharm,self.Bharm,self.Deltal,self.lbins)
         self.ClEB = cmbtools.harm2clcross_samegrid(self.Eharm,self.Bharm,self.Deltal,self.lbins)
 
+        #kludge, should square Tharm
+        #Tsquared=np.ascontiguousarray(self.Tharm*self.Tharm.conj())**0.5
+        #Esquared=np.ascontiguousarray(self.Eharm*self.Eharm.conj())**0.5
+        #Bsquared=np.ascontiguousarray(self.Bharm*self.Bharm.conj())**0.5
+        #Tsquared=np.ascontiguousarray(self.Tharm)
+        #Esquared=np.ascontiguousarray(self.Eharm)
+        #Bsquared=np.ascontiguousarray(self.Bharm)
+        Tsquared=np.ascontiguousarray(self.Tharm*self.Tharm.conj())
+        Esquared=np.ascontiguousarray(self.Eharm*self.Eharm.conj())
+        Bsquared=np.ascontiguousarray(self.Bharm*self.Bharm.conj())
+        print("WTF", Tsquared.min(), Tsquared.max(), np.isnan(Tsquared).any())
+
+
+        self.var_s_ClTT = cmbtools.harm2cl(Tsquared,self.Deltal,self.lbins)
+        self.var_s_ClEE = cmbtools.harm2cl(Esquared,self.Deltal,self.lbins)
+        self.var_s_ClBB = cmbtools.harm2cl(Bsquared,self.Deltal,self.lbins)
+
+        #if np.isnan( self.var_s_ClTT).any():
+        #    pdb.set_trace()
+        #self.var_s_ClTT = cmbtools.harm2cl(self.Tharm,self.Deltal,self.lbins)
+        #self.var_s_ClEE = cmbtools.harm2cl(self.Eharm,self.Deltal,self.lbins)
+        #self.var_s_ClBB = cmbtools.harm2cl(self.Hharm,self.Deltal,self.lbins)
+
     def fit_eb_slopes(self,fitrange=None,slopes=None):
         """Given the fit range, determine the slope.
         The *slopes* argument a container for the slopes and amplitudes.  Developmental.
@@ -322,7 +345,7 @@ class queb_snapshot():
             fitrange[0] = 4*self.Deltal[0]
             fitrange[1]=  8*self.Deltal[0]
             fitrange[0] = self.lcent[4]
-            fitrange[1]=  self.lcent[10]
+            fitrange[1]=  self.lcent[25]
         else:
             fitlmin=self.lcent[4]
             fitlmax=self.lcent[10]
@@ -461,7 +484,6 @@ class simulation_package():
             Hf= "not_saved" #we don't need these files.
             Ef= "not_saved"
             Bf= "not_saved"
-        print("Qf",Qf)
         if not os.path.exists(Qf):
             print("Warning: no Q file exists: "+Qf)
         d=read_fits(Df)
@@ -506,8 +528,9 @@ class simulation_package():
                 continue
             array = ts[name]
 
-            #norm = mpl.colors.SymLogNorm(vmin = -2e-19, vmax = 2e-19, base=10, linthresh = 2e-20)
-            norm = mpl.colors.Normalize(vmin = -1e-20, vmax = 1e-20)#, linthresh=1e-22, base=10)
+            #norm = mpl.colors.SymLogNorm(vmin = -2e-19, vmax = 2e-19, base=10, linthresh = 2e-24, linscale=0.1)
+            #norm = mpl.colors.Normalize(vmin = -1e-20, vmax = 1e-20)#, linthresh=1e-22, base=10)
+            norm=None
             proj=axes[np].imshow(array - array.mean(),origin='lower',interpolation='nearest',norm=norm)
             axes[np].set_title('%s %0.1f b'%(name,theta))
             fig.colorbar(proj, ax=axes[np])
