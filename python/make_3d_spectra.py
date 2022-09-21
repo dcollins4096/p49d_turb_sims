@@ -14,7 +14,10 @@ all_slopes=defaultdict(list)
 
 clobber=False
 simlist=sim_colors.simlist
-simlist=['5_half','5_1','5_2', '5_3']
+if len(sys.argv) > 1:
+    simlist = [sys.argv]
+else:
+    simlist=['5_half','5_1','5_2', '5_3']
 
 for i,sim in enumerate(simlist):
     frames=sim_colors.framelist[i]
