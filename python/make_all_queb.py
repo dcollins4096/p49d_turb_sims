@@ -35,3 +35,4 @@ for frame in frames:
     slopes=this_proj.fit_eb_slopes(fitrange=fitrange)
     #this plotting package can be generalized.
     pack.plot_eb(this_proj, fname='%s/ca02_reb_x_n%04d.png'%(plot_dir,frame),slopes=slopes)
+    pack.plot_many_spectra(this_proj)
