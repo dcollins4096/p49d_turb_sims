@@ -57,7 +57,7 @@ def add_epsilon_old(axis, factor, this_thing=yt):
 
         return epsilon
 
-    this_thing.add_field('epsilon_n0-%s_%s'%(n0_str, axis), function=_epsilon_local)
+    this_thing.add_field('epsilon_n0-%s_%s'%(n0_str, axis), function=_epsilon_local, sampling_type='cell')
     
     return n0_str
 
@@ -102,7 +102,7 @@ def add_stokes(axis, n0, p, this_thing=yt):
         return out
     
     #Q_fname= 'Q%s_n0-%04d_p-%d'%(axis,n0,p)
-    Q_fname= 'Q%s'%(axis) #_n0-%04d_p-%d'%(axis,n0,p)
+    Q_fname= 'gas','Q%s'%(axis) #_n0-%04d_p-%d'%(axis,n0,p)
     if verbose: print( 'adding yt field %s'%Q_fname)
     this_thing.add_field(Q_fname, units='code_density', function=_Q_local, force_override=True,sampling_type='cell')
 
@@ -122,7 +122,7 @@ def add_stokes(axis, n0, p, this_thing=yt):
         return out 
 
     #U_fname = 'U%s_n0-%04d_p-%d'%(axis,n0,p)
-    U_fname = 'U%s'%(axis)
+    U_fname = 'enzo','U%s'%(axis)
     if verbose: print( 'adding yt field %s'%U_fname)
     this_thing.add_field(U_fname, units='g/cm**3', function=_U_local, force_override=True,sampling_type='cell')
     return Q_fname, U_fname
@@ -144,7 +144,7 @@ def add_unweighted_stokes(axis, this_thing=yt):
 
     fieldname = 'unweighted_Q%s'%axis
     if verbose: print ("ADDING", fieldname)
-    this_thing.add_field(fieldname, units='dimensionless', function=_unweighted_Q_local)
+    this_thing.add_field(fieldname, units='dimensionless', function=_unweighted_Q_local, sampling_type='cell')
 
     def _unweighted_U_local(field,data):
         """Makes stokes U."""
@@ -154,7 +154,7 @@ def add_unweighted_stokes(axis, this_thing=yt):
 
     fieldname = 'unweighted_U%s'%axis
     if verbose: print( "Adding", fieldname)
-    this_thing.add_field(fieldname, units='dimensionless', function=_unweighted_U_local)
+    this_thing.add_field(fieldname, units='dimensionless', function=_unweighted_U_local, sampling_type='cell')
 
 def add_N2(axis, n0, p, this_thing=yt):
     """ Makes a field that when projected is a correction to the column density used
@@ -190,7 +190,7 @@ def add_N2(axis, n0, p, this_thing=yt):
         return epsilon * (0.5*cos_gamma_sq - 1/3) 
        
     fieldname = 'N2%s_n0-%04d_p-%d'%(axis,n0,p)
-    this_thing.add_field(fieldname, units='code_density', function=_N2_local)    
+    this_thing.add_field(fieldname, units='code_density', function=_N2_local, sampling_type='cell')    
     if verbose: print( "Added", fieldname)
 
 # Add yt fields for stokes and n2 along each axis with 
