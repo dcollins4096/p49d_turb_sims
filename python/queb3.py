@@ -449,10 +449,9 @@ class simulation_package():
         FFTs are stored in DD????.products"""
         oober = st.short_oober(self.directory, frame=frame)
         st.MakeVelocitySpectra(oober,frame)
-        st.MakeAccelSpectra(oober,frame)
-        st.MakeVelocitySpectra(oober,frame)
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)
+        #st.MakeAccelSpectra(oober,frame)
 
     def make_htotal_spectra(self,frame):
         """This makes 3d power spectra of velocity, acceleration, 
