@@ -15,18 +15,19 @@ verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
-
+clobber=False
+simlist=sim_colors.simlist
+simlist=['5_half','5_1','5_2', '5_3']
 shortprefix="time"
 def make_spectra_files():
     for axes in ['x','y','z']:
-        simlist=sim_colors.simlist
         for i,sim in enumerate(simlist):
             frames=sim_colors.framelist[i]
             simdes=sim
             spectra_fname = "avg_spectra_%s_%s.h5"%(simdes,axes)
             frbname=""
             #sim_dir = "/archive2/kas14d/512reruns/frbs/%s"%simdes
-            sim_dir = "/data/cb1/Projects/P49_EE_BB/512_frbs/%s"%sim
+            sim_dir = "/data/cb1/Projects/P49_EE_BB/frbs/%s"%sim
             plot_dir = "./plots"
             gen_dir = "./plots"
             avg_clee=0
@@ -67,7 +68,7 @@ def make_spectra_files():
             nplots=0
             proj=pack.read_queb(frame=frames[0],ax=axes,bin_style='dx1')
             fitrange=proj.determine_fit_range()  #something better
-            if not os.path.exists(spectra_fname) or True:
+            if not os.path.exists(spectra_fname) or clobber:
 
                 for frame in frames: 
                     
