@@ -12,10 +12,11 @@ plt.close('all')
 #simlist=["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2"]
 #color=['r','g','b','r','g','b','r','g','b','r','g','b']
 #linestyle=['-','-','-','-.','-.','-.','--','--','--',':',':',':']
-basedir="/archive2/kas14d/512reruns/"
-outdir="plots"
+basedir="/data/cb1/Projects/P49_EE_BB"
+outdir="/home/dccollins/PigPen"
 hist_density=False
-for axis in 'xy': #axis='y'
+print('kludge only x')
+for axis in 'x': #axis='y'
     density_array={}
     b_array={}
     e_array={}
@@ -37,8 +38,15 @@ for axis in 'xy': #axis='y'
 
 
 
-    fig, axes = plt.subplots(3,4)
+    import tight_plots
+    reload(tight_plots)
+    fig,axes,ccc = tight_plots.fig_squares(5,3)
+    #fff.savefig('%s/fart.png'%outdir)
     ax_list=axes.flatten()
+
+if 1:
+    #fig, axes = plt.subplots(3,5, figsize=(5,3))
+    #ax_list=axes.flatten()
 
     den_max = 1.1# max([b.max() for b in density_array])
     den_min = 0.9 # min([b.min() for b in density_array])
@@ -59,12 +67,14 @@ for axis in 'xy': #axis='y'
     dt.axbonk(ax3,xlabel=r'$T-mode$',ylabel=r'$N$')
     fig3.savefig("%s/Thist_%s.pdf"%(outdir,axis))
     plt.close(fig3)
-    cb=fig.colorbar(plot, ax=axes[:,3])
-    fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
+    cb=fig.colorbar(plot, cax=ccc)
+    #fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
+    #fig.subplots_adjust(wspace=0, hspace=0)
+    #fig.tight_layout()
     fig.savefig("%s/multiplot_density_%s.pdf"%(outdir,axis))
     plt.close(fig)
-
-    fig, axes = plt.subplots(3,4)
+if 0:
+    fig, axes = plt.subplots(3,5)
     ax_list=axes.flatten()
 
     fig3,ax3 = plt.subplots(1,1)
@@ -85,14 +95,14 @@ for axis in 'xy': #axis='y'
     #fig3.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
     fig3.savefig("%s/Bhist_%s.pdf"%(outdir,axis))
     plt.close(fig3)
-    cb=fig.colorbar(plot, ax=axes[:,3])
+    cb=fig.colorbar(plot, ax=axes[:,4])
     #fig.subplots_adjust(wspace=0, hspace=0)
     fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
     outname="%s/multiplot_B_%s.pdf"%(outdir,axis)
     fig.savefig(outname)
     print(outname)
     plt.close(fig)
-    fig, axes = plt.subplots(3,4)
+    fig, axes = plt.subplots(3,5)
     ax_list=axes.flatten()
 
     b_max =  0.2 #max([b.max() for b in b_array])*2
@@ -119,7 +129,7 @@ for axis in 'xy': #axis='y'
     dt.axbonk(ax3,ylabel=r'$N$',xlabel=r'$E-mode$')
     fig3.savefig("%s/Ehist_%s.pdf"%(outdir,axis))
     plt.close(fig3)
-    cb=fig.colorbar(plot, use_gridspec=True, ax=axes[:,3])
+    cb=fig.colorbar(plot, use_gridspec=True, ax=axes[:,4])
     #fig.subplots_adjust(wspace=0, hspace=0)
     fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
 #fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
