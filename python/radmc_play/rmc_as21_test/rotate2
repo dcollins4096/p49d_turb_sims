@@ -1,0 +1,11 @@
+#!/bin/tcsh
+
+set theta = 0
+set phi = 0
+foreach posang (`nums 0 360 -ns 10 `)
+radmc3d image lambda 0.4e3 theta $theta phi $phi nostar posang $posang pointpc 0.5 0.5 0.5  npix 256 sizepc 0.5
+mv image.out image_r_"$posang"_"$phi".out
+end
+
+python problem_plot.py
+#end
