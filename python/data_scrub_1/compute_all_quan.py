@@ -9,7 +9,6 @@ reload(comp_avg)
 for sim in ['5_half','5_1','5_2','5_3']:
     print("QUAN",sim)
     frames = sim_colors.framedict[sim]
-    frames=frames[:2]
     for frame in frames:
         comp_avg.make_quan(sim_colors.cloudbreak_base+sim,frame)
     break
