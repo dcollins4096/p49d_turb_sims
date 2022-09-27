@@ -24,16 +24,16 @@ def plotter2(arrays,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,npx=
     print("NPX %d NPY %d"%(npx,npy))
     max_val = max([arr.max() for arr in arrays])
     min_all = min([arr.min() for arr in arrays])
-    if zmin is not None:
+    if zmin != None:
         min_all = zmin
-    if norm is 'positive':
+    if norm == 'positive':
         min_val = min_all
         args['norm']=colors.LogNorm(vmin=min_val,vmax=max_val)
         print("WTF",min_val)
-    elif norm is 'symlog' :
+    elif norm == 'symlog' :
         min_val = min_all
         args['norm']=colors.SymLogNorm(linthresh=1e-10,vmin=min_val,vmax=max_val)
-    elif norm is 'ind':
+    elif norm == 'ind':
         args['norm']=None
     else:
         min_val = min_all
@@ -52,7 +52,7 @@ def plotter2(arrays,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,npx=
         else:
             this_ax = axes[ipx][ipy]
         oot.append(this_ax.imshow(arr,**args))
-        if norm is 'ind': cb=fig.colorbar(oot[-1],ax=this_ax)
+        if norm == 'ind': cb=fig.colorbar(oot[-1],ax=this_ax)
         this_ax.set_title(labs[n])
 #   oot.append(axes[1][0].imshow(U,**args))
 #   if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][0])
@@ -64,9 +64,9 @@ def plotter2(arrays,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,npx=
 #   oot.append(axes[1][1].imshow(B,**args))
 #   if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][1])
 #   axes[1][1].set_title(labs[3])
-    if norm is not 'ind':
+    if norm != 'ind':
         cb=fig.colorbar(oot[-1],ax=axes)
-        if norm is 'positive':
+        if norm == 'positive':
             cb.cmap.set_under('w')
     if axis_labels:
         for n in range(np):
@@ -79,13 +79,13 @@ def plotter2(arrays,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,npx=
 def plotter(Q,U,E,B,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,**args):
     fig, axes = plt.subplots(2,2,sharex=True,sharey=True)
     max_val = max([Q.max(),U.max(),E.max(),B.max()])
-    if norm is 'positive':
+    if norm == 'positive':
         min_val = 1e-15
         args['norm']=colors.LogNorm(vmin=min_val,vmax=max_val)
-    elif norm is 'symlog' :
+    elif norm == 'symlog' :
         min_val = min([Q.min(),U.min(),E.min(),B.min()])
         args['norm']=colors.SymLogNorm(linthresh=1e-10,vmin=min_val,vmax=max_val)
-    elif norm is 'ind':
+    elif norm == 'ind':
         args['norm']=None
     else:
         min_val = min([Q.min(),U.min(),E.min(),B.min()])
@@ -95,21 +95,21 @@ def plotter(Q,U,E,B,fname,norm=None,labs=['Q','U','E','B'],axis_labels=None,**ar
     args['origin']='lower'
     oot=[]
     oot.append(axes[0][0].imshow(Q,**args))
-    if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[0][0])
+    if norm == 'ind': cb=fig.colorbar(oot[-1],ax=axes[0][0])
     axes[0][0].set_title(labs[0])
     oot.append(axes[1][0].imshow(U,**args))
-    if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][0])
+    if norm == 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][0])
     axes[1][0].set_title(labs[1])
     oot.append(axes[0][1].imshow(E,**args))
-    if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[0][1])
+    if norm == 'ind': cb=fig.colorbar(oot[-1],ax=axes[0][1])
 
     axes[0][1].set_title(labs[2])
     oot.append(axes[1][1].imshow(B,**args))
-    if norm is 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][1])
+    if norm == 'ind': cb=fig.colorbar(oot[-1],ax=axes[1][1])
     axes[1][1].set_title(labs[3])
-    if norm is not 'ind':
+    if norm != 'ind':
         cb=fig.colorbar(oot[-1],ax=axes)
-        if norm is 'positive':
+        if norm == 'positive':
             cb.cmap.set_under('w')
     if axis_labels:
         for n in range(4):
@@ -123,7 +123,7 @@ class quan_box():
     def __init__(self,car=None, plot_format='png', name='NAME'):
         
         self.car = car
-        if car is not None:
+        if car != None:
             self.name = car.name
         else:
             self.name=name
@@ -162,7 +162,7 @@ class quan_box():
     def dump(self,h5name=None):
         if not imroot():
             return
-        if h5name is None:
+        if h5name == None:
             h5_name = 'quan_box_%s.h5'%self.car.outname
         #if os.path.exists(pickle_name):
         #    #other_pickle = fPickle.load(pickle_name)
@@ -212,7 +212,7 @@ class quan_box():
         if not imroot():
             return
 
-        if h5_name is None:
+        if h5_name == None:
             h5_name = 'quan_box_%s.h5'%self.car.outname
         if len(glob.glob(h5_name)):
             fptr = h5py.File(h5_name,'r')
@@ -253,7 +253,7 @@ class quan_box():
                 self.stuff['Bamp_%s'%ax]=[]
                 self.stuff['Eslope_%s'%ax]=[]
                 self.stuff['Bslope_%s'%ax]=[]
-        if frames is None:
+        if frames == None:
             frames = self.car.return_frames()
         for frame in frames:
             if frame not in self.stuff['EBcycles']:
@@ -475,7 +475,7 @@ class quan_box():
         else:
             reg = car.get_region(frame)
             ds = car.ds
-        xtra_energy_fields.dave_add_field(ds) #adds many fields.
+        #xtra_energy_fields.dave_add_field(ds) #adds many fields.
         total_volume = reg['cell_volume'].sum()
         volume = reg['cell_volume']
         print("volume", volume)
