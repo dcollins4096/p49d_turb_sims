@@ -54,8 +54,14 @@ def all_quan_from_taxi(car):
     all_quan = return_average_quantities(file_list)
     return all_quan
 
-def get_quantities_and_rms(output_log):
-    quan = all_quan_from_outputlog(output_log)
+def get_quantities_and_rms(output_log=None, file_list=None):
+    if output_log is not None:
+        quan = all_quan_from_outputlog(output_log)
+    elif file_list is not None:
+        quan = return_average_quantities(file_list)
+    else:
+        print("must give some files.")
+        return
     
     mytime=quan['time']
     mytime -= mytime[0]
