@@ -30,7 +30,7 @@ import glob
 x_dict = [1,0,0]
 y_dict = [2,2,1]
 
-path_list=['tools']
+path_list=['tools','OtherPython']
 for directory in path_list:
     if directory not in sys.path:
         sys.path += [directory]
