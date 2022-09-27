@@ -122,8 +122,8 @@ class queb_snapshot():
     def write(self):
         """saves E, B, and the spectra to the simulation location"""
         xd='DD'
-        frb_dir = "%s/%s"%(self.simulation.directory,p49_QU2EB.frbname)
-        product_dir = "%s/DD%04d.products"%(self.simulation.directory,self.frame)
+        product_dir = "%s/DD%04d.products"%(self.simulation.product_directory,self.frame)
+        frb_dir = product_dir
         Ef= "%s/%s%04d_E%s.fits"%(frb_dir,xd,self.frame,self.axis)
         Bf= "%s/%s%04d_B%s.fits"%(frb_dir,xd,self.frame,self.axis)
         Clf= "%s/%s%04d_Cl%s.fits"%(frb_dir,xd,self.frame,self.axis)
@@ -225,7 +225,7 @@ class queb_snapshot():
         ax.plot( self.lcent, this_ClEE,marker='*')
 
         fig.savefig(fname)
-        print(fname)
+        print("wrote",fname)
         plt.close(fig)
     def compute_bins(self):
         if self.bin_style=='5deg':
@@ -281,7 +281,7 @@ class queb_snapshot():
         Tsquared=np.ascontiguousarray(self.Tharm*self.Tharm.conj())
         Esquared=np.ascontiguousarray(self.Eharm*self.Eharm.conj())
         Bsquared=np.ascontiguousarray(self.Bharm*self.Bharm.conj())
-        print("WTF", Tsquared.min(), Tsquared.max(), np.isnan(Tsquared).any())
+        #print("WTF", Tsquared.min(), Tsquared.max(), np.isnan(Tsquared).any())
 
 
         self.var_s_ClTT = cmbtools.harm2cl(Tsquared,self.Deltal,self.lbins)
@@ -352,12 +352,14 @@ class queb_snapshot():
             fitrange[0]=fitlmin;fitrange[1]=fitlmax
             #ellmask = (fitlmin < ell)*(ell < fitlmax)
         return fitrange
-    def read_spectra(self,frame,ax='x'):
+    def read_spectra(self,frame,ax='x', directory=None):
         """read 3d spectra"""
-        self.vspec=dt.dpy( "%s/DD%04d.products/power_velocity.h5"%(self.simulation.directory,frame) , ['k','power'])
-        self.aspec=dt.dpy( "%s/DD%04d.products/power_acceleration.h5"%(self.simulation.directory,frame) , ['k','power'])
-        self.dspec=dt.dpy( "%s/DD%04d.products/power_density.h5"%(self.simulation.directory,frame) , ['k','power'])
-        self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic.h5"%(self.simulation.directory,frame) , ['k','power'])
+        if directory is None:
+            directory = self.simulation.product_directory
+        self.vspec=dt.dpy( "%s/DD%04d.products/power_velocity.h5"%(directory,frame) , ['k','power'])
+        self.aspec=dt.dpy( "%s/DD%04d.products/power_acceleration.h5"%(directory,frame) , ['k','power'])
+        self.dspec=dt.dpy( "%s/DD%04d.products/power_density.h5"%(directory,frame) , ['k','power'])
+        self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic.h5"%(directory,frame) , ['k','power'])
     def read_htotspectra(self,frame,ax='x'):
         """read 3d spectra"""
         self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic_field_strength..h5"%(self.simulation.directory,frame) , ['k','power'])
@@ -388,11 +390,12 @@ class simulation_package():
     """container for a simulation.
     Keeps track of the data location
     Produces FRBs from simulation data."""
-    def __init__(self,directory=".",frames=[], prefix="RUN", 
+    def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",
                   plot_format='png', clobber=False,dataset_name='DD',frbname="./frbs",plotdir="."):
 
         
         self.directory=directory
+        self.product_directory=product_directory
         self.frames=frames
         self.prefix=prefix
         self.plot_format=plot_format
@@ -407,10 +410,12 @@ class simulation_package():
             ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
             p49_fields.add_QU(ds)
             self.make_frbs(frame,ds=ds)
+            pdb.set_trace()
             for axis in 'xyz':
                 #read and/or compute E,B, and other harmon
                 this_proj=self.read_queb(frame,axis) 
                 this_proj.compute_harmonic_products()
+                pdb.set_trace()
                 this_proj.write()
 
     def make_frbs(self,frame, axes=['x','y','z'], ds=None):
@@ -422,7 +427,7 @@ class simulation_package():
           fields.append( (axis,'magnetic_field_strength'))
 
         for axis, field in fields :
-            outputdir = "%s/%s/"%(self.directory,self.frbname)
+            outputdir = self.product_directory
             if not os.access(outputdir, os.F_OK):
                 os.mkdir(outputdir)
             #fix names; Q and U have the name in the field, but others don't.
@@ -430,7 +435,7 @@ class simulation_package():
                 field_name = field
             else:
                 field_name = field + "_"+axis
-            outfile = outputdir+"/DD%.4d_%s.fits" %(frame,field_name)
+            outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
             if os.access(outfile, os.F_OK) and not self.clobber:
                 print("FRB exists: %s"%outfile)
             else:
@@ -447,7 +452,7 @@ class simulation_package():
         """This makes 3d power spectra of velocity, acceleration, 
         magnetic field, and density.  Can be very slow.
         FFTs are stored in DD????.products"""
-        oober = st.short_oober(self.directory, frame=frame)
+        oober = st.short_oober(self.directory, frame=frame, product_directory=self.product_directory)
         st.MakeVelocitySpectra(oober,frame)
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)
@@ -463,10 +468,10 @@ class simulation_package():
     def read_queb(self,frame,ax='x',bin_style='dx1',theta=None,phi=None):
         """ Read Q,U,E,B,Density,and Magnetic field FRBs.
         All values default to None if the file is not found."""
-        frb_dir = "%s/%s"%(self.directory,self.frbname)
 
 
-        product_dir = "%s/DD%04d.products"%(self.directory,frame)
+        product_dir = "%s/DD%04d.products"%(self.product_directory,frame)
+        frb_dir = product_dir
         xd=self.dataset_name
 
         if theta is None:
