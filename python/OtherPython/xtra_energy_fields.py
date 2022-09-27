@@ -11,7 +11,7 @@ def dave_add_field(yt_object, field_name=None, argument_dict=field_args):
                       'eng_x' ,'eng_y' ,'eng_z' ,'rel_kinetic_energy' ,\
                       'grav_pot' ,'gas_work']
     for field in field_list:
-        yt_object.add_field(field,sampling_type='cell',**argument_dict[field])
+        yt_object.add_field('gas',field,sampling_type='cell',**argument_dict[field])
 
 momentum_units = 'g/(cm**2*s)'
 def _momentum_x(field,data):
