@@ -16,7 +16,7 @@ basedir="/data/cb1/Projects/P49_EE_BB"
 outdir="/home/dccollins/PigPen"
 hist_density=False
 print('kludge only x')
-for axis in 'x': #axis='y'
+for axis in 'xy': #axis='y'
     density_array={}
     b_array={}
     e_array={}
@@ -72,10 +72,7 @@ if 1:
     #fig.subplots_adjust(wspace=0, hspace=0)
     #fig.tight_layout()
     fig.savefig("%s/multiplot_density_%s.pdf"%(outdir,axis))
-    plt.close(fig)
-if 0:
-    fig, axes = plt.subplots(3,5)
-    ax_list=axes.flatten()
+
 
     fig3,ax3 = plt.subplots(1,1)
 
@@ -95,15 +92,11 @@ if 0:
     #fig3.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
     fig3.savefig("%s/Bhist_%s.pdf"%(outdir,axis))
     plt.close(fig3)
-    cb=fig.colorbar(plot, ax=axes[:,4])
-    #fig.subplots_adjust(wspace=0, hspace=0)
-    fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
+    cb=fig.colorbar(plot, cax=ccc)
     outname="%s/multiplot_B_%s.pdf"%(outdir,axis)
     fig.savefig(outname)
     print(outname)
     plt.close(fig)
-    fig, axes = plt.subplots(3,5)
-    ax_list=axes.flatten()
 
     b_max =  0.2 #max([b.max() for b in b_array])*2
     b_min = -0.2 #min([b.min() for b in b_array])*2
@@ -129,9 +122,9 @@ if 0:
     dt.axbonk(ax3,ylabel=r'$N$',xlabel=r'$E-mode$')
     fig3.savefig("%s/Ehist_%s.pdf"%(outdir,axis))
     plt.close(fig3)
-    cb=fig.colorbar(plot, use_gridspec=True, ax=axes[:,4])
+    cb=fig.colorbar(plot, use_gridspec=True, cax=ccc)
     #fig.subplots_adjust(wspace=0, hspace=0)
-    fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
+    #fig.subplots_adjust(left=0,bottom=0.05,top=0.95,wspace=0, hspace=0)
 #fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     fig.savefig("%s/multiplot_E_%s.pdf"%(outdir,axis))
     plt.close(fig)
