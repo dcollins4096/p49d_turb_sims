@@ -28,7 +28,7 @@ def make_spectra_files():
             frbname=""
             #sim_dir = "/archive2/kas14d/512reruns/frbs/%s"%simdes
             sim_dir = "/data/cb1/Projects/P49_EE_BB/%s"%sim
-            frb_dir = "/data/cb1/Projects/P49_EE_BB/512_frbs/%s"%sim
+            product_dir = "/data/cb1/Projects/P49_EE_BB/Products/%s"%sim
             plot_dir = "./plots"
             gen_dir = "./plots"
             avg_clee=0
@@ -65,7 +65,7 @@ def make_spectra_files():
                 var_s_d=0
             projections=[]
             longprefix='%s_%s_%s'%(simdes,shortprefix,axes)
-            pack = queb3.simulation_package( directory=frb_dir,frames=frames,prefix=longprefix,frbname=frbname)
+            pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=longprefix, product_directory=product_dir)
             nplots=0
             proj=pack.read_queb(frame=frames[0],ax=axes,bin_style='dx1')
             fitrange=proj.determine_fit_range()  #something better
@@ -79,9 +79,10 @@ def make_spectra_files():
                         continue
                     nplots+=1
 
-                    proj.read_spectra(frame, directory=sim_dir)
+                    proj.read_spectra(frame, directory=product_dir)
                     projections.append(proj)
                     projections[-1].compute_harmonic_products()
+                    continue
                     #    ax.plot(proj.lcent,proj['ClEE'])
                     if verbose:
                         print('proj[ClEE]')

@@ -99,14 +99,15 @@ def MinK(TheY):
     TheY /= (TheY[ TheY != 0]).min()
     return TheY
 class short_oober():
-    def __init__(self, directory="./STUFF/", frame=0):
+    def __init__(self, directory="./STUFF/", frame=0, product_directory=None):
         self.frame=frame
         self.directory=directory
         self.ds_dict={}
         self.region_dict={}
         self.last_frame=None
+        self.product_directory = product_directory
     def product_dir(self,frame):
-        return "%s/DD%04d.products"%(self.directory,frame)
+        return "%s/DD%04d.products"%(self.product_directory,frame)
     def get_ds_name(self,frame):
         return "%s/DD%04d/data%04d"%(self.directory,frame,frame)
     def load(self,frame):
