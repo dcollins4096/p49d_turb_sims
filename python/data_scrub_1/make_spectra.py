@@ -31,6 +31,7 @@ def make_spectra_files():
             product_dir = "/data/cb1/Projects/P49_EE_BB/Products/%s"%sim
             plot_dir = "./plots"
             gen_dir = "./plots"
+
             avg_clee=0
             avg_clbb=0
             avg_cleb=0
@@ -82,7 +83,6 @@ def make_spectra_files():
                     proj.read_spectra(frame, directory=product_dir)
                     projections.append(proj)
                     projections[-1].compute_harmonic_products()
-                    continue
                     #    ax.plot(proj.lcent,proj['ClEE'])
                     if verbose:
                         print('proj[ClEE]')

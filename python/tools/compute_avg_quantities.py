@@ -44,7 +44,7 @@ def make_quan(directory,frame, out_directory=None, clobber=False):
     if os.path.exists(outname) and clobber==False:
         print("File exists, skipping", outname)
         return 0
-    print("Quan",frame)
+    print("Quan on frame",frame)
     submarine={}
     submarine['bx']=meanie('bx','Bx')
     submarine['by']=meanie('by','By')
@@ -93,6 +93,10 @@ def make_quan(directory,frame, out_directory=None, clobber=False):
 
 
     outname = "%s/DD%04d/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    parent_dir = os.path.dirname(outname)
+    if not os.path.exists(parent_dir):
+        os.mkdir(parent_dir)
+
     optr = h5py.File(outname,'w')
     try:
         optr['time'] = time

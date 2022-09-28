@@ -9,10 +9,11 @@ import davetools
 import yt
 import fourier_tools_py3.fourier_filter as Filter
 
-def shell_average(power,oober,frame,field,debug=-1,mark_time=None):
+def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None):
     ff = Filter.FourierFilter(power)
     power_1d = np.array([power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
-    filename = "%s/power_%s.h5"%(oober.product_dir(frame), field)
+    if filename is None:
+        filename = "%s/power_%s.h5"%(oober.product_dir(frame), field)
     if debug>0:
         print("Saved spectra %s"%filename)
     file = h5py.File(filename,'w')
@@ -37,6 +38,9 @@ def MakeDensitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     power=0
     setlist = ['density']
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'density')
+    if os.path.exists(filename):
+        return
     rhohat = oober.fft(frame,'density',num_ghost_zones=ngz,debug=debug)
     power += (rhohat.conjugate()*rhohat)
     field_out='density'
@@ -68,6 +72,9 @@ def MakeColumnDensitySpectra(oober,frame,density=0,debug=1, axis='x'):
 def MakeMagneticSpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     power=0
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'magnetic')
+    if os.path.exists(filename):
+        return
     setlist = ['magnetic_field_%s'%s for s in 'xyz']
     for i,x in enumerate('xyz'):
         Bhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
@@ -169,6 +176,9 @@ mark_time = None
 def MakeVelocitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     mark_time = None
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'velocity')
+    if os.path.exists(filename):
+        return
     if mark_time is not None:
         mark_time = time_marker()
     print("derp", density)
@@ -194,7 +204,7 @@ def MakeVelocitySpectra(oober,frame,density=0,debug=1):
         power += (Vhat.conjugate()*Vhat)
         if mark_time:
             mark_time('power addition')
-    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+    fname = shell_average(power,oober,frame,field_out,debug,mark_time, filename=filename)
 def do_log(f):
     return np.log10(f)
     #return f

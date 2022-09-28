@@ -357,7 +357,7 @@ class queb_snapshot():
         if directory is None:
             directory = self.simulation.product_directory
         self.vspec=dt.dpy( "%s/DD%04d.products/power_velocity.h5"%(directory,frame) , ['k','power'])
-        self.aspec=dt.dpy( "%s/DD%04d.products/power_acceleration.h5"%(directory,frame) , ['k','power'])
+        #self.aspec=dt.dpy( "%s/DD%04d.products/power_acceleration.h5"%(directory,frame) , ['k','power'])
         self.dspec=dt.dpy( "%s/DD%04d.products/power_density.h5"%(directory,frame) , ['k','power'])
         self.hspec=dt.dpy( "%s/DD%04d.products/power_magnetic.h5"%(directory,frame) , ['k','power'])
     def read_htotspectra(self,frame,ax='x'):
@@ -410,12 +410,10 @@ class simulation_package():
             ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
             p49_fields.add_QU(ds)
             self.make_frbs(frame,ds=ds)
-            pdb.set_trace()
             for axis in 'xyz':
                 #read and/or compute E,B, and other harmon
                 this_proj=self.read_queb(frame,axis) 
                 this_proj.compute_harmonic_products()
-                pdb.set_trace()
                 this_proj.write()
 
     def make_frbs(self,frame, axes=['x','y','z'], ds=None):
