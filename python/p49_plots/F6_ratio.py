@@ -20,9 +20,9 @@ all_slopes=defaultdict(list)
 #read_stuff reads spectra and average quantities
 #Reload to re-read, but don't do that every time.
 import read_stuff as rs
-#reload(read_stuff)  
 spectra_dict = rs.spectra_dict
-quan3 = rs.quan3
+import read_avg_quan as raq
+quan3=raq.quan3
 
 
 #
@@ -111,7 +111,9 @@ if 1:
             print('Mean Ratio %s %s %f'%(field_top, field_bottom, mean_ratio))
             #if nf == 1:
                 #print("EE/BB mean ", mean_ratio)
-            ax[nf][0].plot( [0.45, 2.7], [0.5]*2, c=[0.5]*4)
+            #ax[nf][0].plot( [0.45, 2.7], [0.5]*2, c=[0.5]*4)
+            ax[nf][0].axhline( 0.5, c=[0.5]*4)
+            ax[nf][1].axhline( 0.5, c=[0.5]*4)
 
         ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
         ax[2][1].set_xlabel(r'$M_{\rm{A}}$')

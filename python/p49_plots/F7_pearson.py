@@ -19,19 +19,20 @@ all_slopes=defaultdict(list)
 #read_stuff reads spectra and average quantities
 #Reload to re-read, but don't do that every time.
 import read_stuff as rs
-#reload(read_stuff)  
 spectra_dict = rs.spectra_dict
-quan3 = rs.quan3
+import read_avg_quan as raq
+quan3=raq.quan3
 
 
 
 #
 # reb, ttb, rte spectra
 #
+#
 
-if 0:
+if 1:
     plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
+    fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
@@ -39,20 +40,23 @@ if 0:
         for sim in sim_colors.simlist:
             qu = field[-2:].upper()
             label = r'$r_{%s} \parallel$'%qu
-            axlist[nf  ].text(0.1, -0.8, label)
+            #axlist[nf  ].text(0.1, -0.8, label)
             label = r'$r_{%s} \perp$'%qu
-            axlist[nf+3].text(0.1, -0.8, label)
+            axlist[nf].set_title(field)
+            #axlist[nf+3].text(0.1, -0.8, label)
             axlist[nf  ].plot(spectra_dict['x'][sim].lcent, spectra_dict['x'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-            axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+            #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
             #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
     for a in axlist:
         dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
         a.set_yscale('symlog',linthresh=0.09)
         #a.set_yscale('linear')
         a.set_ylim([-1,1])
-    for a in axlist[3:]:
+    for a in axlist:
         a.set_xlabel(r'$k/k_max$')
-    for a in [axlist[0],axlist[3]]:
+        a.axhline( 5e-2,c=[0.5]*4)
+        a.axhline(-5e-2,c=[0.5]*4)
+    for a in [axlist[0]]:
         a.set_ylabel(r'$r_{XY}$')
         a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
@@ -114,9 +118,10 @@ if 0:
 # reb, ttb, rte mean and variance
 #
 
-if 0:
+if 1:
     plt.close('all')
-    fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
+    #fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
+    fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
     for sim in sim_colors.simlist:
@@ -125,9 +130,9 @@ if 0:
         for nf,field in enumerate(['avg_rte', 'avg_rtb', 'avg_reb']):
             qu = field[-2:].upper()
             label = r'$r_{%s} \parallel$'%qu
-            axlist[nf  ].text(0.5e-3, 0.2, label)
+            #axlist[nf  ].text(0.5e-3, 0.2, label)
             label = r'$r_{%s} \perp$'%qu
-            axlist[nf+3].text(0.5e-3, 0.2, label)
+            #axlist[nf+3].text(0.5e-3, 0.2, label)
 
             mean1 = spectra_dict['x'][sim].spectra[field].mean()
             std1  = spectra_dict['x'][sim].spectra[field].std()
@@ -135,17 +140,20 @@ if 0:
             std2  = spectra_dict['y'][sim].spectra[field].std()
 
             axlist[nf  ].scatter(np.abs(mean1),std1, color=sim_colors.color[sim], marker=sim_colors.marker[sim])
-            axlist[nf+3].scatter(np.abs(mean2),std2, color=sim_colors.color[sim], marker=sim_colors.marker[sim])
+            #axlist[nf+3].scatter(np.abs(mean2),std2, color=sim_colors.color[sim], marker=sim_colors.marker[sim])
 
     for a in axlist:
         #dt.axbonk(a,xscale='linear',yscale='linear',xlabel=None,ylabel=None)
         dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
-    for a in axlist[3:]:
-        a.set_xlabel(r'$\langle r_{XY} \rangle$')
-    for a in [axlist[0],axlist[3]]:
+    for na,a in enumerate(axlist):
+        val = ['TE','TB','EB'][na]
+        a.set_xlabel(r'$\langle r_{%s} \rangle$'%val)
+    for a in [axlist[0]]:
         a.set_ylabel(r'$\sigma_{XY}$')
 
     outname = '%s/r_XY_mean_std.pdf'%plotdir
+    fig.tight_layout()
+    fig.subplots_adjust(wspace=0, hspace=0)
     fig.savefig(outname)
     print(outname)
 
