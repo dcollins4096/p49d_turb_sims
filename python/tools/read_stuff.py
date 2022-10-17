@@ -64,12 +64,12 @@ for axes in ['x','y','z']:
     for i, sim in enumerate(sim_colors.simlist):
         spectra_dict[axes][sim]=slopes(sim) 
 
-        sim_dir = "/data/cb1/Projects/P49_EE_BB/512_frbs/%s"%sim
-        frb_name = ""
+        sim_dir = "/data/cb1/Projects/P49_EE_BB/%s"%sim
+        product_dir = "/data/cb1/Projects/P49_EE_BB/Products/%s"%sim
         longprefix='%s_%s_%s'%(sim,shortprefix,axes)
         spectra_fname = "avg_spectra_%s_%s.h5"%(sim,axes)
         pack = queb3.simulation_package( directory=sim_dir,frames=sim_colors.frames[sim],prefix=longprefix,
-                                       frbname=frb_name)
+                                        product_directory=product_dir)
         proj=pack.read_queb(frame=sim_colors.frames[sim][0],ax=axes,bin_style='dx1')
         fitrange=proj.determine_fit_range()  #something better
         proj_dict[axes][sim]=proj
@@ -85,7 +85,7 @@ for axes in ['x','y','z']:
                         spectra_dict[axes][sim].std[field]=fptr[std_field][()]
                         std_s_field = "std_s_%s"%(field.split('_')[1])
                         spectra_dict[axes][sim].std_s[field]=fptr[std_s_field][()]
-                        print('wut', axes, sim, field, spectra_dict[axes][sim].std_s[field])
+                        #print('wut', axes, sim, field, spectra_dict[axes][sim].std_s[field])
 
 
             except:
@@ -96,7 +96,7 @@ for axes in ['x','y','z']:
         spectra_dict[axes][sim].lcent = proj.lcent
         spectra_dict[axes][sim].fit_range = fitrange    
 
-print("WTF",spectra_dict['y'][sim].std_s['avg_cltt'])
+#print("WTF",spectra_dict['y'][sim].std_s['avg_cltt'])
 
 
 #
