@@ -14,7 +14,7 @@ all_slopes=defaultdict(list)
 
 clobber=False
 simlist=sim_colors.simlist
-if 0:
+if len(sys.argv) > 1:
     simlist = [sys.argv[-1]]
 else:
     simlist=sim_colors.simlist
