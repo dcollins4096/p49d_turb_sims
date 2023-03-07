@@ -43,6 +43,9 @@ for ma in sim_ma:
         marker[sim] = marker_by_alf_mach[ma]
         #glyph = color[sim]+linestyle[sim]
 
+markerlist = nar([ marker['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
+colorlist  = nar([ color['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
+linelist  = nar([ linestyle['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
 
 #color=dict(zip(simlist,color_list))
 #linestyle = dict(zip(simlist,line_list))
