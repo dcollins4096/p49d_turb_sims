@@ -4,48 +4,23 @@
 from GL import *
 import davetools as dt
 cloudbreak_base = "/data/cb1/Projects/P49_EE_BB/"
+stampede_run_base = "/scratch/00369/tg456484/Paper49/RUNNING/"
 cloudbreak_128 = "/data/cb1/Projects/P49_EE_BB/Downsample128"
 
-sim_ms = nar(['half','1','2','3','5'])
+sim_ms = nar(['half','1','2','3','4','5','6'])
 #sim_ms = nar(['half','1','2','3']); print('kludge; no sim 5')
 sim_ma = nar(['half','1','2'])
 
+#auto gen, don't touch
 simlist = nar([ '%s_%s'%(ms,ma) for ms in sim_ms for ma in sim_ma])
 
 
-
-#simlist=nar(["5_half"]); print('kludge in simlist')
-#simlist=nar(["1_1"])
-#old branding
-#simlist=nar(["half_half","half_1","half_2","1_half","1_1","1_2","2_half","2_1","2_2","3_half","3_1","3_2","5_half","5_1","5_2"])
-#color_list=nar(['r','g','b','r','g','b','r','g','b','r','g','b','r','g','b'])
-#line_list=nar(['-','-','-','-.','-.','-.','--','--','--',':',':',':', '-','-','-'])
-#glyph_list = nar([a+b for a,b in zip(color_list,line_list)])
-#marker_list = nar(['.','.','.','s','s','s','^','^','^','*','*','*','o','o','o'])
-
 rm = dt.rainbow_map(4)
 #color_by_mach = {'half':'c','1':'m','2':'b','3':'g','5':'r'}
-color_by_mach = {'half':'red','1':'orange','2':'g','3':'b','5':'violet'}
+color_by_mach = {'half':'red','1':'orange','2':'g','3':'b','4':'violet','5':'brown','6':'black'}
 line_by_alf_mach  = {'half':':','1':'--','2':'-'}
 marker_by_alf_mach = {'half':'.','1':'^','2':'s'}
 
-plot_order=[]
-color={}
-linestyle={}
-marker={}
-glyph={}
-for ma in sim_ma:
-    for ms in sim_ms:
-        sim="%s_%s"%(ms,ma)
-        plot_order.append(sim)
-        color[sim]=color_by_mach[ms]
-        linestyle[sim]=line_by_alf_mach[ma]
-        marker[sim] = marker_by_alf_mach[ma]
-        #glyph = color[sim]+linestyle[sim]
-
-markerlist = nar([ marker['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
-colorlist  = nar([ color['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
-linelist  = nar([ linestyle['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
 
 #color=dict(zip(simlist,color_list))
 #linestyle = dict(zip(simlist,line_list))
@@ -66,9 +41,34 @@ framedict={
     "2_half":range(65,86),"2_1":range(11,32),"2_2":range(11,32),
     #"3_half":range(72,93),"3_1":range(56,75),"3_2":range(20,40),
     "3_half":three_half_range,"3_1":range(53,77),"3_2":range(9,41),
-    "5_half":range(3,37),"5_1":range(4,28),"5_2":range(4,46),"5_3":range(5,59)}
+    "5_half":range(3,37),"5_1":range(4,28),"5_2":range(4,46),"5_3":range(5,59),
+    '4_half':range(0,19), '4_1':range(0,22), '4_2':range(0,25),
+    '6_half':range(0,19), '6_1':range(0,22),'6_2':range(0,25)}
 frames=framedict
 #framedict['5_half']=range(11,13); print('kludge in framedict')
+
+#
+# General setup.
+#
+plot_order=[]
+color={}
+linestyle={}
+marker={}
+glyph={}
+for ma in sim_ma:
+    for ms in sim_ms:
+        sim="%s_%s"%(ms,ma)
+        plot_order.append(sim)
+        color[sim]=color_by_mach[ms]
+        linestyle[sim]=line_by_alf_mach[ma]
+        marker[sim] = marker_by_alf_mach[ma]
+        #glyph = color[sim]+linestyle[sim]
+
+markerlist = nar([ marker['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
+colorlist  = nar([ color['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
+linelist  = nar([ linestyle['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
+
+
 
 framelist=[framedict[sim] for sim in simlist]
 
