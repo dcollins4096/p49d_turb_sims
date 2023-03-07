@@ -59,10 +59,12 @@ def make_quan(directory,frame, out_directory=None, clobber=False):
 
 
     file_glob = "%s/DD%04d/data%04d.cpu*"%(directory,frame,frame)
-    file_list=glob.glob(file_glob)
+    file_list=sorted(glob.glob(file_glob))
 
     #do all averages
-    for fname in file_list:
+    total=len(file_list)
+    for n,fname in enumerate(file_list):
+        print("     ",fname, "%d/%d"%(n,total))
         fptr = h5py.File(fname,'r')
         try:
             for grid in fptr:
