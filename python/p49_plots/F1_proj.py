@@ -13,6 +13,7 @@ plt.close('all')
 #color=['r','g','b','r','g','b','r','g','b','r','g','b']
 #linestyle=['-','-','-','-.','-.','-.','--','--','--',':',':',':']
 basedir="/data/cb1/Projects/P49_EE_BB"
+productdir = "%s/Products"%basedir
 outdir="/home/dccollins/PigPen"
 hist_density=False
 print('kludge only x')
@@ -22,7 +23,9 @@ for axis in 'xy': #axis='y'
     e_array={}
 
     for sim in sim_colors.plot_order:
-        directory = "%s/frbs/%s"%(basedir,sim)
+        frame = max(sim_colors.framedict[sim])
+
+        directory = "%s/%s/DD%04d.products"%(productdir,sim,frame)
         #pick the last density frb
         density_frb_list = glob.glob("%s/*density_%s.fits"%(directory,axis))
         last_density = sorted(density_frb_list)[-1]
@@ -40,7 +43,7 @@ for axis in 'xy': #axis='y'
 
     import tight_plots
     reload(tight_plots)
-    fig,axes,ccc = tight_plots.fig_squares(5,3)
+    fig,axes,ccc = tight_plots.fig_squares(7,3)
     #fff.savefig('%s/fart.png'%outdir)
     ax_list=axes.flatten()
 
