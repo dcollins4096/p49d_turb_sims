@@ -18,10 +18,10 @@ for sim in simlist:
     frames=sim_colors.framedict[sim]
     #sim_dir = "/scratch/00369/tg456484/Paper49/%s"%sim
     #product_dir = "/scratch/00369/tg456484/Paper49/Products/%s"%sim
-    #sim_dir = sim_colors.cloudbreak_base + "/" + sim
-    #product_dir = sim_colors.cloudbreak_base + "/Products/" + sim
-    sim_dir = sim_colors.stampede_run_base + "/" + sim
-    product_dir = sim_colors.stampede_run_base + "/Products/" + sim
+    sim_dir = sim_colors.cloudbreak_base + "/" + sim
+    product_dir = sim_colors.cloudbreak_base + "/Products/" + sim
+    #sim_dir = sim_colors.stampede_run_base + "/" + sim
+    #product_dir = sim_colors.stampede_run_base + "/Products/" + sim
     prefix=sim
 
 #a thing that describes the simulation
