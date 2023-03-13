@@ -34,6 +34,16 @@ import spectra_tools as st
 reload(st)
 reload(p49_QU2EB)
 
+def check_finished(fname):
+    fptr=open("info/finished_products")
+    lines=fptr.readlines()
+    fptr.close()
+    found=False
+    for line in lines:
+        if line == fname:
+            found=True
+    return found
+
 def read_fits(fitname):
     """Read an array from a file name.
     Returns None if the file does not exist."""
@@ -390,7 +400,7 @@ class simulation_package():
     """container for a simulation.
     Keeps track of the data location
     Produces FRBs from simulation data."""
-    def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",
+    def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",simname='SIM'
                   plot_format='png', clobber=False,dataset_name='DD',frbname="./frbs",plotdir="."):
 
         
@@ -403,6 +413,7 @@ class simulation_package():
         self.dataset_name=dataset_name
         self.frbname=frbname
         self.plotdir=plotdir
+        self.simname=simname
 
     def EBall(self):
         """compute all EB products and save them into the frb directory"""
@@ -437,9 +448,12 @@ class simulation_package():
             if not os.access(output_frame_dir, os.F_OK):
                 os.mkdir(output_frame_dir)
 
+            product_name = "./%s/DD%0.4d.products/DD%.4d_%s.fits" %(self.simname,frame,frame,field_name)
+
+
             outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
             #outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
-            if os.access(outfile, os.F_OK) and not self.clobber:
+            if os.access(outfile, os.F_OK) and not self.clobber and not check_finished(product_name):
                 print("FRB exists: %s"%outfile)
             else:
                 print("FRB being produced: %s"%outfile)
