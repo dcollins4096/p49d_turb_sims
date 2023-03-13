@@ -22,6 +22,7 @@ shortprefix="time"
 def make_spectra_files():
     for axes in ['x','y','z']:
         for i,sim in enumerate(simlist):
+            print('SPECTRA',sim)
             frames=sim_colors.framelist[i]
             simdes=sim
             spectra_fname = "avg_spectra_%s_%s.h5"%(simdes,axes)

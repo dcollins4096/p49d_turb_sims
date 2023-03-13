@@ -40,7 +40,7 @@ def check_finished(fname):
     fptr.close()
     found=False
     for line in lines:
-        if line == fname:
+        if line[:-1] == fname:
             found=True
     return found
 
@@ -400,7 +400,7 @@ class simulation_package():
     """container for a simulation.
     Keeps track of the data location
     Produces FRBs from simulation data."""
-    def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",simname='SIM'
+    def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",simname='SIM',
                   plot_format='png', clobber=False,dataset_name='DD',frbname="./frbs",plotdir="."):
 
         
