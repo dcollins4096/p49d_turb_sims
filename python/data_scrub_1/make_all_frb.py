@@ -25,6 +25,6 @@ for sim in simlist:
     prefix=sim
 
 #a thing that describes the simulation
-    pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=prefix, product_directory=product_dir)
+    pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=prefix, product_directory=product_dir, simname=sim)
 #produce all QUEB products.
     pack.EBall()
