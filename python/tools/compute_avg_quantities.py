@@ -1,5 +1,7 @@
 from GL import *
 import sim_colors
+import queb3
+reload(queb3)
 #Note that the Mach<5 runs were done with an inline version of the averaging tool.
 
 class meanie():
@@ -40,11 +42,9 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM'):
         out_directory=directory
 
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
-    outname_short = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%("./",frame,frame)
-    print("found one",queb3.check_finished(outname_short))
-    return
+    outname_short = "./%s/DD%04d.products/data%04d.AverageQuantities.h5"%(sim,frame,frame)
     #print(outname)
-    if os.path.exists(outname) and clobber==False:
+    if (queb3.check_finished(outname_short) or os.path.exists(outname) and clobber==False:
         print("File exists, skipping", outname)
         return 0
     print("Quan on frame",frame)
