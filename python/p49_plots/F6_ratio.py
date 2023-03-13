@@ -31,6 +31,7 @@ quan3=raq.quan3
 myc={}
 prefix='straight'
 ratios = list(zip(['avg_clee', 'avg_clbb', 'avg_clbb'],['avg_cltt','avg_cltt','avg_clee']))
+#ratios = list(zip(['avg_cltt', 'avg_cltt', 'avg_clbb'],['avg_clee','avg_clbb','avg_clee']))
 LOG_OR_LIN='log'
 #prefix='cross'
 #ratios = list(zip(['avg_clte', 'avg_cltb', 'avg_cleb'],['avg_clee','avg_clbb','avg_clee']))

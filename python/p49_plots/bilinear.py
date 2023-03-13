@@ -38,6 +38,8 @@ def do_bifit(xdata, ydata, p0):
 class beefitter():
     def __init__(self,fieldname,ms,ma,myval):
         self.fieldname=fieldname
+        self.Ms = ms.flatten()
+        self.Ma = ma.flatten()
         self.MsMa = np.row_stack([ms.flatten(),ma.flatten()])
         self.Q = myval.flatten()
         p0=[0,1,1]
@@ -45,12 +47,25 @@ class beefitter():
         #p0=[1,1]
         #self.fitter = bifit_2
         self.Params, self.Cov = curve_fit( self.fitter, self.MsMa, self.Q, p0)
-    def plot(self):
+    def plot1(self):
         plt.clf()
         Qprime = self.fitter(self.MsMa, *self.Params)
         for n in range( len( self.Q)):
             plt.scatter( self.MsMa[0][n], self.Q[n], marker=list(sim_colors.markerlist)[n], c=sim_colors.colorlist[n])
             plt.scatter( self.MsMa[0][n], Qprime[n], marker=list(sim_colors.markerlist)[n], c=sim_colors.colorlist[n])
+        plt.savefig('%s/linear_%s.png'%(plotdir,self.fieldname))
+    def plot2(self):
+        plt.clf()
+        Qprime = self.fitter(self.MsMa, *self.Params)
+        for n in range( len( self.Q)):
+            plt.scatter( self.MsMa[0][n], self.Q[n], marker=list(sim_colors.markerlist)[n], c=sim_colors.colorlist[n])
+            #plt.scatter( self.MsMa[0][n], Qprime[n], marker=list(sim_colors.markerlist)[n], c=sim_colors.colorlist[n])
+        for ma in self.Ma:
+            tmp_ms = nar([0]+list(self.Ms))
+            this_ms_ma = [tmp_ms,ma]
+            #plt.plot( tmp_ms, self.fitter(this_ms_ma, *self.Params))
+            print(self.Params)
+
 
         plt.savefig('%s/linear_%s.png'%(plotdir,self.fieldname))
 
@@ -89,4 +104,44 @@ def pairwise( bf1, bf2, truth1, truth2):
         y = ( h*(b-a)+c*(f-g))/(c*k-d*h)
         Ms=x;Ma=y
     return Ms, Ma
+
+def write_tex(herd, fname, field_list=None):
+    if field_list is None:
+        field_list = herd.keys()
+    fptr=open(fname,'w')
+    newline='\n'
+    fptr.write( r'\begin{table}'+newline)
+    fptr.write( r'\begin{tabular}{lrrrr}'+newline)
+    fptr.write( r'\hline'+newline)
+    #fptr.write( r' Spectra & $a$ & $b/\left|a\right|$ & $c/\left|a\right|$ & $d/\left|a\right|$ \\'+newline)
+    #fptr.write( r' Spectra & $a$ & $b/\left|a\right|$ & $c/\left|a\right|$ \\'+newline)
+    fptr.write( r' Spectra & $a$ & $b$ & $c$ \\'+newline)
+
+    latex_symb = {'avg_clees':r'$\alpha_{EE}$', 'avg_clbbs':r'$\alpha_{BB}$', 
+                  'avg_cltts':r'$\alpha_{TT}$', 'avg_ds':r'$\alpha_\rho$', 
+                  'avg_vs':r'$\alpha_v$', 'avg_hs':r'$\alpha_H$',
+                  'avg_cleea':r'$\ln A_{EE}$', 'avg_clbba':r'$\ln A_{BB}$', 
+                  'avg_cltta':r'$\ln A_{TT}$', 'avg_da':r'$\ln A_\rho$', 
+                  'avg_va':r'$\ln A_v$', 'avg_ha':r'$\ln A_H$'}
+    for nf,field in enumerate(field_list):
+        if field not in herd:
+            print("Not in the herd:", field)
+            continue
+        line=''
+        line += latex_symb[field]
+        line += r'& %0.2f'%(herd[field].Params[0])
+        nrm=1
+        #nrm=np.abs(herd[field].Params[0]
+        line += r'& %0.2f'%(herd[field].Params[1]/nrm)
+        line += r'&  %0.2f'%(herd[field].Params[2]/nrm)
+        line += r'\\'
+        fptr.write(line+newline)
+
+
+    fptr.write( r'\hline'+newline)
+    fptr.write( r'\hline'+newline)
+    fptr.write( r'\end{tabular}'+newline)
+    fptr.write( r'\input{table_caption}'+newline)
+    fptr.write( r'\label{tab:multifit} \end{table}')
+    fptr.close()
 

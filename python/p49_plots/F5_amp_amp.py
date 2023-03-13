@@ -36,7 +36,7 @@ ext_y = [dt.extents() for n in range(3)]
 def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
     plt.close('all')
     #fig,ax = plt.subplots(1,3, sharex=True,sharey=True,figsize=(12,4))
-    fig,ax = plt.subplots(3,3, figsize=(8,4))#,sharey=True)
+    fig,ax = plt.subplots(3,3, figsize=(5.5,5.5))#,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
@@ -104,15 +104,23 @@ def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
             if n<2:
                 ax[n][m].set(xticks=[])
 
+    label_dict={'avg_d':r'$\alpha_\rho$',
+                'avg_v':r'$\alpha_v$',
+                'avg_h':r'$\alpha_H$',
+                'avg_cltt':r'$\alpha_{TT}$',
+                'avg_clee':r'$\alpha_{EE}$',
+                'avg_clbb':r'$\alpha_{BB}$'}
+
     for n in range(nplots):
         ax[n][2].yaxis.tick_right()
-        ax[n][0].set_ylabel(y_list[n])
-        ax[2][n].set_xlabel(x_list[n])
+        ax[n][0].set_ylabel(label_dict[y_list[n]])
+        ax[2][n].set_xlabel(label_dict[x_list[n]])
 
             
 
     #fig.tight_layout()
-    outname = '%s/amp_amp_%s_%s%s.pdf'%(plotdir, which_quan,aos,suffix)
+    outname = '%s/prim_vs_TEB_%s%s.pdf'%(plotdir,aos,suffix)
+    fig.subplots_adjust(top=0.98)
     fig.savefig(outname)
     print(outname)
 plot_amps_amps(amps_or_slopes='slopes',axis='y')

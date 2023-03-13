@@ -49,16 +49,16 @@ if 1:
             #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
     for a in axlist:
         dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
-        a.set_yscale('symlog',linthresh=0.09)
-        #a.set_yscale('linear')
+        #a.set_yscale('symlog',linthresh=0.09)
+        a.set_yscale('linear')
         a.set_ylim([-1,1])
     for a in axlist:
         a.set_xlabel(r'$k/k_max$')
-        a.axhline( 5e-2,c=[0.5]*4)
-        a.axhline(-5e-2,c=[0.5]*4)
-    for a in [axlist[0]]:
-        a.set_ylabel(r'$r_{XY}$')
-        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
+#        a.axhline( 5e-2,c=[0.5]*4)
+#        a.axhline(-5e-2,c=[0.5]*4)
+#    for a in [axlist[0]]:
+#        a.set_ylabel(r'$r_{XY}$')
+#        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
     outname = '%s/r_XY.pdf'%plotdir
     fig.savefig(outname)

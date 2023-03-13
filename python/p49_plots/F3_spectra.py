@@ -35,15 +35,19 @@ def plot_slopes(prim_or_teb='teb',axis='y'):
     #fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
+    proj_to_spit_out=None
     for nf,field in enumerate(product_list):
         for sim in sim_colors.simlist:
 
             proj=rs.proj_dict[axis][sim]
+            proj_to_spit_out=proj
             label="%s %0.1f"%(sim, spectra_dict['y'][sim].slopes[field])
-            axlist[nf].plot(proj.lcent,   spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
+            lcent_to_use = proj.lcent/proj.lcent.max()
+            axlist[nf].plot(lcent_to_use,   spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim], label=label)
             lab= field[-2:].upper()
             if lab[0]=='_':
-                lab=lab[-1]+lab[-1]
+                char = {'D':r'\rho','V':'v'}.get(lab[-1],lab[-1])
+                lab=char+char
             axlist[nf].set_title(r'$C_\ell^{%s}$'%(lab))
 
     for a in axlist:
@@ -59,10 +63,11 @@ def plot_slopes(prim_or_teb='teb',axis='y'):
     outname='%s/spectra_%s_%s.pdf'%(plotdir,suffix,axis)
     fig.savefig(outname)
     print(outname)
+    return proj_to_spit_out
 
 #plot_slopes(prim_or_teb='teb','x')
 #plot_slopes(prim_or_teb='prim','x')
-plot_slopes(prim_or_teb='teb',axis='y')
+proj=plot_slopes(prim_or_teb='teb',axis='y')
 plot_slopes(prim_or_teb='prim',axis='y')
 
 #

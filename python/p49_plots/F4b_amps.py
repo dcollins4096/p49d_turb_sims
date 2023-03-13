@@ -30,7 +30,7 @@ simlist = sim_colors.simlist
 def plot_amps_slopes(amps_or_slopes='amps',prim_or_teb='prim', suffix='', axis='x'):
     plt.close('all')
     #fig,ax = plt.subplots(1,3, sharex=True,sharey=True,figsize=(12,4))
-    fig,ax = plt.subplots(3,2, figsize=(8,4))#,sharey=True)
+    fig,ax = plt.subplots(3,2, figsize=(5.5,5.5))#,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
@@ -103,8 +103,8 @@ def plot_amps_slopes(amps_or_slopes='amps',prim_or_teb='prim', suffix='', axis='
     ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
     ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
 
-    if do_TEB:
-        ax[0][0].set_title("%s %s"%(aos,axis))
+    #if do_TEB:
+    #    ax[0][0].set_title("%s %s"%(aos,axis))
 
 
     if (do_prim and do_amp):
@@ -136,7 +136,12 @@ def plot_amps_slopes(amps_or_slopes='amps',prim_or_teb='prim', suffix='', axis='
 
             
 
+    fig.subplots_adjust(top=0.92)
     #fig.tight_layout()
+    if amps_or_slopes=='amps':
+        fig.suptitle('Amplitudes', y=0.96)
+    else:
+        fig.suptitle('Slopes', y=0.96)
     outname = '%s/%s_%s%s.pdf'%(plotdir, which_quan,aos,suffix)
     fig.savefig(outname)
     print(outname)
