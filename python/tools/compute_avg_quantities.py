@@ -35,11 +35,14 @@ class alfv_meanie(meanie):
         self.N1+=1
         self.N2+=1
 
-def make_quan(directory,frame, out_directory=None, clobber=False):
+def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM'):
     if out_directory is None:
         out_directory=directory
 
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    outname_short = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%("./",frame,frame)
+    print("found one",queb3.check_finished(outname_short))
+    return
     #print(outname)
     if os.path.exists(outname) and clobber==False:
         print("File exists, skipping", outname)
@@ -94,7 +97,6 @@ def make_quan(directory,frame, out_directory=None, clobber=False):
 
 
 
-    outname = "%s/DD%04d/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
     parent_dir = os.path.dirname(outname)
     if not os.path.exists(parent_dir):
         os.mkdir(parent_dir)
