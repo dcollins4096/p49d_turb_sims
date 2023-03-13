@@ -8,6 +8,7 @@ from GL import *
 import davetools
 import yt
 import fourier_tools_py3.fourier_filter as Filter
+import queb3
 
 def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None):
     ff = Filter.FourierFilter(power)
@@ -106,17 +107,22 @@ def MinK(TheY):
     TheY /= (TheY[ TheY != 0]).min()
     return TheY
 class short_oober():
-    def __init__(self, directory="./STUFF/", frame=0, product_directory=None):
+    def __init__(self, directory="./STUFF/", frame=0, product_directory=None, simname='SIM'):
         self.frame=frame
         self.directory=directory
         self.ds_dict={}
         self.region_dict={}
         self.last_frame=None
         self.product_directory = product_directory
+        self.simname=simname
     def product_dir(self,frame):
         return "%s/DD%04d.products"%(self.product_directory,frame)
     def get_ds_name(self,frame):
         return "%s/DD%04d/data%04d"%(self.directory,frame,frame)
+    def check_fname(self,frame,field):
+        fname = "./%s/DD%04d.products/power_%s.h5"%(self.simname,frame,field)
+        return queb3.check_finished(fname)
+
     def load(self,frame):
         ds_name = self.get_ds_name(frame)
         if frame in self.ds_dict:
@@ -177,6 +183,9 @@ def MakeVelocitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     mark_time = None
     filename = "%s/power_%s.h5"%(oober.product_dir(frame),'velocity')
+    if oober.check_fname(frame, 'velocity'):
+        return
+
     if os.path.exists(filename):
         return
     if mark_time is not None:

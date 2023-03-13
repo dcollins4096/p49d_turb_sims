@@ -40,6 +40,10 @@ def check_finished(fname):
     fptr.close()
     found=False
     for line in lines:
+        #if( line.startswith(fname[:6])):
+        #   print("L",line)
+        #   print("F",fname)
+
         if line[:-1] == fname:
             found=True
     return found
@@ -453,7 +457,7 @@ class simulation_package():
 
             outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
             #outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
-            if os.access(outfile, os.F_OK) and not self.clobber and not check_finished(product_name):
+            if (os.access(outfile, os.F_OK) or check_finished(product_name)) and not self.clobber:
                 print("FRB exists: %s"%outfile)
             else:
                 print("FRB being produced: %s"%outfile)
@@ -469,7 +473,7 @@ class simulation_package():
         """This makes 3d power spectra of velocity, acceleration, 
         magnetic field, and density.  Can be very slow.
         FFTs are stored in DD????.products"""
-        oober = st.short_oober(self.directory, frame=frame, product_directory=self.product_directory)
+        oober = st.short_oober(self.directory, frame=frame, product_directory=self.product_directory, simname=self.simname)
         st.MakeVelocitySpectra(oober,frame)
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)

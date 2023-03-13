@@ -29,10 +29,14 @@ for i,sim in enumerate(simlist):
     #product_dir='/data/cb1/Projects/P49_EE_BB/Products/%s'%sim
     #sim_dir='/scratch/00369/tg456484/Paper49/RUNNING/%s'%sim
     #product_dir='/scratch/00369/tg456484/Paper49/RUNNING/Products/%s'%sim
-    sim_dir = sim_colors.cloudbreak_base + "/" + sim
-    product_dir = sim_colors.cloudbreak_base + "/Products/" + sim
+    if os.environ['machine'] == 'cloudbreak':
+        sim_dir = sim_colors.cloudbreak_base + "/" + sim
+        product_dir = sim_colors.cloudbreak_base + "/Products/" + sim
+    else:
+        sim_dir =     sim_colors.stampede_base + "/" + sim
+        product_dir = sim_colors.stampede_base + "/Products/" + sim
 
 
-    pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=prefix, product_directory=product_dir)
+    pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=prefix, product_directory=product_dir, simname=sim)
     for frame in frames:
         pack.make_spectra(frame)
