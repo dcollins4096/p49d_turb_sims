@@ -34,16 +34,17 @@ marker_by_alf_mach = {'half':'.','1':'^','2':'s'}
 #marker_list = nar(['.','.','.','s','s','s','^','^','^','*','*','*','o','o','o'])
 
 three_half_range = list( range(70,85))+list(range(86,93))
-
+def lrange(*args):
+    return list(range(*args))
 framedict={
-    "half_half":range(11,32),"half_1":range(11,32),"half_2":range(11,32),
-    "1_half":range(11,32),"1_1":range(11,32),"1_2":range(11,32),
-    "2_half":range(65,86),"2_1":range(11,32),"2_2":range(11,32),
-    #"3_half":range(72,93),"3_1":range(56,75),"3_2":range(20,40),
-    "3_half":three_half_range,"3_1":range(53,77),"3_2":range(9,41),
-    "5_half":range(3,37),"5_1":range(4,28),"5_2":range(4,46),"5_3":range(5,59),
-    '4_half':range(0,19), '4_1':range(0,22), '4_2':range(0,25),
-    '6_half':range(0,19), '6_1':range(0,22),'6_2':range(0,25)}
+    "half_half":lrange(11,32),"half_1":lrange(11,32),"half_2":lrange(11,32),
+    "1_half":lrange(11,32),"1_1":lrange(11,32),"1_2":lrange(11,32),
+    "2_half":lrange(65,86),"2_1":lrange(11,32),"2_2":lrange(11,32),
+    #"3_half":lrange(72,93),"3_1":lrange(56,75),"3_2":lrange(20,40),
+    "3_half":three_half_range,"3_1":lrange(53,77),"3_2":lrange(9,41),
+    "5_half":lrange(3,37),"5_1":lrange(4,28),"5_2":lrange(4,46),"5_3":lrange(5,59),
+    '4_half':lrange(2,19), '4_1':lrange(2,22),'4_2':lrange(2,25),
+    '6_half':lrange(2,19), '6_1':lrange(2,22),'6_2':lrange(2,25)}
 frames=framedict
 #framedict['5_half']=range(11,13); print('kludge in framedict')
 
