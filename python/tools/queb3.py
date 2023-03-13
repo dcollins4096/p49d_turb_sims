@@ -433,7 +433,12 @@ class simulation_package():
                 field_name = field
             else:
                 field_name = field + "_"+axis
+            output_frame_dir=outputdir+"/DD%0.4d.products/" %(frame)
+            if not os.access(output_frame_dir, os.F_OK):
+                os.mkdir(output_frame_dir)
+
             outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
+            #outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
             if os.access(outfile, os.F_OK) and not self.clobber:
                 print("FRB exists: %s"%outfile)
             else:
@@ -570,7 +575,7 @@ class simulation_package():
 
         rEB = ts['ClEB']/(ts['ClEE']*ts['ClBB'])**0.5
         lab=r'$r_{EB}=C_{\ell}^{EB}/\sqrt{C_{\ell}^{EE}C_{\ell}^{EE}}$'
-        ax.plot( this_k,dostuff2(ts['aspec'][1]),c='k',marker='*', label=r'$a$');   ylimits(ts['aspec'][1][pos_k])# print('a lim',ylimits)
+        #ax.plot( this_k,dostuff2(ts['aspec'][1]),c='k',marker='*', label=r'$a$');   ylimits(ts['aspec'][1][pos_k])# print('a lim',ylimits)
         ax.plot( this_ell,dostuff2(ts['ClEE']),        marker='*', label=r'$EE$',c='g'); ylimits(rEB)# print(ylimits)
         if slopes is not None:
             slopes.plot(ax,'EE',label=r'$\alpha^{EE}$',c='r')
@@ -642,7 +647,7 @@ class simulation_package():
         this_k=(k/k[1])[pos_k]
         this_k=(k*2*np.pi)#[1:]
         this_k = 0.5*(this_k[1:]+this_k[:-1])
-        ax.plot( this_k,dostuff(ts['aspec'][1][pos_k]),marker='*', label=r'$P(a)$');   ylimits(ts['aspec'][1][pos_k])# print('a lim',ylimits)
+        #ax.plot( this_k,dostuff(ts['aspec'][1][pos_k]),marker='*', label=r'$P(a)$');   ylimits(ts['aspec'][1][pos_k])# print('a lim',ylimits)
         ax.plot( this_k,dostuff(ts['vspec'][1][pos_k]),marker='*', label=r'$P(v)$');   ylimits(ts['vspec'][1][pos_k])# print('v lim',ylimits)
         ax.plot( this_k,dostuff(ts['dspec'][1][pos_k]),marker='*', label=r'$P(\rho)$');ylimits(ts['dspec'][1][pos_k])# print('d lim',ylimits)
         ax.plot( this_k,dostuff(ts['hspec'][1][pos_k]),marker='*', label=r'$P(H)$');   ylimits(ts['hspec'][1][pos_k])# print('h lim',ylimits)
