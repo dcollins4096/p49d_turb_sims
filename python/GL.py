@@ -1,34 +1,13 @@
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.colorbar as cb
-
-import astropy.io.fits as pyfits
-import platform
-ver=platform.python_version()
-python_version=  int(ver[0])
-if python_version == 3:
-    from importlib import reload
-import sys
-import re
-import copy
-import h5py
-import os
-import copy
-import warnings
-import numpy as np
-import math
-nar = np.array
-import pdb
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import pylab
-import time
-import glob
-#ef=execfile
-
-x_dict = [1,0,0]
-y_dict = [2,2,1]
+from starter1 import *
+import queb3
+import sim_colors
+reload(sim_colors)
+reload(queb3)
+import get_all_quantities as gaq
+reload(gaq)
+verbose=False
+from collections import defaultdict
+all_slopes=defaultdict(list)
 
 path_list=['tools','OtherPython']
 for directory in path_list:
