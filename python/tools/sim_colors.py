@@ -7,10 +7,13 @@ cloudbreak_base = "/data/cb1/Projects/P49_EE_BB/"
 stampede_run_base = "/scratch/00369/tg456484/Paper49/RUNNING/"
 stampede_base = "/scratch/00369/tg456484/Paper49/RUNNING/"
 cloudbreak_128 = "/data/cb1/Projects/P49_EE_BB/Downsample128"
+p58_dir = "/data/cb1/Friends/P58_synchrotron"
 
 sim_ms = nar(['half','1','2','3','4','5','6'])
+sim_ms_f = nar([0.5,1,2,3,4,5,6])
 #sim_ms = nar(['half','1','2','3']); print('kludge; no sim 5')
 sim_ma = nar(['half','1','2'])
+sim_ma_f = nar([0.5,1,2])
 
 #auto gen, don't touch
 simlist = nar([ '%s_%s'%(ms,ma) for ms in sim_ms for ma in sim_ma])
@@ -44,10 +47,13 @@ framedict={
     #"3_half":lrange(72,93),"3_1":lrange(56,75),"3_2":lrange(20,40),
     "3_half":three_half_range,"3_1":lrange(53,77),"3_2":lrange(9,41),
     "5_half":lrange(3,37),"5_1":lrange(4,28),"5_2":lrange(4,46),"5_3":lrange(5,59),
-    '4_half':lrange(2,19), '4_1':lrange(2,22),'4_2':lrange(2,25),
-    '6_half':lrange(2,19), '6_1':lrange(2,22),'6_2':lrange(2,25)}
+    #'4_half':lrange(12,19), '4_1':lrange(12,22),'4_2':lrange(12,25),
+    '4_half':lrange(15,45), '4_1':lrange(15,52),'4_2':lrange(15,52),
+    '6_half':lrange(12,19), '6_1':lrange(12,22),'6_2':lrange(12,25)}
 frames=framedict
 #framedict['5_half']=range(11,13); print('kludge in framedict')
+
+
 
 #
 # General setup.
@@ -57,14 +63,16 @@ color={}
 linestyle={}
 marker={}
 glyph={}
-for ma in sim_ma:
-    for ms in sim_ms:
+tdyn={}
+for nma,ma in enumerate(sim_ma):
+    for nmach,ms in enumerate(sim_ms):
         sim="%s_%s"%(ms,ma)
         plot_order.append(sim)
         color[sim]=color_by_mach[ms]
         linestyle[sim]=line_by_alf_mach[ma]
         marker[sim] = marker_by_alf_mach[ma]
         #glyph = color[sim]+linestyle[sim]
+        tdyn[sim] = 0.5/sim_ms_f[nmach]
 
 markerlist = nar([ marker['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
 colorlist  = nar([ color['%s_%s'%(ms,ma)] for ms in sim_ms for ma in sim_ma])
