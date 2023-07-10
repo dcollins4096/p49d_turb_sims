@@ -1,4 +1,11 @@
 from starter1 import *
+
+path_list=['tools','OtherPython']
+for directory in path_list:
+    if directory not in sys.path:
+        sys.path += [directory]
+
+
 import queb3
 import sim_colors
 reload(sim_colors)
@@ -9,8 +16,4 @@ verbose=False
 from collections import defaultdict
 all_slopes=defaultdict(list)
 
-path_list=['tools','OtherPython']
-for directory in path_list:
-    if directory not in sys.path:
-        sys.path += [directory]
 
