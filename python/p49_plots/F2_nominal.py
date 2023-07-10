@@ -12,7 +12,6 @@ import get_all_quantities as gaq
 reload(gaq)
 verbose=False
 from collections import defaultdict
-all_slopes=defaultdict(list)
 
 #read_stuff reads spectra and average quantities
 #Reload to re-read, but don't do that every time.

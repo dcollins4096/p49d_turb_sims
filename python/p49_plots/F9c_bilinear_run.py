@@ -65,7 +65,7 @@ field_order = ['avg_ds','avg_vs','avg_hs','avg_cltts','avg_clees','avg_clbbs',
 bilinear.write_tex( herd, '%s/table1.tex'%plotdir, field_order)
 
 #herd['avg_d'].plot2()
-if 0:
+if 1:
     #predict
     truth = {'avg_clee':-2.4, 'avg_clbb':-2.5, 'avg_cltt':-2.6}
     truth_fields=truth.keys()
