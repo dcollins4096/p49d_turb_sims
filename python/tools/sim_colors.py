@@ -3,11 +3,6 @@
 #marker is Sonic
 from GL import *
 import davetools as dt
-cloudbreak_base = "/data/cb1/Projects/P49_EE_BB/"
-stampede_run_base = "/scratch/00369/tg456484/Paper49/RUNNING/"
-stampede_base = "/scratch/00369/tg456484/Paper49/RUNNING/"
-cloudbreak_128 = "/data/cb1/Projects/P49_EE_BB/Downsample128"
-p58_dir = "/data/cb1/Friends/P58_synchrotron"
 
 sim_ms = nar(['half','1','2','3','4','5','6'])
 sim_ms_f = nar([0.5,1,2,3,4,5,6])
