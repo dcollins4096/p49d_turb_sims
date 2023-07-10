@@ -26,8 +26,6 @@ for axes in ['x','y']:
     for i,sim in enumerate(simlist):
         print('SIM',sim)
         frames=sim_colors.framelist[i]
-        simdes=sim
-        spectra_fname = "avg_spectra_%s_%s.h5"%(simdes,axes)
         sim_dir = "/data/cb1/Projects/P49_EE_BB/%s"%sim
         product_dir = "/data/cb1/Projects/P49_EE_BB/Products/%s"%sim
         pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix='test', product_directory=product_dir)
