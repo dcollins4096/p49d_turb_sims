@@ -16,10 +16,12 @@ if 0:
 #
 # Read restricted set.
 #
-
+from collections import defaultdict
 quan3={}
+quan_time={}
 for ns, sim in enumerate(sim_colors.simlist):
     quan3[sim]={}
+    quan_time[sim]={}
     v2avg=[]
     msavg=[]
     maavg=[]
@@ -29,10 +31,21 @@ for ns, sim in enumerate(sim_colors.simlist):
             print("missing",fname)
             continue
         quan4=h5py.File(fname,'r')
-        v2 = np.sqrt(quan4['vx_std'][:]**2+quan4['vy_std'][:]**2+quan4['vz_std'][:]**2)
-        bt = np.sqrt(quan4['bx_avg'][:]**2+quan4['by_avg'][:]**2+quan4['bz_avg'][:]**2)
-        ma=v2/bt
-        v2avg=np.append(v2avg,v2)
-        maavg=np.append(maavg,ma)
+        try:
+            for field in quan4:
+                if field in quan_time[sim]:
+                    quan_time[sim][field] = np.concatenate([quan_time[sim][field],quan4[field][()]])
+                else:
+                    quan_time[sim][field] = quan4[field][()]
+            v2 = np.sqrt(quan4['vx_std'][:]**2+quan4['vy_std'][:]**2+quan4['vz_std'][:]**2)
+            bt = np.sqrt(quan4['bx_avg'][:]**2+quan4['by_avg'][:]**2+quan4['bz_avg'][:]**2)
+            ma=v2/bt
+            v2avg=np.append(v2avg,v2)
+            maavg=np.append(maavg,ma)
+        except:
+            raise
+        finally:
+            quan4.close()
     quan3[sim]['maavg'] =np.mean(maavg)
     quan3[sim]['msavg'] =np.mean(v2avg)
+
