@@ -44,7 +44,7 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM'):
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
     outname_short = "./%s/DD%04d.products/data%04d.AverageQuantities.h5"%(sim,frame,frame)
     #print(outname)
-    if (queb3.check_finished(outname_short) or os.path.exists(outname) and clobber==False:
+    if (queb3.check_finished(outname_short) or os.path.exists(outname)) and clobber==False:
         print("File exists, skipping", outname)
         return 0
     print("Quan on frame",frame)
