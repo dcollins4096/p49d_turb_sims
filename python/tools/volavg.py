@@ -9,13 +9,13 @@ def volavg(array, rank=None, refine_by=None,debug=0):
     accidentally passes in a flattened array."""
     #rank = len(array.shape)
     if rank == None:
-        print "Rank must be done by hand, to prevent user stupidity."
-        print "I'll now raise a stupid error"
+        print("Rank must be done by hand, to prevent user stupidity.")
+        print("I'll now raise a stupid error")
         raise
     if (na.array(array.shape) % refine_by != 0 ).any():
-        print "Cannot downsample array of size", array.shape, "by ", refine_by
+        print("Cannot downsample array of size", array.shape, "by ", refine_by)
         if debug:
-            print na.array(array.shape) % refine_by
+            print(na.array(array.shape) % refine_by)
         return array
     last = array 
     all = slice(None,None,None)
@@ -29,7 +29,7 @@ def volavg(array, rank=None, refine_by=None,debug=0):
         next = na.zeros(next_dims)
         this_set = all_set[:]
         if debug:
-            print "dims: last",last.shape, "next",next.shape
+            print("dims: last",last.shape, "next",next.shape)
         for i in range(refine_by):
             this_set[d] = sub[i]
             next += last[this_set] * r_inv
