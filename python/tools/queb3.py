@@ -425,11 +425,11 @@ class simulation_package():
             ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
             p49_fields.add_QU(ds)
             self.make_frbs(frame,ds=ds)
-            for axis in 'xyz':
-                #read and/or compute E,B, and other harmon
-                this_proj=self.read_queb(frame,axis) 
-                this_proj.compute_harmonic_products()
-                this_proj.write()
+            #for axis in 'xyz':
+            #    #read and/or compute E,B, and other harmon
+            #    this_proj=self.read_queb(frame,axis) 
+            #    this_proj.compute_harmonic_products()
+            #    this_proj.write()
 
     def make_frbs(self,frame, axes=['x','y','z'], ds=None):
         fields=[]
