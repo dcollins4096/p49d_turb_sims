@@ -2,16 +2,17 @@ from GL import *
 import yt
 from volavg import *
 
-def downsample_and_write(pf,outname, refine_by=4):
+def downsample_and_write(pf,outname, refine_by=4, write_hdf5=False,write_fits=True):
     print("RUN ", pf)
 
-    cg = pf.h.covering_grid(0,[0.0]*3,pf.domain_dimensions)
+    cg = pf.covering_grid(0,[0.0]*3,pf.domain_dimensions)
     extra_dims = {'BxF':nar([1,0,0]),'ByF':nar([0,1,0]),'BzF':nar([0,0,1])}
     print("get fine")
     fine_density = cg['Density']
     print("    down density")
     coarse_density = volavg(fine_density, rank=3, refine_by = refine_by)
-    fptr = h5py.File(outname,"w")
+    if write_hdf5:
+        fptr = h5py.File(outname,"w")
     for in_field_name in ['Density',
                           'x-velocity','y-velocity','z-velocity',
                           'Bx','By','Bz']: #['Density','x-velocity','y-velocity','z-velocity','BxF','ByF','BzF']:
@@ -42,6 +43,13 @@ def downsample_and_write(pf,outname, refine_by=4):
             field_to_store = volavg(fine_density*infield,rank=3,refine_by=refine_by)/coarse_density
         else:
             field_to_store = volavg(infield,rank=3,refine_by=refine_by)
-        fptr.create_dataset(in_field_name, data=field_to_store)
-    fptr.close()
+        if write_hdf5:
+            fptr.create_dataset(in_field_name, data=field_to_store)
+        if write_fits:
+            outfile = "%s_%s.fits"%(outname,out_field_name)
+            hdu = pyfits.PrimaryHDU(field_to_store)
+            hdulist = pyfits.HDUList([hdu])
+            hdulist.writeto(outfile,overwrite=True)
+    if write_hdf5:
+        fptr.close()
 

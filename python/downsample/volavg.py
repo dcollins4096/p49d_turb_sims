@@ -8,6 +8,8 @@ def volavg(array, rank=None, refine_by=None,debug=0):
     *rank* is an explicit argument to keep the user from being confused when he/she 
     accidentally passes in a flattened array."""
     #rank = len(array.shape)
+    if refine_by == 1:
+        return array
     if rank == None:
         print("Rank must be done by hand, to prevent user stupidity.")
         print("I'll now raise a stupid error")
