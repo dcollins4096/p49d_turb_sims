@@ -28,10 +28,10 @@ class sim():
 
         self.quan3={}
         self.quan_time={}
-        v2avg=[]
+        vrms=[]
         msavg=[]
         maavg=[]
-        b2avg =[]
+        brms =[]
         for frame in self.framelist:
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)
             if not os.path.exists(fname):
@@ -47,17 +47,18 @@ class sim():
                 v2 = np.sqrt(h5ptr['vx_std'][:]**2+h5ptr['vy_std'][:]**2+h5ptr['vz_std'][:]**2)
                 b_mean = np.sqrt(h5ptr['bx_avg'][:]**2+h5ptr['by_avg'][:]**2+h5ptr['bz_avg'][:]**2)
                 b2  = np.sqrt(h5ptr['bx_std'][:]**2+h5ptr['by_std'][:]**2+h5ptr['bz_std'][:]**2)
+                #NO 4 pi, this came straight off disk.
                 ma=v2/b_mean
-                v2avg=np.append(v2avg,v2)
+                vrms=np.append(vrms,v2)
                 maavg=np.append(maavg,ma)
-                b2avg=np.append(b2avg,b2)
+                brms=np.append(brms,b2)
             except:
                 raise
             finally:
                 h5ptr.close()
-        self.quan_time['vrms']=v2avg
-        self.quan_time['brms']=np.sqrt(b2avg)
+        self.quan_time['vrms']=vrms
+        self.quan_time['brms']=brms
         self.quan_time['ma']=maavg
         self.quan3['maavg'] =np.mean(maavg)
-        self.quan3['msavg'] =np.mean(v2avg)
+        self.quan3['msavg'] =np.mean(vrms)
 
