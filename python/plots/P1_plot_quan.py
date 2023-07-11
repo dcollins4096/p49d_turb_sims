@@ -78,13 +78,16 @@ def plot_quan(sim_list):
 
         ax[2][0].plot(time,QQQ['vrms'], c=this_sim.color)
         ax[2][1].plot(time,QQQ['ma'], c=this_sim.color)
-        ms = this_sim.quan3['msavg']**0.5
+        ms = this_sim.quan3['msavg']
         ax[2][0].axhline(ms, label="%0.1f"%ms)
         ax[2][0].set(ylabel='vrms')
         ax[2][0].legend(loc=0)
-        ax[2][1].axhline(this_sim.quan3['maavg'])
+        ax[2][1].set(ylabel=r'$v_{rms}/\langle B \rangle/"\sqrt{4\pi}"')
+        ax[2][1].axhline(this_sim.quan3['maavg'], label="%0.1f"%this_sim.quan3['maavg'])
+        ax[2][1].legend(loc=0)
+
 
 
     fig.tight_layout()
-    fig.savefig('%s/quan_monster_%s.pdf'%(plotdir,this_sim.name))
+    fig.savefig('%s/quan_monster_%s.png'%(plotdir,this_sim.name))
 
