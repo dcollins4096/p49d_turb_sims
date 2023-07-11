@@ -1,6 +1,3 @@
-#color is Alfven
-#line is Sonic
-#marker is Sonic
 from GL import *
 import davetools as dt
 
