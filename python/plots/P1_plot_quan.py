@@ -5,7 +5,7 @@ import data_locations as dl
 
 plotdir = dl.plotdir
 
-import read_avg_quan as raq
+#import read_avg_quan as raq
 #reload(raq)
 
 """
@@ -31,7 +31,7 @@ vy_std                   Dataset {1}
 vz_avg                   Dataset {1}
 vz_std                   Dataset {1}
 """
-reload(raq)
+#reload(raq)
 #sim_list=sim_colors.simlist
 #sim_list=['6_1']
 import simulation as sim
@@ -39,32 +39,52 @@ def plot_quan(sim_list):
     plt.close('all')
     fig,ax=plt.subplots(3,4,figsize=(12,8))
     for ns,sim_name in enumerate(sim_list):
-        raq.read(sim_name)
         this_sim=sim.corral[sim_name]
-        time = raq.quan_time[sim_name]['time']+0
+        this_sim.read_avg_quan()
+
+        time = this_sim.quan_time['time']+0
         print("%10s max %0.2f tdyn %0.3f t/tdyn %0.3f"%(sim_name,time.max(), this_sim.tdyn, time.max()/ this_sim.tdyn))
         time /= this_sim.tdyn
         print(time.max())
         #time = nar(range(len(raq.quan_time[sim]['time'])))
         #print(time)
-        QQQ = raq.quan_time[sim_name]
+        QQQ = this_sim.quan_time
         vx_avg = QQQ['vx_avg']
         vy_avg = QQQ['vy_avg']
         vz_avg = QQQ['vz_avg']
+        print(QQQ.keys())
         vmag = (vx_avg**2+vy_avg**2+vz_avg**2)
         ax[0][0].plot( time, QQQ['vx_avg'], c=this_sim.color)
         ax[0][1].plot( time, QQQ['vy_avg'], c=this_sim.color)
         ax[0][2].plot( time, QQQ['vz_avg'], c=this_sim.color)
         ax[0][3].plot( time, vmag, c=this_sim.color)
-        if 0:
-            fig2,ax2=plt.subplots(3,4,figsize=(12,8))
-            ax2[0][0].plot( time, QQQ['vx_avg'], c=sim_colors.color[sim])
-            ax2[0][1].plot( time, QQQ['vy_avg'], c=sim_colors.color[sim])
-            ax2[0][2].plot( time, QQQ['vz_avg'], c=sim_colors.color[sim])
-            ax2[0][3].plot( time, vmag, c=sim_colors.color[sim])
-            fig2.savefig('%s/quan_mon_%s.png'%(plotdir,sim))
-            plt.close(fig2)
+        ax[0][0].set(xlabel='t/tdyn',ylabel=r'$\langle v_x \rangle$')
+        ax[0][1].set(xlabel='t/tdyn',ylabel=r'$\langle v_y \rangle$')
+        ax[0][2].set(xlabel='t/tdyn',ylabel=r'$\langle v_z \rangle$')
+        ax[0][3].set(xlabel='t/tdyn',ylabel=r'||$\langle v_i \rangle$||')
+
+        bx_avg = QQQ['bx_avg']
+        by_avg = QQQ['by_avg']
+        bz_avg = QQQ['bz_avg']
+        bmag = (bx_avg**2+by_avg**2+bz_avg**2)
+        ax[1][0].plot( time, QQQ['bx_avg'], c=this_sim.color)
+        ax[1][1].plot( time, QQQ['by_avg'], c=this_sim.color)
+        ax[1][2].plot( time, QQQ['bz_avg'], c=this_sim.color)
+        ax[1][3].plot( time, bmag, c=this_sim.color)
+        ax[1][0].set(xlabel='t/tdyn',ylabel=r'$\langle b_x \rangle$')
+        ax[1][1].set(xlabel='t/tdyn',ylabel=r'$\langle b_y \rangle$')
+        ax[1][2].set(xlabel='t/tdyn',ylabel=r'$\langle b_z \rangle$')
+        ax[1][3].set(xlabel='t/tdyn',ylabel=r'||$\langle b_i \rangle$||')
+
+        ax[2][0].plot(time,QQQ['vrms'], c=this_sim.color)
+        ax[2][1].plot(time,QQQ['ma'], c=this_sim.color)
+        ms = this_sim.quan3['msavg']**0.5
+        ax[2][0].axhline(ms, label="%0.1f"%ms)
+        ax[2][0].set(ylabel='vrms')
+        ax[2][0].legend(loc=0)
+        ax[2][1].axhline(this_sim.quan3['maavg'])
 
 
-    fig.savefig('%s/quan_monster.pdf'%plotdir)
+    fig.tight_layout()
+    fig.savefig('%s/quan_monster_%s.pdf'%(plotdir,this_sim.name))
 
