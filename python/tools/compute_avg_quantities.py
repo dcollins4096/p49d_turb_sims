@@ -38,8 +38,6 @@ class alfv_meanie(meanie):
         self.N2+=1
 
 def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM'):
-    if out_directory is None:
-        out_directory=directory
 
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
     outname_short = "./%s/DD%04d.products/data%04d.AverageQuantities.h5"%(sim,frame,frame)
@@ -99,6 +97,9 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM'):
 
     parent_dir = os.path.dirname(outname)
     if not os.path.exists(parent_dir):
+        grandparent_dir = os.path.dirname(parent_dir)
+        if not os.path.exists(grandparent_dir):
+            os.mkdir(grandparent_dir)
         os.mkdir(parent_dir)
 
     optr = h5py.File(outname,'w')
