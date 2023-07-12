@@ -21,6 +21,40 @@ class sim():
         corral[self.name]=self
 
         self.quan3 = None
+    def read_all_spectra(self):
+        self.all_spectra={}
+        for frame in self.framelist:
+            self.all_spectra[frame]={}
+
+            k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
+            k3d, Htotal  = dt.dpy('%s/DD%04d.products/power_Htotal.h5'%(self.product_location,frame), ['k','power'])
+            k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
+            self.all_spectra[frame]['k3d']=k3d
+            self.all_spectra[frame]['density']=density
+            self.all_spectra[frame]['velocity']=velocity
+            self.all_spectra[frame]['Htotal']=Htotal
+            self.all_spectra[frame]['x']={}
+            self.all_spectra[frame]['y']={}
+            self.all_spectra[frame]['z']={}
+            for axis in 'xyz':
+                self.all_sepctra[frame][axis]={}
+                k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
+                k2d, ClEE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEE'])
+                k2d, ClBB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClBB'])
+                k2d, ClTE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTE'])
+                k2d, ClTB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTB'])
+                k2d, ClEB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEB'])
+                if len(k2d) == len(ClTT)+1:
+                    k2d = 0.5*(k2d[1:]+k2d[:-1])
+                self.all_spectra[frame][axis]['ClTT']=ClTT
+                self.all_spectra[frame][axis]['ClEE']=ClEE
+                self.all_spectra[frame][axis]['ClBB']=ClBB
+                self.all_spectra[frame][axis]['ClTE']=ClTE
+                self.all_spectra[frame][axis]['ClTB']=ClTB
+                self.all_spectra[frame][axis]['ClEB']=ClEB
+
+
+        
     def read_avg_quan(self):
         if self.quan3 != None and False:
             print("Not reading twice", self.name)

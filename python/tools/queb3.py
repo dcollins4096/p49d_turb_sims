@@ -136,18 +136,28 @@ class queb_snapshot():
     def write(self):
         """saves E, B, and the spectra to the simulation location"""
         xd='DD'
-        product_dir = "%s/DD%04d.products"%(self.simulation.product_directory,self.frame)
-        frb_dir = product_dir
+        frb_dir = "%s/DD%04d.products"%(self.simulation.product_directory,self.frame)
         Ef= "%s/%s%04d_E%s.fits"%(frb_dir,xd,self.frame,self.axis)
         Bf= "%s/%s%04d_B%s.fits"%(frb_dir,xd,self.frame,self.axis)
-        Clf= "%s/%s%04d_Cl%s.fits"%(frb_dir,xd,self.frame,self.axis)
+        Clf= "%s/%s%04d_power2d%s.h5"%(frb_dir,xd,self.frame,self.axis)
         hdu = pyfits.PrimaryHDU(self.E)
         hdulist = pyfits.HDUList([hdu])
         hdulist.writeto(Ef,overwrite=True)
         hdu = pyfits.PrimaryHDU(self.B)
         hdulist = pyfits.HDUList([hdu])
         hdulist.writeto(Bf,overwrite=True)
-        np.savetxt(Clf, list(zip(self.lbins,self.ClEE,self.ClBB, self.ClTE, self.ClEB)))
+        #np.savetxt(Clf, list(zip(self.lbins,self.ClEE,self.ClBB, self.ClTE, self.ClEB)))
+        h5ptr=h5py.File(Clf,'w')
+        h5ptr['k']=self.lbins
+        h5ptr['ClTT']=self.ClTT
+        h5ptr['ClEE']=self.ClEE
+        h5ptr['ClBB']=self.ClBB
+        
+        h5ptr['ClTE']=self.ClTE
+        h5ptr['ClTB']=self.ClTB
+        h5ptr['ClEB']=self.ClEB
+
+        h5ptr.close()
 
     def compute_bins_dx1(self):
         #We arrange things so that Delta=Delta x = 1.
@@ -278,9 +288,9 @@ class queb_snapshot():
             self.Hharm=None
         self.ClEE = cmbtools.harm2cl(self.Eharm,self.Deltal,self.lbins)
         self.ClBB = cmbtools.harm2cl(self.Bharm,self.Deltal,self.lbins)
+        self.ClTT = cmbtools.harm2cl(self.Tharm,self.Deltal,self.lbins)
         if self.Hharm is not None:
             self.ClHH= cmbtools.harm2cl(self.Hharm,self.Deltal,self.lbins)
-        self.ClTT = cmbtools.harm2cl(self.Tharm,self.Deltal,self.lbins)
         self.ClTE = cmbtools.harm2clcross_samegrid(self.Tharm,self.Eharm,self.Deltal,self.lbins)
         self.ClTB = cmbtools.harm2clcross_samegrid(self.Tharm,self.Bharm,self.Deltal,self.lbins)
         self.ClEB = cmbtools.harm2clcross_samegrid(self.Eharm,self.Bharm,self.Deltal,self.lbins)
@@ -419,6 +429,13 @@ class simulation_package():
         self.plotdir=plotdir
         self.simname=simname
 
+    def ebspec(self):
+        for frame in self.frames:
+            for axis in 'xyz':
+                #read and/or compute E,B, and other harmon
+                this_proj=self.read_queb(frame,axis) 
+                this_proj.compute_harmonic_products()
+                this_proj.write()
     def EBall(self):
         """compute all EB products and save them into the frb directory"""
         for frame in self.frames:
@@ -477,6 +494,7 @@ class simulation_package():
         st.MakeVelocitySpectra(oober,frame)
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)
+        st.MakeHtotSpectra(oober,frame)
         #st.MakeAccelSpectra(oober,frame)
 
     def make_htotal_spectra(self,frame):
