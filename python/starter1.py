@@ -1,4 +1,5 @@
-
+#Main python modules.
+#All external packages, none of my stuff.
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ import pylab
 import time
 import glob
 #ef=execfile
+from collections import defaultdict
 
 x_dict = [1,0,0]
 y_dict = [2,2,1]

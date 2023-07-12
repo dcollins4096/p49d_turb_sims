@@ -1,3 +1,6 @@
+#
+# Main python packages of my design.
+#
 from starter1 import *
 
 path_list=['tools','OtherPython']
@@ -6,6 +9,7 @@ for directory in path_list:
         sys.path += [directory]
 
 
+import davetools as dt
 import queb3
 import sim_colors
 reload(sim_colors)
