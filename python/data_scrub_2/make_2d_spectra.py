@@ -13,6 +13,7 @@ import simulation
 
 def make_all(simlist):
     for sim in simlist:
+        print("All spec",sim)
         this_sim = simulation.corral[sim]
         #sim_dir = "/scratch/00369/tg456484/Paper49/%s"%sim
         #product_dir = "/scratch/00369/tg456484/Paper49/Products/%s"%sim
