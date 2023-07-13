@@ -21,8 +21,6 @@ from collections import defaultdict
 plotdir = dl.plotdir
 
 import simulation
-import simulation_info.suite_1
-reload(simulation_info.suite_1)
 
 if 1:
     plt.close('all')
