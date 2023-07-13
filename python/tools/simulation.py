@@ -1,4 +1,5 @@
 from GL import *
+from queb3 import powerlaw_fit as plfit
 
 if 'corral' not in dir():
     corral={}
@@ -21,7 +22,44 @@ class sim():
         corral[self.name]=self
 
         self.quan3 = None
+        self.all_spectra=None
+    def fit_all_spectra(self):
+        if self.all_spectra is None:
+            print("run read_all_spectra")
+            return
+        self.slopes={}
+        self.amps={}
+        for frame in self.framelist:
+            self.slopes[frame]={}
+            self.amps[frame]={}
+            #3d fields first.
+            k3d = self.all_spectra[frame]['k3d']
+            for field in ['density','velocity','Htotal']:
+                spec = self.all_spectra[frame][field]
+                fitrange = [k3d[4],k3d[25]]
+                slope,amp,res=plfit(k3d,spec,fitrange)
+                self.slopes[frame][field]=slope
+                self.amps[frame][field]=amp
+            for axis in 'xyz':
+                self.slopes[frame][axis]={}
+                self.amps[frame][axis]={}
+                k2d = self.all_spectra[frame][axis]['k2d']
+                for field in ['ClTT','ClEE','ClBB']:
+                    fitrange = [k2d[4], k2d[25]]
+                    spec = self.all_spectra[frame][axis][field]
+                    if spec is None:
+                        continue
+                    slope,amp,res=plfit(k2d,spec,fitrange)
+                    self.slopes[frame][axis][field]=slope
+                    self.amps[frame][axis][field]=amp
+
+
+            
     def read_all_spectra(self):
+        if self.all_spectra is not None:
+            print("Spectra exists, not reading", self.name)
+            return
+
         self.all_spectra={}
         for frame in self.framelist:
             self.all_spectra[frame]={}
@@ -37,7 +75,7 @@ class sim():
             self.all_spectra[frame]['y']={}
             self.all_spectra[frame]['z']={}
             for axis in 'xyz':
-                self.all_sepctra[frame][axis]={}
+                self.all_spectra[frame][axis]={}
                 k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
                 k2d, ClEE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEE'])
                 k2d, ClBB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClBB'])
@@ -46,12 +84,13 @@ class sim():
                 k2d, ClEB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEB'])
                 if len(k2d) == len(ClTT)+1:
                     k2d = 0.5*(k2d[1:]+k2d[:-1])
-                self.all_spectra[frame][axis]['ClTT']=ClTT
-                self.all_spectra[frame][axis]['ClEE']=ClEE
-                self.all_spectra[frame][axis]['ClBB']=ClBB
-                self.all_spectra[frame][axis]['ClTE']=ClTE
-                self.all_spectra[frame][axis]['ClTB']=ClTB
-                self.all_spectra[frame][axis]['ClEB']=ClEB
+                self.all_spectra[frame][axis]['k2d']=k2d
+                self.all_spectra[frame][axis]['ClTT']=ClTT.real
+                self.all_spectra[frame][axis]['ClEE']=ClEE.real
+                self.all_spectra[frame][axis]['ClBB']=ClBB.real
+                self.all_spectra[frame][axis]['ClTE']=ClTE.real
+                self.all_spectra[frame][axis]['ClTB']=ClTB.real
+                self.all_spectra[frame][axis]['ClEB']=ClEB.real
 
 
         
