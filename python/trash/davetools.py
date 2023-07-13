@@ -340,7 +340,7 @@ def dpy(filename,fields):
     Collapses 3 function calls into 1."""
     if glob.glob(filename) == []:
         print("No such file", filename)
-        return None
+        return [None]*len(fields)
     fptr = h5py.File(filename,'r')
     output = []
     try:
