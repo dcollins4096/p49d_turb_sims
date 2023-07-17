@@ -25,6 +25,7 @@ class sim():
 
         self.quan3 = None
         self.all_spectra=None
+        self.slopes=None
     def get_all_frames(self):
         all_dirs=glob.glob("%s/DD????"%(self.data_location))
         dir_nums = sorted([int( os.path.basename(s)[2:]) for s in all_dirs])
@@ -32,41 +33,58 @@ class sim():
             if dir_nums[0]==0:
                 dir_nums.pop(0)
         return dir_nums
+    def load(self):
+        self.read_avg_quan()
+        self.read_all_spectra()
+        self.fit_all_spectra()
 
     def fit_all_spectra(self):
         if self.all_spectra is None:
             print("run read_all_spectra")
             return
+        if self.slopes is not None:
+            return
         self.slopes={}
         self.amps={}
+        self.slopesL = defaultdict(list)
+        self.ampsL   = defaultdict(list)
+
         for frame in self.all_frames:
             self.slopes[frame]={}
             self.amps[frame]={}
             #3d fields first.
             k3d = self.all_spectra[frame]['k3d']
-            for field in ['density','velocity','Htotal']:
+            k2d = self.all_spectra[frame]['k2d']
+            for field in self.products_positive:
+                if field in self.products_3d:
+                    xvals = k3d
+                else:
+                    xvals = k2d
+
                 spec = self.all_spectra[frame][field]
-                fitrange = [k3d[4],k3d[25]]
-                slope,amp,res=plfit(k3d,spec,fitrange)
+                fitrange = [xvals[4],xvals[25]]
+                slope,amp,res=plfit(xvals,spec,fitrange)
                 self.slopes[frame][field]=slope
                 self.amps[frame][field]=amp
-            for axis in 'xyz':
-                self.slopes[frame][axis]={}
-                self.amps[frame][axis]={}
-                k2d = self.all_spectra[frame][axis]['k2d']
-                for field in ['ClTT','ClEE','ClBB']:
-                    fitrange = [k2d[4], k2d[25]]
-                    spec = self.all_spectra[frame][axis][field]
-                    if spec is None:
-                        continue
-                    slope,amp,res=plfit(k2d,spec,fitrange)
-                    self.slopes[frame][axis][field]=slope
-                    self.amps[frame][axis][field]=amp
+                self.slopesL[field].append(slope)
+                self.ampsL[field].append(amp)
 
     def read_all_spectra(self):
         if self.all_spectra is not None:
-            print("Spectra exists, not reading", self.name)
             return
+
+        self.products=['density','velocity','Htotal',
+                       'ClTTx','ClTTy','ClTTz',
+                       'ClEEx','ClEEy','ClEEz',
+                       'ClBBx','ClBBy','ClBBz',
+                       'ClTEx','ClTEy','ClTEz',
+                       'ClTBx','ClTBy','ClTBz',
+                       'ClEBx','ClEBy','ClEBz']
+        self.products_3d = ['density','velocity','Htotal']
+        self.products_positive = ['density','velocity','Htotal',
+                                  'ClTTx','ClTTy','ClTTz',
+                                  'ClEEx','ClEEy','ClEEz',
+                                  'ClBBx','ClBBy','ClBBz']
 
         self.all_spectra={}
         for frame in self.all_frames:
@@ -79,11 +97,7 @@ class sim():
             self.all_spectra[frame]['density']=density.real
             self.all_spectra[frame]['velocity']=velocity.real
             self.all_spectra[frame]['Htotal']=Htotal.real
-            self.all_spectra[frame]['x']={}
-            self.all_spectra[frame]['y']={}
-            self.all_spectra[frame]['z']={}
             for axis in 'xyz':
-                self.all_spectra[frame][axis]={}
                 k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
                 k2d, ClEE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEE'])
                 k2d, ClBB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClBB'])
@@ -92,19 +106,18 @@ class sim():
                 k2d, ClEB = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEB'])
                 if len(k2d) == len(ClTT)+1:
                     k2d = 0.5*(k2d[1:]+k2d[:-1])
-                self.all_spectra[frame][axis]['k2d']=k2d
-                self.all_spectra[frame][axis]['ClTT']=ClTT.real
-                self.all_spectra[frame][axis]['ClEE']=ClEE.real
-                self.all_spectra[frame][axis]['ClBB']=ClBB.real
-                self.all_spectra[frame][axis]['ClTE']=ClTE.real
-                self.all_spectra[frame][axis]['ClTB']=ClTB.real
-                self.all_spectra[frame][axis]['ClEB']=ClEB.real
+                self.all_spectra[frame]['k2d']=k2d
+                self.all_spectra[frame]['ClTT'+axis]=ClTT.real
+                self.all_spectra[frame]['ClEE'+axis]=ClEE.real
+                self.all_spectra[frame]['ClBB'+axis]=ClBB.real
+                self.all_spectra[frame]['ClTE'+axis]=ClTE.real
+                self.all_spectra[frame]['ClTB'+axis]=ClTB.real
+                self.all_spectra[frame]['ClEB'+axis]=ClEB.real
 
 
         
     def read_avg_quan(self):
-        if self.quan3 != None and False:
-            print("Not reading twice", self.name)
+        if self.quan3 != None:
             return
 
         self.quan3={}
@@ -113,7 +126,9 @@ class sim():
         msavg=[]
         maavg=[]
         brms =[]
+        frames=[]
         for frame in self.all_frames:
+            frames.append(frame)
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)
             if not os.path.exists(fname):
                 print("missing",fname)
@@ -137,6 +152,7 @@ class sim():
                 raise
             finally:
                 h5ptr.close()
+        self.quan_time['frames']=frames
         self.quan_time['vrms']=vrms
         self.quan_time['brms']=brms
         self.quan_time['ma']=maavg
