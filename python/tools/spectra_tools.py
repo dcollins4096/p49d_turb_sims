@@ -90,9 +90,10 @@ def MakeHtotSpectra(oober,frame,density=0,debug=1):
 
     field = 'magnetic_field_strength'
     directory = oober.product_dir(frame) #"%s/%s%04d.products/"%(self.directory,self.name_dir,frame)
-    filename = "%s/fft_%s.%s"%(directory,field,'float32')
+    #filename = "%s/fft_%s.%s"%(directory,field,'float32')
+    filename = "%s/power_Htotal.h5"%(directory)
     if len(glob.glob(filename))>0:
-        print("WE GOT ONE")
+        print("WE GOT ONE", filename)
     else:
         print("ONE TO RUN")
 
