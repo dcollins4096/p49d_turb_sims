@@ -14,22 +14,32 @@ class sim():
         self.color=color
         self.linestyle=linestyle
         self.marker=marker
-        self.framelist=framelist
+        self.ann_frames=framelist
         if tdyn is not None:
             self.tdyn=tdyn
         else:
             self.tdyn = 0.5/self.ms
         corral[self.name]=self
 
+        self.all_frames = self.get_all_frames()
+
         self.quan3 = None
         self.all_spectra=None
+    def get_all_frames(self):
+        all_dirs=glob.glob("%s/DD????"%(self.data_location))
+        dir_nums = sorted([int( os.path.basename(s)[2:]) for s in all_dirs])
+        if len(dir_nums)>0:
+            if dir_nums[0]==0:
+                dir_nums.pop(0)
+        return dir_nums
+
     def fit_all_spectra(self):
         if self.all_spectra is None:
             print("run read_all_spectra")
             return
         self.slopes={}
         self.amps={}
-        for frame in self.framelist:
+        for frame in self.all_frames:
             self.slopes[frame]={}
             self.amps[frame]={}
             #3d fields first.
@@ -53,24 +63,22 @@ class sim():
                     self.slopes[frame][axis][field]=slope
                     self.amps[frame][axis][field]=amp
 
-
-            
     def read_all_spectra(self):
         if self.all_spectra is not None:
             print("Spectra exists, not reading", self.name)
             return
 
         self.all_spectra={}
-        for frame in self.framelist:
+        for frame in self.all_frames:
             self.all_spectra[frame]={}
 
             k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
             k3d, Htotal  = dt.dpy('%s/DD%04d.products/power_Htotal.h5'%(self.product_location,frame), ['k','power'])
             k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
-            self.all_spectra[frame]['k3d']=k3d
-            self.all_spectra[frame]['density']=density
-            self.all_spectra[frame]['velocity']=velocity
-            self.all_spectra[frame]['Htotal']=Htotal
+            self.all_spectra[frame]['k3d']=k3d.real
+            self.all_spectra[frame]['density']=density.real
+            self.all_spectra[frame]['velocity']=velocity.real
+            self.all_spectra[frame]['Htotal']=Htotal.real
             self.all_spectra[frame]['x']={}
             self.all_spectra[frame]['y']={}
             self.all_spectra[frame]['z']={}
@@ -105,7 +113,7 @@ class sim():
         msavg=[]
         maavg=[]
         brms =[]
-        for frame in self.framelist:
+        for frame in self.all_frames:
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)
             if not os.path.exists(fname):
                 print("missing",fname)
