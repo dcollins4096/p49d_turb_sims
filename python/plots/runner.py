@@ -6,14 +6,13 @@ import simulation_info.all_sims as all_sims
 import plots.P1_plot_quan as p1
 import plots.P2_image_all as p2
 import plots.P3_all_spectra as p3
+import plots.P4_spectra_time as p4
 reload(p1)
 reload(p2)
 reload(p3)
+reload(p4)
 
-sim_list = all_sims.lists['suite1']
-for n,s in enumerate(sim_list):
-    print(n,s)
-sim_list = sim_list[18:]
+sim_list = all_sims.lists['suite1b']
 
 
 if 0:
@@ -34,5 +33,9 @@ if 0:
         p2.image(sim)
 
 if 1:
-    p3.plot_all_spectra(sim_list)
+    #frames can be "all" or "ann"
+    p3.plot_all_spectra(sim_list, all_or_ann='ann')
+
+if 0:
+    p4.slope_time(sim_list)
 

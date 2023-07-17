@@ -73,11 +73,11 @@ analysis_frames={
     "2_half":lrange(65,86),"2_1":lrange(11,32),"2_2":lrange(11,32),
     #"3_half":lrange(72,93),"3_1":lrange(56,75),"3_2":lrange(20,40),
     "3_half":three_half_range,"3_1":lrange(53,77),"3_2":lrange(9,41),
-    "5_half":lrange(3,40)+lrange(41,60),"5_1":lrange(4,37)+lrange(38,49),"5_2":lrange(4,46)+lrange(48,60),"5_3":lrange(5,59),
     #'4_half':lrange(12,19), '4_1':lrange(12,22),'4_2':lrange(12,25),
     #'4_half':lrange(15,45), '4_1':lrange(15,52),'4_2':lrange(15,52),
-    '4_half':lrange(1,31)+lrange(32,45), '4_1':lrange(1,23)+lrange(24,52),'4_2':lrange(0,37)+lrange(38,52),
-    '6_half':lrange(1,39)+lrange(40,46), '6_1':lrange(1,30)+lrange(31,52),'6_2':lrange(1,30)+lrange(31,52)}
+    '4_half':lrange(14,31)+lrange(32,45), '4_1':lrange(16,23)+lrange(24,52),'4_2':lrange(15,37)+lrange(38,52),
+    "5_half":lrange(11,40)+lrange(41,60),"5_1":lrange(4,37)+lrange(38,49),"5_2":lrange(4,46)+lrange(48,60),"5_3":lrange(5,59),
+    '6_half':lrange(17,39)+lrange(40,46), '6_1':lrange(15,30)+lrange(31,52),'6_2':lrange(16,30)+lrange(31,52)}
 
 for sim in simlist:
     simulation.sim(sim, data_location=dl.sim_dir_base+sim, product_location=dl.product_dir_base+sim, ms=Ms[sim], ma=Ma[sim],
