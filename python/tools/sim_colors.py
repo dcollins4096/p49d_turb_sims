@@ -1,11 +1,17 @@
 from GL import *
 import davetools as dt
 
-sim_ms = nar(['half','1','2','3','4','5','6'])
-sim_ms_f = nar([0.5,1,2,3,4,5,6])
-#sim_ms = nar(['half','1','2','3']); print('kludge; no sim 5')
-sim_ma = nar(['half','1','2'])
-sim_ma_f = nar([0.5,1,2])
+if 1:
+    sim_ms = nar(['half','1','2','3','4','5','6'])
+    sim_ms_f = nar([0.5,1,2,3,4,5,6])
+    sim_ma = nar(['half','1','2'])
+    sim_ma_f = nar([0.5,1,2])
+if 0:
+    #for kludging
+    sim_ms = nar(['half','1','2','3'])
+    sim_ms_f = nar([0.5,1,2,3])
+    sim_ma = nar(['half','1','2'])
+    sim_ma_f = nar([0.5,1,2])
 
 #auto gen, don't touch
 simlist = nar([ '%s_%s'%(ms,ma) for ms in sim_ms for ma in sim_ma])
@@ -38,10 +44,11 @@ framedict={
     "2_half":lrange(65,86),"2_1":lrange(11,32),"2_2":lrange(11,32),
     #"3_half":lrange(72,93),"3_1":lrange(56,75),"3_2":lrange(20,40),
     "3_half":three_half_range,"3_1":lrange(53,77),"3_2":lrange(9,41),
-    "5_half":lrange(3,37),"5_1":lrange(4,28),"5_2":lrange(4,46),"5_3":lrange(5,59),
+    "5_half":lrange(3,40)+lrange(41,60),"5_1":lrange(4,37)+lrange(38,49),"5_2":lrange(4,46)+lrange(48,60),"5_3":lrange(5,59),
     #'4_half':lrange(12,19), '4_1':lrange(12,22),'4_2':lrange(12,25),
-    '4_half':lrange(15,45), '4_1':lrange(15,52),'4_2':lrange(15,52),
-    '6_half':lrange(12,19), '6_1':lrange(12,22),'6_2':lrange(12,25)}
+    #'4_half':lrange(15,45), '4_1':lrange(15,52),'4_2':lrange(15,52),
+    '4_half':lrange(1,31)+lrange(32,45), '4_1':lrange(1,23)+lrange(24,52),'4_2':lrange(0,37)+lrange(38,52),
+    '6_half':lrange(1,39)+lrange(40,46), '6_1':lrange(1,30)+lrange(31,52),'6_2':lrange(1,30)+lrange(31,52)}
 frames=framedict
 #framedict['5_half']=range(11,13); print('kludge in framedict')
 
