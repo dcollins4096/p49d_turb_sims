@@ -35,17 +35,20 @@ reload(st)
 reload(p49_QU2EB)
 
 def check_finished(fname):
-    fptr=open("info/finished_products")
-    lines=fptr.readlines()
-    fptr.close()
     found=False
-    for line in lines:
-        #if( line.startswith(fname[:6])):
-        #   print("L",line)
-        #   print("F",fname)
+    if os.path.exists("info/finished_products"):
+        fptr=open("info/finished_products")
+        lines=fptr.readlines()
+        fptr.close()
+        found=False
+        for line in lines:
+            #if( line.startswith(fname[:6])):
+            #   print("L",line)
+            #   print("F",fname)
 
-        if line[:-1] == fname:
-            found=True
+            if line[:-1] == fname:
+                found=True
+
     return found
 
 def read_fits(fitname):
@@ -439,9 +442,9 @@ class simulation_package():
     def EBall(self):
         """compute all EB products and save them into the frb directory"""
         for frame in self.frames:
-            ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
-            p49_fields.add_QU(ds)
-            self.make_frbs(frame,ds=ds)
+            #ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
+            #p49_fields.add_QU(ds)
+            self.make_frbs(frame)#,ds=ds)
             for axis in 'xyz':
                 #read and/or compute E,B, and other harmon
                 this_proj=self.read_queb(frame,axis) 
@@ -478,6 +481,9 @@ class simulation_package():
                 print("FRB exists: %s"%outfile)
             else:
                 print("FRB being produced: %s"%outfile)
+                if ds is None:
+                    ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
+                    p49_fields.add_QU(ds)
                 res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
                 proj = ds.proj(field,axis)
                 frb = proj.to_frb(1,res)
