@@ -2,7 +2,9 @@
 from GL import *
 
 import simulation
-def plot_all_spectra(simlist):
+def plot_all_spectra(simlist, all_or_ann='all'):
+    """ all frames or ann (analysis) frames"""
+    plt.close('all')
     for this_simname in simlist:
         print('plot',this_simname)
         this_sim = simulation.corral[this_simname]
@@ -13,20 +15,20 @@ def plot_all_spectra(simlist):
         # Primitive 
         #
 
-        frames = this_sim.all_frames
+        if all_or_ann == 'all':
+            frames = this_sim.all_frames
+        elif all_or_ann == 'ann':
+            frames = this_sim.ann_frames
+        else:
+            print("ERROR. all_or_ann must be all or ann.")
+            pdb.set_trace()
         
         fig,axes=plt.subplots(7,3, figsize=(8,12))
         #ax0=axes[0];ax1=axes[1];ax2=axes[2]
 
         avg_slope={}
-        for field in ['density','velocity','Htotal']:
+        for field in this_sim.products_positive:
             avg_slope[field]=0
-        for axis in 'xyz':
-            avg_slope[axis]={}
-            for field in ['ClTT','ClEE','ClBB']:
-                avg_slope[axis][field]=0
-        for field in ['density','velocity','Htotal']:
-
             NF = 0
             for frame in frames:
                 this_slope=this_sim.slopes[frame][field]
@@ -35,49 +37,40 @@ def plot_all_spectra(simlist):
                 avg_slope[field]+=this_slope
                 NF+=1
             avg_slope[field]/=NF
-        for axis in 'xyz':
-            for field in ['ClTT','ClEE','ClBB']:
-                for frame in frames:
-                    this_slope=this_sim.slopes[frame][axis][field]
-                    if this_slope is None:
-                        continue
-                    avg_slope[axis][field]+=this_slope
-                    NF+=1
-                avg_slope[axis][field]/=NF
 
         for frame in frames:
             aaa = this_sim.all_spectra[frame]
-            k = aaa['k3d']
-            for nf,field in enumerate(['density','velocity','Htotal']):
-                thax=axes[0][nf]
-                slope = avg_slope[field]
+            for nf,field in enumerate(this_sim.products):
+                if field in this_sim.products_3d:
+                    xvals = aaa['k3d']
+                else:
+                    xvals = aaa['k2d']
+                ncol = nf%3
+                nrow = nf//3
+                thax=axes[nrow][ncol]
                 spec=aaa[field]
-                ok = (aaa[field]>0)*(k>0)
-                comp=k[ok]**-slope
+                #ok = (aaa[field]>0)*(xvals>0)
+                ok = (xvals>0)
+                if field in this_sim.products_positive:
+                    slope = avg_slope[field]
+                    spec[ok] = spec[ok]*xvals[ok]**np.abs(slope)
                 #comp=1
-                thax.plot( k[ok], spec[ok]*comp, c=[0.5]*4)
-            for nax,axis in enumerate('xyz'):
-                k2d = aaa[axis]['k2d']
-                for nf,field in enumerate(['ClTT','ClEE','ClBB','ClTE','ClTB','ClEE']):
-                    thax=axes[nf+1][nax]
-                    ok = k2d>0
-                    spec=aaa[axis][field]
-                    thax.plot( k2d[ok], spec[ok])
+                thax.plot( xvals[ok], spec[ok], c=[0.5]*4)
 
 
-        for nf,field in enumerate(['density','velocity','Htotal']):
-            thax=axes[0][nf]
-            thax.set(xscale='log',yscale='log',xlabel='K',ylabel='%s Power'%field, 
-                title="%0.2f"%avg_slope[field])
-            for nax,axis in enumerate('xyz'):
-                for nf,field in enumerate(['ClTT','ClEE','ClBB']):
-                    thax=axes[nf+1][nax]
-                    thax.set(xscale='log',yscale='log',xlabel='k2d',ylabel='%s %s'%(field,axis),
-                             title="%0.2f"%avg_slope[axis][field])
-                for nf,field in enumerate(['ClTE','ClTB','ClEB']):
-                    thax=axes[nf+4][nax]
-                    thax.set(xscale='log',xlabel='k2d',ylabel='%s %s'%(field,axis))
-                    thax.set_yscale('symlog',linthresh=1e-2)
+        for nf,field in enumerate(this_sim.products):
+            ncol = nf%3
+            nrow = nf//3
+            thax=axes[nrow][ncol]
+            if field in this_sim.products_3d:
+                thax.set(xscale='log',yscale='log',xlabel='K',ylabel='%s Power'%field, 
+                    title="%0.2f"%avg_slope[field])
+            elif field in this_sim.products_positive:
+                thax.set(xscale='log',yscale='log',xlabel='k2d',ylabel='%s'%(field),
+                         title="%0.2f"%avg_slope[field])
+            else:
+                thax.set(xscale='log',xlabel='k2d',ylabel='%s'%(field))
+                thax.set_yscale('symlog',linthresh=1e-2)
 
         fig.tight_layout()
         fig.savefig('%s/all_spectra_%s'%(dl.plotdir,this_sim.name))
