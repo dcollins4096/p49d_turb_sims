@@ -2,25 +2,18 @@
 
 
 from GL import *
-from queb3 import powerlaw_fit as plfit
 verbose=False
-all_slopes=defaultdict(list)
+import simulation
 
 clobber=False
 shortprefix="time"
-def make_spectra_files():
-    for axes in ['x','y','z']:
-        for i,sim in enumerate(simlist):
+def make_spectra_files(simlist):
+    for i,sim in enumerate(simlist):
+        this_sim=simulation.corral[sim]
+        for axes in ['x','y','z']:
             frames=sim_colors.framelist[i]
             print('SPECTRA', "nframes",len(frames), "max frame", max(frames), 'sim',sim)
-            simdes=sim
-            spectra_fname = "avg_spectra_%s_%s.h5"%(simdes,axes)
-            frbname=""
-            #sim_dir = "/archive2/kas14d/512reruns/frbs/%s"%simdes
-            sim_dir = "/data/cb1/Projects/P49_EE_BB/%s"%sim
-            product_dir = "/data/cb1/Projects/P49_EE_BB/Products/%s"%sim
-            plot_dir = "./plots"
-            gen_dir = "./plots"
+            spectra_fname = "%s/avg_spectra_%s_%s.h5"%(this_sim.product_location,sim,axes)
 
             avg_clee=0
             avg_clbb=0
@@ -35,28 +28,27 @@ def make_spectra_files():
             avg_rtb=0
             avg_reb=0
 
-            if 1:
-                var_clee=0
-                var_clbb=0
-                var_cleb=0
-                var_clte=0
-                var_cltb=0
-                var_cltt=0
-                var_v=0
-                var_h=0
-                var_d=0
-                var_s_clee=0
-                var_s_clbb=0
-                var_s_cleb=0
-                var_s_clte=0
-                var_s_cltb=0
-                var_s_cltt=0
-                var_s_v=0
-                var_s_h=0
-                var_s_d=0
+            var_clee=0
+            var_clbb=0
+            var_cleb=0
+            var_clte=0
+            var_cltb=0
+            var_cltt=0
+            var_v=0
+            var_h=0
+            var_d=0
+            var_s_clee=0
+            var_s_clbb=0
+            var_s_cleb=0
+            var_s_clte=0
+            var_s_cltb=0
+            var_s_cltt=0
+            var_s_v=0
+            var_s_h=0
+            var_s_d=0
+
             projections=[]
-            longprefix='%s_%s_%s'%(simdes,shortprefix,axes)
-            pack = queb3.simulation_package( directory=sim_dir,frames=frames,prefix=longprefix, product_directory=product_dir)
+            pack = queb3.simulation_package( directory=this_sim.data_location,frames=this_sim.framelist,prefix=this_sim.name, product_directory=this_sim.product_location)
             nplots=0
             proj=pack.read_queb(frame=frames[0],ax=axes,bin_style='dx1')
             fitrange=proj.determine_fit_range()  #something better

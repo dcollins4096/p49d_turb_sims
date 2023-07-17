@@ -19,7 +19,7 @@ def make_all(simlist):
 
 #a thing that describes the simulation
         prefix = this_sim.name
-        pack = queb3.simulation_package( directory=this_sim.data_location,frames=this_sim.framelist,prefix=prefix, 
+        pack = queb3.simulation_package( directory=this_sim.data_location,frames=this_sim.all_frames,prefix=prefix, 
                                         product_directory=this_sim.product_location, simname=sim)
 #produce all QUEB products.
         pack.EBall()

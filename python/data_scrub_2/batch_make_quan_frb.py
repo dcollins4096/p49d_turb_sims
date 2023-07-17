@@ -5,15 +5,12 @@ from  GL import *
 #import simulation_info.suite_1
 #reload(simulation_info.suite_1)
 import simulation
-import simulation_info.all_sims
+import simulation_info.all_sims as all_sims
 
-import data_scrub_2.compute_all_quan as caq
+import data_scrub_2.make_quan as caq
 import data_scrub_2.make_2d_spectra as m2d
 import data_scrub_2.make_3d_spectra as m3d
 import data_scrub_2.make_all_frb as maf
-import data_scrub_2.image_frb as imf
-import plots.P3_all_spectra as p3
-import plots.P1_plot_quan as p1
 
 if len(sys.argv) == 1:
     print("Please select 4, 5, 6")
@@ -27,8 +24,10 @@ elif sys.argv[1] == "5":
     this_list=['5_half','5_1','5_2']
 elif sys.argv[1] == "6":
     this_list=['6_half','6_1','6_2']
+elif sys.argv[1] == 'suite1':
+    this_list = all_sims.lists['suite1']
 else:
-    print("Pick 4 5 6")
+    print("Pick One.")
     sys.exit(0)
 if 1:
     caq.comp_all(this_list)
