@@ -13,7 +13,7 @@ def plot_all_spectra(simlist):
         # Primitive 
         #
 
-        frames = this_sim.framelist
+        frames = this_sim.all_frames
         
         fig,axes=plt.subplots(7,3, figsize=(8,12))
         #ax0=axes[0];ax1=axes[1];ax2=axes[2]

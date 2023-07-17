@@ -38,6 +38,10 @@ import simulation as sim
 def plot_quan(sim_list):
     plt.close('all')
     fig,ax=plt.subplots(3,4,figsize=(12,8))
+    if len(sim_list)>1:
+        outname = '%s/avg_quan_multi'%(dl.plotdir)
+    else:
+        outname = '%s/avg_quan_%s'%(dl.plotdir,sim_list[0])
     for ns,sim_name in enumerate(sim_list):
         this_sim=sim.corral[sim_name]
         this_sim.read_avg_quan()
@@ -45,14 +49,12 @@ def plot_quan(sim_list):
         time = this_sim.quan_time['time']+0
         print("%10s max %0.2f tdyn %0.3f t/tdyn %0.3f"%(sim_name,time.max(), this_sim.tdyn, time.max()/ this_sim.tdyn))
         time /= this_sim.tdyn
-        print(time.max())
         #time = nar(range(len(raq.quan_time[sim]['time'])))
         #print(time)
         QQQ = this_sim.quan_time
         vx_avg = QQQ['vx_avg']
         vy_avg = QQQ['vy_avg']
         vz_avg = QQQ['vz_avg']
-        print(QQQ.keys())
         vmag = (vx_avg**2+vy_avg**2+vz_avg**2)
         ax[0][0].plot( time, QQQ['vx_avg'], c=this_sim.color)
         ax[0][1].plot( time, QQQ['vy_avg'], c=this_sim.color)
@@ -86,8 +88,7 @@ def plot_quan(sim_list):
         ax[2][1].axhline(this_sim.quan3['maavg'], label="%0.1f"%this_sim.quan3['maavg'])
         ax[2][1].legend(loc=0)
 
-
-
     fig.tight_layout()
-    fig.savefig('%s/quan_monster_%s.png'%(plotdir,this_sim.name))
+    fig.savefig(outname)
+    print(outname)
 

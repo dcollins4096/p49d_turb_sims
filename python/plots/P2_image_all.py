@@ -4,7 +4,8 @@ import simulation
 def image(sim_name):
     this_sim=simulation.corral[sim_name]
 
-    for frame in this_sim.framelist[-1:]:
+    for frame in this_sim.all_frames:
+        print("Image %s %d"%(sim_name,frame))
         fig,axes=plt.subplots(3,4,figsize=(12,8))
         directory = "%s/DD%04d.products"%(this_sim.product_location,frame)
         for nax,axis in enumerate('xyz'):
