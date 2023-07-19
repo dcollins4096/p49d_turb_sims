@@ -26,7 +26,7 @@ plotdir =  "/home/dccollins/PigPen"
 
 #save bi-linear fit parameters to an h5 file
 #function recording values for yaxis (perp to b-field)
-if 1:
+def fit_all(simlist):
     herd = {}
     field_list = ['avg_clee','avg_clbb','avg_cltt','avg_v','avg_d','avg_h']
     #field_list = ['avg_d']
@@ -59,13 +59,11 @@ if 1:
         herd[field + "s"] = bilinear.beefitter(field, msarr, maarr, slopearr)
         herd[field + "a"] = bilinear.beefitter(field, msarr, maarr, np.log(amparr))
 
-field_order=['avg_clees', 'avg_cleea', 'avg_clbbs', 'avg_clbba', 'avg_cltts', 'avg_cltta', 'avg_vs', 'avg_va', 'avg_ds', 'avg_da', 'avg_hs', 'avg_ha']
-field_order = ['avg_ds','avg_vs','avg_hs','avg_cltts','avg_clees','avg_clbbs',
-               'avg_da','avg_va','avg_ha','avg_cltta','avg_cleea','avg_clbba']
-bilinear.write_tex( herd, '%s/table1.tex'%plotdir, field_order)
+    field_order=['avg_clees', 'avg_cleea', 'avg_clbbs', 'avg_clbba', 'avg_cltts', 'avg_cltta', 'avg_vs', 'avg_va', 'avg_ds', 'avg_da', 'avg_hs', 'avg_ha']
+    field_order = ['avg_ds','avg_vs','avg_hs','avg_cltts','avg_clees','avg_clbbs',
+                   'avg_da','avg_va','avg_ha','avg_cltta','avg_cleea','avg_clbba']
+    bilinear.write_tex( herd, '%s/table1.tex'%plotdir, field_order)
 
-#herd['avg_d'].plot2()
-if 1:
     #predict
     truth = {'avg_clee':-2.4, 'avg_clbb':-2.5, 'avg_cltt':-2.6}
     truth_fields=truth.keys()
