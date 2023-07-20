@@ -47,7 +47,6 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
             ext(y)
 
     if do_log:
-        print('doing')
         for aaa in axlist:
             aaa.set_yscale('log')
     axes[0][0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S1))
@@ -56,7 +55,6 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
     axes[2][0].set_xlabel(r'$M_{\rm{s}}$')
     axes[2][1].set_xlabel(r'$M_{\rm{A}}$')
 
-    print("Extents",ext.minmax)
     if (do_prim and do_amp):
         for aaa in axlist:
             #aaa.set_ylim([4e-6,4e-1])
