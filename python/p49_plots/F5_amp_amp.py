@@ -1,39 +1,15 @@
 
 from GL import *
-from cycler import cycler
-import queb3
-from queb3 import powerlaw_fit as plfit
-import davetools as dt
-import h5py
-from matplotlib.pyplot import cm
-import sim_colors
-reload(sim_colors)
-reload(queb3)
-import get_all_quantities as gaq
-reload(gaq)
-verbose=False
-from collections import defaultdict
-all_slopes=defaultdict(list)
-
-#read_stuff reads spectra and average quantities
-#Reload to re-read, but don't do that every time.
-import read_stuff as rs
-spectra_dict = rs.spectra_dict
-import read_avg_quan as raq
-quan3=raq.quan3
-
-plotdir =  "/home/dccollins/PigPen"
+import simulation
 
 
 #
 # TEB amplitudes, slopes
 #
 range_ext=dt.extents()
-simlist = ['half_half']#,'1_half','2_half','3_half']#['1_half']#['half_2', 'half_half']#['half_half']#['1_1']#['2_2'] #['half_half'] # ['half_half']#,'2_2']
-simlist = sim_colors.simlist
 ext_x = [dt.extents() for n in range(3)]
 ext_y = [dt.extents() for n in range(3)]
-def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
+def plot_amps_amps(simlist,amps_or_slopes='amps', suffix='', axis='x'):
     plt.close('all')
     #fig,ax = plt.subplots(1,3, sharex=True,sharey=True,figsize=(12,4))
     fig,ax = plt.subplots(3,3, figsize=(5.5,5.5))#,sharey=True)
@@ -41,26 +17,27 @@ def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
     axlist=ax.flatten()
 
 
-    x_list = ['avg_cltt','avg_clee','avg_clbb']
-    y_list = ['avg_d','avg_v','avg_h']
+    x_list = ['density','velocity','Htotal']
+    y_list = ['ClTT'+axis,'ClEE'+axis,'ClBB'+axis]
     nplots=3
 
     for sim in simlist: #sim_colors.simlist:
+        this_sim = simulation.corral[sim]
 
         if amps_or_slopes == 'amps':
-            DICT = spectra_dict[axis][sim].amps
+            DICT = this_sim.ampsA
             aos = 'amps'
             Aalpha = 'A'
             do_log=True
         else:
-            DICT = spectra_dict[axis][sim].slopes
+            DICT = this_sim.slopesA
             aos = 'slopes'
             Aalpha = "\\alpha"
             do_log=False
 
 
 
-        kwargs = {"c":sim_colors.color[sim], "marker":sim_colors.marker[sim]}
+        kwargs = {"c":this_sim.color, "marker":this_sim.marker}
         for nx,field_x in enumerate(x_list):
             for ny, field_y in enumerate(y_list):
                 ax[ny][nx].scatter( DICT[field_x], DICT[field_y], **kwargs)
@@ -70,22 +47,7 @@ def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
     if do_log:
         for aaa in axlist:
             aaa.set_yscale('log')
-
-
-#   if (do_prim and do_amp):
-#       for aaa in axlist:
-#           aaa.set_ylim([4e-6,4e-1])
-#   if (do_TEB and do_amp):
-#       for aaa in axlist:
-#           aaa.set_ylim([2e-7,2e-1])
-#   if do_prim and do_slope:
-#       for aaa in axlist:
-#           pass
-#           #aaa.set_ylim([-1.9,-0.9])
-#   if do_TEB and do_slope:
-#       for aaa in axlist:
-#           pass
-#           #aaa.set_ylim([-5,-1])
+            aaa.set_xscale('log')
 
     if do_log:
         for aaa in axlist:
@@ -104,12 +66,18 @@ def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
             if n<2:
                 ax[n][m].set(xticks=[])
 
-    label_dict={'avg_d':r'$\alpha_\rho$',
-                'avg_v':r'$\alpha_v$',
-                'avg_h':r'$\alpha_H$',
-                'avg_cltt':r'$\alpha_{TT}$',
-                'avg_clee':r'$\alpha_{EE}$',
-                'avg_clbb':r'$\alpha_{BB}$'}
+    label_dict={'density':r'$%s_\rho$'%Aalpha,
+               'velocity':r'$%s_v$'%Aalpha,
+                 'Htotal':r'$%s_H$'%Aalpha,
+                  'ClTTx':r'$%s_{TT}$'%Aalpha,
+                  'ClEEx':r'$%s_{EE}$'%Aalpha,
+                  'ClBBx':r'$%s_{BB}$'%Aalpha,
+                  'ClTTy':r'$%s_{TT}$'%Aalpha,
+                  'ClEEy':r'$%s_{EE}$'%Aalpha,
+                  'ClBBy':r'$%s_{BB}$'%Aalpha,
+                  'ClTTz':r'$%s_{TT}$'%Aalpha,
+                  'ClEEz':r'$%s_{EE}$'%Aalpha,
+                  'ClBBz':r'$%s_{BB}$'%Aalpha}
 
     for n in range(nplots):
         ax[n][2].yaxis.tick_right()
@@ -119,8 +87,7 @@ def plot_amps_amps(amps_or_slopes='amps', suffix='', axis='x'):
             
 
     #fig.tight_layout()
-    outname = '%s/prim_vs_TEB_%s%s.pdf'%(plotdir,aos,suffix)
+    outname = '%s/prim_vs_TEB_%s%s.pdf'%(dl.plotdir,aos,suffix)
     fig.subplots_adjust(top=0.98)
     fig.savefig(outname)
     print(outname)
-plot_amps_amps(amps_or_slopes='slopes',axis='y')
