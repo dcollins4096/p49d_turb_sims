@@ -22,10 +22,15 @@ class sim():
         corral[self.name]=self
 
         self.all_frames = self.get_all_frames()
+        self.frame_mask = nar([frame in self.ann_frames for frame in self.all_frames])
 
         self.quan3 = None
         self.all_spectra=None
+        self.avg_spectra=None
+        self.pdfs=None
         self.slopes=None
+        self.slopesA=None
+        self.ampsA=None
     def get_all_frames(self):
         all_dirs=glob.glob("%s/DD????"%(self.data_location))
         dir_nums = sorted([int( os.path.basename(s)[2:]) for s in all_dirs])
@@ -36,6 +41,7 @@ class sim():
     def load(self):
         self.read_avg_quan()
         self.read_all_spectra()
+        self.average_spectra()
         self.fit_all_spectra()
 
     def fit_all_spectra(self):
@@ -49,7 +55,7 @@ class sim():
         self.slopesL = defaultdict(list)
         self.ampsL   = defaultdict(list)
 
-        for frame in self.all_frames:
+        for frame in self.ann_frames:
             self.slopes[frame]={}
             self.amps[frame]={}
             #3d fields first.
@@ -69,6 +75,31 @@ class sim():
                 self.slopesL[field].append(slope)
                 self.ampsL[field].append(amp)
 
+        if self.avg_spectra is not None:
+            self.ampsA={}
+            self.slopesA={}
+            for field in self.products_positive:
+                if field in self.products_3d:
+                    xvals = k3d
+                else:
+                    xvals = k2d
+                spec = self.avg_spectra[field]
+                fitrange = [xvals[4],xvals[25]]
+                slope,amp,res=plfit(xvals,spec,fitrange)
+                self.slopesA[field]=slope
+                self.ampsA[field]=amp
+
+
+    def average_spectra(self):
+        if self.avg_spectra is not None:
+            return
+        self.avg_spectra={}
+        for field in list(self.products)+['k2d','k3d']:
+            self.avg_spectra[field]=0
+            nframes=len(self.ann_frames)
+            for frame in self.ann_frames:
+                self.avg_spectra[field]=self.all_spectra[frame][field] + self.avg_spectra[field]
+            self.avg_spectra[field]/=nframes
     def read_all_spectra(self):
         if self.all_spectra is not None:
             return
@@ -156,6 +187,39 @@ class sim():
         self.quan_time['vrms']=vrms
         self.quan_time['brms']=brms
         self.quan_time['ma']=maavg
+        for q in self.quan_time:
+            self.quan_time[q]=nar(self.quan_time[q])
         self.quan3['maavg'] =np.mean(maavg)
         self.quan3['msavg'] =np.mean(vrms)
+        if 0:
+            self.Ma_mean = self.quan3['maavg']
+            self.Ms_mean = self.quan3['msavg']
+        if 1:
+            self.Ma_mean = self.quan_time['ma'][self.frame_mask].mean()
+            self.Ms_mean = self.quan_time['vrms'][self.frame_mask].mean()
+    def read_pdfs(self,fields, pdf_prefix='pdf_scaled'):
+        if self.pdfs == None:
+            print('read pdfs')
+
+        self.pdfs = {}
+        for field in fields:
+            if field not in self.pdfs:
+                self.pdfs[field]={}
+            for frame in self.all_frames:
+                h5name = "%s/DD%04d.products/%s_%s.h5"%(self.product_location, frame,pdf_prefix, field)
+                do_continue= not os.path.exists(h5name)
+                if do_continue:
+                    continue
+                h5ptr = h5py.File(h5name,'r')
+                try:
+                    hist = h5ptr['hist'][()]
+                    cbins= h5ptr['cbins'][()]
+                except:
+                    raise
+                finally:
+                    h5ptr.close()
+                    self.pdfs[field][frame]={'hist':hist,'cbins':cbins}
+
+
+
 
