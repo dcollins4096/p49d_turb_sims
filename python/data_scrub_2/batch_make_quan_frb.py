@@ -1,9 +1,5 @@
 from  GL import *
 
-#import simulation_info.suite_liltest
-#reload(simulation_info.suite_liltest)
-#import simulation_info.suite_1
-#reload(simulation_info.suite_1)
 import simulation
 import simulation_info.all_sims as all_sims
 
@@ -26,12 +22,20 @@ elif sys.argv[1] == "6":
     this_list=['6_half','6_1','6_2']
 elif sys.argv[1] == 'suite1':
     this_list = all_sims.lists['suite1']
+elif sys.argv[1] == '1':
+    this_list = ['1_half','1_1','1_2']
+elif sys.argv[1] == '2':
+    this_list = ['2_half','2_1','2_2']
+elif sys.argv[1] == '3':
+    this_list = ['3_half','3_1','3_2']
+elif sys.argv[1] == 'half':
+    this_list = ['half_half','half_1','half_2']
 else:
     print("Pick One.")
     sys.exit(0)
 if 1:
     caq.comp_all(this_list)
-if 1:
+if 0:
     maf.make_all(this_list)
 if 0:
     m3d.make_spec(this_list)
