@@ -158,12 +158,18 @@ def write_tex(herd, fname, field_list=None):
     #fptr.write( r' Spectra & $a$ & $b/\left|a\right|$ & $c/\left|a\right|$ \\'+newline)
     fptr.write( r' Spectra & $a$ & $b$ & $c$ \\'+newline)
 
-    latex_symb = {'avg_clees':r'$\alpha_{EE}$', 'avg_clbbs':r'$\alpha_{BB}$', 
-                  'avg_cltts':r'$\alpha_{TT}$', 'avg_ds':r'$\alpha_\rho$', 
-                  'avg_vs':r'$\alpha_v$', 'avg_hs':r'$\alpha_H$',
-                  'avg_cleea':r'$\ln A_{EE}$', 'avg_clbba':r'$\ln A_{BB}$', 
-                  'avg_cltta':r'$\ln A_{TT}$', 'avg_da':r'$\ln A_\rho$', 
-                  'avg_va':r'$\ln A_v$', 'avg_ha':r'$\ln A_H$'}
+    latex_symb = {'ClEEy_s':r'$\alpha_{EE}$', 
+                  'ClBBy_s':r'$\alpha_{BB}$', 
+                  'ClTTy_s':r'$\alpha_{TT}$', 
+                  'density_s':r'$\alpha_\rho$', 
+                  'velocity_s':r'$\alpha_v$', 
+                  'Htotal_s':r'$\alpha_H$',
+                  'ClEEy_a':r'$\ln A_{EE}$', 
+                  'ClBBy_a':r'$\ln A_{BB}$', 
+                  'ClTTy_a':r'$\ln A_{TT}$', 
+                  'density_a':r'$\ln A_\rho$', 
+                  'velocity_a':r'$\ln A_v$', 
+                  'Htotal_a':r'$\ln A_H$'}
     for nf,field in enumerate(field_list):
         if field not in herd:
             print("Not in the herd:", field)
