@@ -1,29 +1,41 @@
 
 from GL import *
-from cycler import cycler
-import queb3
-from queb3 import powerlaw_fit as plfit
-import davetools as dt
-import h5py
-from matplotlib.pyplot import cm
-import sim_colors
-reload(sim_colors)
-reload(queb3)
-import get_all_quantities as gaq
-reload(gaq)
-verbose=False
-from collections import defaultdict
-all_slopes=defaultdict(list)
 
+import simulation
+import simulation_info.all_sims
 
-#read_stuff reads spectra and average quantities
-#Reload to re-read, but don't do that every time.
-import read_stuff as rs
-#reload(read_stuff)  
-spectra_dict = rs.spectra_dict
+def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
 
-plotdir="%s/PigPen"%os.environ['HOME']
-def plot_slopes(prim_or_teb='teb',axis='y'):
+    if prim_or_teb == 'prim':
+        product_list = ['density','velocity','Htotal']
+        axis_label=""
+    else:
+        product_list = ['ClTT'+axis,'ClEE'+axis,'ClBB'+axis]
+        axis_label="_%s"%axis
+
+    fig,axes = plt.subplots(1,3,figsize=(8,4))
+
+    for ns,sim in enumerate(simlist):
+        this_sim = simulation.corral[sim]
+        this_sim.load()
+        for np,prod in enumerate(product_list):
+            thax=axes[np]
+            if prim_or_teb == 'prim':
+                xvals = this_sim.avg_spectra['k3d']
+            else:
+                xvals = this_sim.avg_spectra['k2d']
+            thax.plot( xvals, this_sim.avg_spectra[prod],c=this_sim.color,linestyle=this_sim.linestyle)
+            thax.set(xscale='log',yscale='log',xlabel='k',title=prod)
+
+    outname='%s/multi_spectra_%s%s'%(dl.plotdir,prim_or_teb,axis_label)
+    fig.tight_layout()
+    fig.savefig(outname)
+    print(outname)
+
+"""
+old stuff.
+
+def old_plot_slopes(simlist,prim_or_teb='teb',axis='y'):
     if prim_or_teb=='teb':
         product_list = ['avg_cltt','avg_clee','avg_clbb']
         suffix='TEB'
@@ -67,8 +79,8 @@ def plot_slopes(prim_or_teb='teb',axis='y'):
 
 #plot_slopes(prim_or_teb='teb','x')
 #plot_slopes(prim_or_teb='prim','x')
-proj=plot_slopes(prim_or_teb='teb',axis='y')
-plot_slopes(prim_or_teb='prim',axis='y')
+#proj=plot_slopes(prim_or_teb='teb',axis='y')
+#plot_slopes(prim_or_teb='prim',axis='y')
 
 #
 # Primitive Slope vs TEB slope
@@ -105,3 +117,4 @@ if 0:
 
 
     fig.savefig('%s/slope_TTEEBB_vs_rho_v_H.pdf'%plotdir)
+    """
