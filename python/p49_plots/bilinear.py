@@ -1,40 +1,17 @@
 from GL import *
-import queb3
-reload(queb3)
-import davetools as dt
-import sim_colors
-reload(sim_colors)
-import get_all_quantities as gaq
-reload(gaq)
-verbose=False
-from collections import defaultdict
-all_slopes=defaultdict(list)
+import simulation
 from scipy.optimize import curve_fit
 
-#read_stuff reads spectra and average quantities
-#Reload to re-read, but don't do that every time.
-import read_stuff as rs
-spectra_dict = rs.spectra_dict
-import read_avg_quan as raq
-quan3=raq.quan3
+plotdir =  dl.plotdir
 
-plotdir =  "/home/dccollins/PigPen"
-
-#def bifit(x, a, b, c, d):
-def bifit_4(x, a, b, c,d):
-    #x0 is Ms x1 is Ma
-    return a+ b*x[0] + c*x[1] + d*x[0]*x[1]
-    #return a+ b*x[0] + c*x[1] 
 def bifit_3(x, a, b, c):
     #x0 is Ms x1 is Ma
     return a+ b*x[0] + c*x[1] 
-def bifit_2(x,  b, c):
-    #x0 is Ms x1 is Ma
-    return b*x[0] + c*x[1] 
 def do_bifit(xdata, ydata, p0):
     fitParams, fitCovariances = curve_fit(bifit, xdata, ydata, p0)
-    #print(' fit coefficients:\n', fitParams)
     return fitParams, fitCovariances
+
+
 class beefitter():
     def __init__(self,fieldname,ms,ma,myval):
         self.fieldname=fieldname
@@ -44,8 +21,6 @@ class beefitter():
         self.Q = myval.flatten()
         p0=[0,1,1]
         self.fitter = bifit_3
-        #p0=[1,1]
-        #self.fitter = bifit_2
         self.Params, self.Cov = curve_fit( self.fitter, self.MsMa, self.Q, p0)
     def plot1(self):
         plt.clf()
@@ -69,22 +44,88 @@ class beefitter():
 
         plt.savefig('%s/linear_%s.png'%(plotdir,self.fieldname))
 
-def do_morebifit(fieldname, ms, ma, myval):
-    x=np.row_stack([ms.flatten(),ma.flatten()])
-    y=myval.flatten()
-    p0 = [0,1,1,0]
-    print(fieldname)
-    fitParams, fitCovariances= do_bifit(x,y, p0)
-    f = fitParams
-    cov = fitCovariances
-#    ys = f[0] + f[1]*myx + f[2]*myy+f[3]*myx*myy
-    Fptr = h5py.File("bi_fit_params.h5",'a')
-    Fptr.create_dataset(fieldname, data=f)
-    Fptr.close()
-    Fptr = h5py.File("bi_fit_covariances.h5",'a')
-    Fptr.create_dataset(fieldname+"_cov", data=cov)
-    Fptr.close()
+def plot_herd(herdlist, truth=None,predict=None):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    verts=dt.extents()
+    for nh,this_herd in enumerate(herdlist):
+        ax.scatter( this_herd.Ms, this_herd.Ma, this_herd.Q)
+
+        x1=np.linspace(this_herd.Ms.min(),this_herd.Ms.max(),10)
+        y1=np.linspace(this_herd.Ma.min(),this_herd.Ma.max(),10)
+        X2,Y2 = np.meshgrid(x1,y1)
+
+        a,b,c=this_herd.Params
+
+        surface = this_herd.Params[0]+this_herd.Params[1]*X2+this_herd.Params[2]*Y2
+        ax.plot_surface(X2,Y2,surface, alpha=0.5)
+        z = a + b*x1+c*y1
+        verts(z)
+        ax.plot(x1,y1,z)
+
+        if truth is not None and False:
+            this_truth=truth[nh]
+            zt = np.zeros_like(X2)+this_truth
+            ax.plot_surface(X2,Y2,zt,alpha=0.5)
+            yline = (this_truth - a-b*x1)/c
+            ax.plot(x1,yline,zs=this_truth)
+    if predict is not None:
+        z = np.linspace(verts.minmax[0],verts.minmax[1],10)
+        nz=len(z)
+        x = [predict[0]]*nz
+        y = [predict[1]]*nz
+        ax.plot(x,y,z,c='k')
+
+    ax.set(xlabel='Ms',ylabel='Ma',zlabel='Q')
+    if 1:
+        # Rotate the axes and update
+        angles=range(0, 360 + 1,10)
+        #angles=[250]
+        #angles=[0]
+        for angle in angles:
+            print(angle)
+            # Normalize the angle to the range [-180, 180] for display
+            angle_norm = (angle + 180) % 360 - 180
+
+            # Cycle through a full rotation of elevation, then azimuth, roll, and all
+            if 0:
+                elev = azim = roll = 0
+                if angle <= 360:
+                    elev = angle_norm
+                elif angle <= 360*2:
+                    azim = angle_norm
+                elif angle <= 360*3:
+                    roll = angle_norm
+                else:
+                    elev = azim = roll = angle_norm
+            elev = 10
+            azim = angle_norm
+
+            # Update the axis view and title
+            ax.view_init(elev, azim)
+            ax.set_title("elev %d axim %d"%(elev,azim))
+            fig.savefig('%s/bilinear_%04d'%(dl.plotdir,angle))
+
+#def do_morebifit(fieldname, ms, ma, myval):
+#    x=np.row_stack([ms.flatten(),ma.flatten()])
+#    y=myval.flatten()
+#    p0 = [0,1,1,0]
+#    print(fieldname)
+#    fitParams, fitCovariances= do_bifit(x,y, p0)
+#    f = fitParams
+#    cov = fitCovariances
+##    ys = f[0] + f[1]*myx + f[2]*myy+f[3]*myx*myy
+#    Fptr = h5py.File("bi_fit_params.h5",'a')
+#    Fptr.create_dataset(fieldname, data=f)
+#    Fptr.close()
+#    Fptr = h5py.File("bi_fit_covariances.h5",'a')
+#    Fptr.create_dataset(fieldname+"_cov", data=cov)
+#    Fptr.close()
+#
 
 def pairwise( bf1, bf2, truth1, truth2):
     if 0:
@@ -128,7 +169,7 @@ def write_tex(herd, fname, field_list=None):
             print("Not in the herd:", field)
             continue
         line=''
-        line += latex_symb[field]
+        line += latex_symb.get(field,field)
         line += r'& %0.2f'%(herd[field].Params[0])
         nrm=1
         #nrm=np.abs(herd[field].Params[0]
