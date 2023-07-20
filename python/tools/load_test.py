@@ -15,7 +15,9 @@ def loader(simlist):
         #this_sim.fit_all_spectra()
         this_sim.load()
         #print(this_sim.quan_time['time'].size)
-        print(this_sim.ann_frames)
+        this_sim.read_pdfs(['magnetic_field_strength'])
+        print(this_sim.pdfs)
 
 
-loader(['4_2'])
+
+loader(['4_1'])
