@@ -3,35 +3,70 @@ from GL import *
 import simulation
 root4pi = np.sqrt(4*np.pi)
 
-def plot_pdfs(simlist,fields, name="STUFF"):
+def plot_pdfs(simlist,fields, name="STUFF", pdf_prefix="pdf_scaled"):
 
-    total_columns = len(fields)
-    total_rows = len(simlist)
+    total_columns = min([3,len(simlist)])
+    total_rows = len(simlist)//total_columns
 
-    fig,axes=plt.subplots(total_rows, total_columns)
 
-    for nsim, sim in enumerate(simlist):
-        this_sim = simulation.corral[sim]
-        this_sim.load()
+    for nfield, field in enumerate(fields):
+        fig,axes=plt.subplots(total_rows, total_columns, figsize=(20,20))
+        if hasattr(axes,'size'):
+            axlist=axes.flatten()
+        else:
+            axlist=[axes]
+        for nsim, sim in enumerate(simlist):
+            this_sim = simulation.corral[sim]
+            this_sim.load()
 
-        this_sim.read_pdfs(fields)
+            this_sim.read_pdfs(fields, pdf_prefix=pdf_prefix)
 
-        for nfield, field in enumerate(fields):
-            if total_rows > 1:
-                thax = axes[nsim][nfield]
-            else:
-                thax = axes[nfield]
+            thax=axlist[nsim]
 
+            def puller(arr):
+                return arr[this_sim.frame_mask].mean()
+            def puller2(arr):
+                return np.sqrt( (arr[this_sim.frame_mask]**2).mean())
+            UNITS=root4pi
+            bx,by,bz =    [UNITS*puller(this_sim.quan_time['b%s_avg'%s]) for s in 'xyz']
+            sbx,sby,sbz = [UNITS*puller2(this_sim.quan_time['b%s_std'%s]) for s in 'xyz']
+            vx,vy,vz =    [puller(this_sim.quan_time['v%s_std'%s]) for s in 'xyz']
+            v3d = np.sqrt(vx*vx+vy*vy+vz*vz)
+            b3d = np.sqrt(sbx**2+sby**2+sbz**2)
+            mean = bx
+            this_sigma=np.mean([sbx,sby,sbz])
+
+            mean_spectra = 0
             for frame in this_sim.pdfs[field]:
                 hist = this_sim.pdfs[field][frame]['hist']
                 cbins= this_sim.pdfs[field][frame]['cbins']
 
-                thax.plot(cbins,hist)
+                thax.plot(cbins,hist/hist.max(), c=[0.5]*3, linewidth=0.5)
+            thax.text(2,0.8,this_sim.name)
+            avg_pdf=this_sim.avg_pdf[field]
+            thax.plot(cbins,avg_pdf/avg_pdf.max(), c='r', linewidth=0.5)
+            mean = (cbins*avg_pdf).sum()/avg_pdf.sum()
+            print(mean/ bx)
+            this_sigma = np.sqrt(( (cbins-mean)**2*avg_pdf).sum()/avg_pdf.sum())
+
+            if field in ['magnetic_field_x','magnetic_field_y','magnetic_field_z']:
+                GGG = np.exp(-cbins**2/2)
+                thax.plot(cbins,GGG/GGG.max(),c='g', linewidth=0.5)
+            if field in ['magnetic_field_strength']:
+                #Dist = cbins*np.exp(+mu_bx/sigma_bx1*cbins-cbins**2/(2*sigma_bx1))
+                arg = mean*cbins/(this_sigma)
+                ok = arg<500
+                jbins=cbins[ok]
+                arg = mean*jbins/(this_sigma)
+
+                Dist = jbins*np.exp( -jbins**2/(2*this_sigma))*np.sinh(arg)
+                thax.plot(cbins[ok],Dist/Dist.max(),c='g',linewidth=0.5)
 
             thax.set(xlabel=field)
-    outname = "%s/pdf_%s"%(dl.plotdir,name)
-    fig.savefig(outname)
-    print(outname)
+        outname = "%s/pdf_%s_%s"%(dl.plotdir,name,field)
+        fig.savefig(outname)
+        print(outname)
+        plt.close(fig)
 
 def plot_pdfs_fits(simlist, name="STUFF"):
     fields =['magnetic_field_x','magnetic_field_y','magnetic_field_z','magnetic_field_strength' ]
@@ -85,14 +120,18 @@ def plot_pdfs_fits(simlist, name="STUFF"):
                     return arr[this_sim.frame_mask].mean()
                 def puller2(arr):
                     return np.sqrt( (arr[this_sim.frame_mask]**2).mean())
-                bx,by,bz =    [puller(this_sim.quan_time['b%s_avg'%s]) for s in 'xyz']
-                sbx,sby,sbz = [puller2(this_sim.quan_time['b%s_std'%s]) for s in 'xyz']
-                vx,vy,vz =    [puller(this_sim.quan_time['v%s_std'%s]) for s in 'xyz']
+                def last(arr):
+                    return arr[-1]
+                UNITS=root4pi
+                bx,by,bz =    [UNITS*last(this_sim.quan_time['b%s_avg'%s]) for s in 'xyz']
+                sbx,sby,sbz = [UNITS*last(this_sim.quan_time['b%s_std'%s]) for s in 'xyz']
+                vx,vy,vz =    [last(this_sim.quan_time['v%s_std'%s]) for s in 'xyz']
                 v3d = np.sqrt(vx*vx+vy*vy+vz*vz)
                 b3d = np.sqrt(sbx**2+sby**2+sbz**2)
-                if 1:
+                if 0:
                     #
                     # what is going on with means?
+                    # future me broke the b3d code, need to take the root4pi back out
                     #
                     if field[-1] == 'x' and False:
                         Gaus = np.exp( -(cbins-mean)**2/(2*sigma**2))
@@ -127,6 +166,7 @@ def plot_pdfs_fits(simlist, name="STUFF"):
                     #thax.plot( cbins, Gaus/Gaus.max())
                 else:
                     this_sigma=sum(sigmas)/3
+                    #print(this_sigma/((sbx+sby+sbz)/3))
                     Max = cbins**2*np.exp( -(cbins-mean)**2/(2*this_sigma**2))
 
                     Thing = cbins*np.exp( -cbins**2/(2*this_sigma))*np.sinh(mean*cbins/(this_sigma))

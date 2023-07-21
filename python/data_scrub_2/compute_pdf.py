@@ -4,7 +4,7 @@ import yt
 import simulation
 
 
-def make_magnetic_pdf(simlist,frames=None, renormalize=True, pdf_prefix='pdf_scaled'):
+def make_magnetic_pdf(simlist,frames=None, renormalize=True, pdf_prefix='pdf_scaled', clobber=False):
     fields = ['magnetic_field_x','magnetic_field_y','magnetic_field_z','magnetic_field_strength']
     if renormalize:
         raw_or_renorm='renorm'
@@ -17,6 +17,10 @@ def make_magnetic_pdf(simlist,frames=None, renormalize=True, pdf_prefix='pdf_sca
 
         if frames == 'last':
             framelist = this_sim.all_frames[-1:]
+        elif frames == 'last_two':
+            framelist = this_sim.all_frames[-2:]
+        elif frames == 'all':
+            framelist = this_sim.all_frames
 
         NBINS=256
         if renormalize:
@@ -24,8 +28,9 @@ def make_magnetic_pdf(simlist,frames=None, renormalize=True, pdf_prefix='pdf_sca
                 return arr[this_sim.frame_mask].mean()
             def puller2(arr):
                 return np.sqrt( (arr[this_sim.frame_mask]**2).mean())
-            bx,by,bz =    [puller(this_sim.quan_time['b%s_avg'%s]) for s in 'xyz']
-            sbx,sby,sbz = [puller2(this_sim.quan_time['b%s_std'%s]) for s in 'xyz']
+            UNITS = root4pi
+            bx,by,bz =    [UNITS*puller(this_sim.quan_time['b%s_avg'%s]) for s in 'xyz']
+            sbx,sby,sbz = [UNITS*puller2(this_sim.quan_time['b%s_std'%s]) for s in 'xyz']
             vx,vy,vz =    [puller(this_sim.quan_time['v%s_std'%s]) for s in 'xyz']
             mu_i = {'magnetic_field_x':bx,'magnetic_field_y':by,'magnetic_field_z':bz}
             sig_i = {'magnetic_field_x':sbx,'magnetic_field_y':sby,'magnetic_field_z':sbz}
@@ -45,6 +50,10 @@ def make_magnetic_pdf(simlist,frames=None, renormalize=True, pdf_prefix='pdf_sca
             ds = None
             for field in fields:
                 h5name = "%s/DD%04d.products/%s_%s.h5"%(this_sim.product_location,frame,pdf_prefix, field)
+                if os.path.exists(h5name) and not clobber:
+                    print("File exists. Skip.", h5name)
+                    continue
+
                 if ds is None:
                     ds = yt.load(ds_name)
                     ad = ds.all_data()

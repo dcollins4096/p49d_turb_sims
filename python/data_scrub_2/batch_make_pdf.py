@@ -33,4 +33,4 @@ if 'this_list' not in dir():
         print("Pick One.")
         sys.exit(0)
 
-cpdf.make_magnetic_pdf(this_list,frames='last')
+cpdf.make_magnetic_pdf(this_list,frames='all', pdf_prefix='pdf_scaled')

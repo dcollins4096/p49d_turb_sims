@@ -46,9 +46,17 @@ if 0:
 
 
 if 0:
-    sim_list = ['4_1','1_1']
+    #working here bozo
+    #sim_list = ['4_1']#,'1_1']
+    sim_list = all_sims.lists['suite1']
     fields =['magnetic_field_x','magnetic_field_y','magnetic_field_z','magnetic_field_strength' ]
-    p5.plot_pdfs(sim_list,fields, name = "Bfields")
+    #p5.plot_pdfs(sim_list,fields, name = "Bfields", pdf_prefix='pdf_test')
+    #p5.plot_pdfs(sim_list,fields, name = "Bfields", pdf_prefix='pdf_scaled')
+
+if 1:
+    #bozo here first
+    fields =['magnetic_field_strength' ]
+    p5.plot_pdfs(sim_list,fields, name = "test", pdf_prefix='pdf')
 if 0:
     #use this to find sigma_b for each sim
     sim_list = all_sims.lists['suite1']
@@ -61,12 +69,13 @@ if 0:
     p5.pdf_totals(sim_list, name = "tots")
 
 if 0:
+    #this makes magnetic field PDFs that work.
     #sim_list = ['4_1','1_1','half_half']
     sim_list = all_sims.lists['suite1']
     #sim_list = ['1_1','5_1']
     
-    p5.plot_pdfs_fits(sim_list, name = "Bfields")
+    p5.plot_pdfs_fits(sim_list, name = "Bfields_J")
 
-if 1:
+if 0:
     sim_list = all_sims.lists['suite1']
     p6.mean_var(sim_list)
