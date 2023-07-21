@@ -202,9 +202,12 @@ class sim():
             print('read pdfs')
 
         self.pdfs = {}
+        self.avg_pdf={}
         for field in fields:
             if field not in self.pdfs:
                 self.pdfs[field]={}
+            avg_pdf=0
+            Npdf = 0
             for frame in self.all_frames:
                 h5name = "%s/DD%04d.products/%s_%s.h5"%(self.product_location, frame,pdf_prefix, field)
                 do_continue= not os.path.exists(h5name)
@@ -219,6 +222,9 @@ class sim():
                 finally:
                     h5ptr.close()
                     self.pdfs[field][frame]={'hist':hist,'cbins':cbins}
+                    avg_pdf = hist + avg_pdf
+                    Npdf+=1
+            self.avg_pdf[field]=avg_pdf/Npdf
 
 
 
