@@ -68,11 +68,11 @@ def lrange(*args):
     return list(range(*args))
 three_half_range = list( range(70,85))+list(range(86,93))
 analysis_frames={
-    "half_half":lrange(11,32),"half_1":lrange(11,32),"half_2":lrange(11,32),
-    "1_half":lrange(11,32),"1_1":lrange(11,32),"1_2":lrange(11,32),
-    "2_half":lrange(65,86),"2_1":lrange(11,32),"2_2":lrange(11,32),
+    "half_half":lrange(11,30)+lrange(31,32),"half_1":lrange(11,30)+lrange(31,32),"half_2":lrange(11,30)+lrange(31,32),
+    "1_half":lrange(11,30)+lrange(31,32),"1_1":lrange(11,30)+lrange(31,32),"1_2":lrange(11,30)+lrange(31,32),
+    "2_half":lrange(65,84)+lrange(85,86),"2_1":lrange(11,30)+lrange(31,32),"2_2":lrange(11,26)+lrange(27,32),
     #"3_half":lrange(72,93),"3_1":lrange(56,75),"3_2":lrange(20,40),
-    "3_half":three_half_range,"3_1":lrange(53,77),"3_2":lrange(9,41),
+    "3_half":lrange(70,85)+lrange(90,30)+lrange(91,93),"3_1":lrange(53,74)+lrange(75,77),"3_2":lrange(9,39)+lrange(40,41),
     #'4_half':lrange(12,19), '4_1':lrange(12,22),'4_2':lrange(12,25),
     #'4_half':lrange(15,45), '4_1':lrange(15,52),'4_2':lrange(15,52),
     '4_half':lrange(14,31)+lrange(32,45), '4_1':lrange(16,23)+lrange(24,52),'4_2':lrange(15,37)+lrange(38,52),
