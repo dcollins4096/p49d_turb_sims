@@ -9,8 +9,11 @@ class sim():
         self.name=name
         self.data_location=data_location
         self.product_location=product_location
-        self.ms=ms
-        self.ma=ma
+        #self.ms=ms
+        #self.ma=ma
+        self.Ms_nom=ms
+        self.Ma_nom=ma
+        self.B_nom = ms*root4pi/ma
         self.color=color
         self.linestyle=linestyle
         self.marker=marker
@@ -18,11 +21,11 @@ class sim():
         if tdyn is not None:
             self.tdyn=tdyn
         else:
-            self.tdyn = 0.5/self.ms
+            self.tdyn = 0.5/self.Ms_nom
         corral[self.name]=self
 
         self.all_frames = self.get_all_frames()
-        self.frame_mask = nar([frame in self.ann_frames for frame in self.all_frames])
+        self.ann_frame_mask = nar([frame in self.ann_frames for frame in self.all_frames])
 
         self.quan3 = None
         self.all_spectra=None
@@ -31,6 +34,10 @@ class sim():
         self.slopes=None
         self.slopesA=None
         self.ampsA=None
+    def load_ds(self,frame):
+        ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
+        ds=yt.load(ds_name)
+        return ds
     def get_all_frames(self):
         all_dirs=glob.glob("%s/DD????"%(self.data_location))
         dir_nums = sorted([int( os.path.basename(s)[2:]) for s in all_dirs])
@@ -151,13 +158,15 @@ class sim():
         if self.quan3 != None:
             return
 
-        self.quan3={}
+        #self.quan3={}
+        self.quan_mean={} # the mean over the analysis frames.
         self.quan_time={}
         vrms=[]
         msavg=[]
         maavg=[]
         brms =[]
         frames=[]
+        UNITS = root4pi
         for frame in self.all_frames:
             frames.append(frame)
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)
@@ -167,13 +176,17 @@ class sim():
             h5ptr=h5py.File(fname,'r')
             try:
                 for field in h5ptr:
-                    if field in self.quan_time:
-                        self.quan_time[field] = np.concatenate([self.quan_time[field],h5ptr[field][()]])
+                    if field.startswith('b') or field.startswith('alf'):
+                        U = UNITS
                     else:
-                        self.quan_time[field] = h5ptr[field][()]
+                        U=1
+                    if field in self.quan_time:
+                        self.quan_time[field] = np.concatenate([self.quan_time[field],U*h5ptr[field][()]])
+                    else:
+                        self.quan_time[field] = U*h5ptr[field][()]
                 v2 = np.sqrt(h5ptr['vx_std'][:]**2+h5ptr['vy_std'][:]**2+h5ptr['vz_std'][:]**2)
-                b_mean = np.sqrt(h5ptr['bx_avg'][:]**2+h5ptr['by_avg'][:]**2+h5ptr['bz_avg'][:]**2)
-                b2  = np.sqrt(h5ptr['bx_std'][:]**2+h5ptr['by_std'][:]**2+h5ptr['bz_std'][:]**2)
+                b_mean = UNITS*np.sqrt(h5ptr['bx_avg'][:]**2+h5ptr['by_avg'][:]**2+h5ptr['bz_avg'][:]**2)
+                b2  = UNITS*np.sqrt(h5ptr['bx_std'][:]**2+h5ptr['by_std'][:]**2+h5ptr['bz_std'][:]**2)
                 #NO 4 pi, this came straight off disk.
                 ma=v2/b_mean
                 vrms=np.append(vrms,v2)
@@ -189,14 +202,16 @@ class sim():
         self.quan_time['ma']=maavg
         for q in self.quan_time:
             self.quan_time[q]=nar(self.quan_time[q])
-        self.quan3['maavg'] =np.mean(maavg)
-        self.quan3['msavg'] =np.mean(vrms)
-        if 0:
-            self.Ma_mean = self.quan3['maavg']
-            self.Ms_mean = self.quan3['msavg']
+            if q[-3:]=='avg':
+                self.quan_mean[q] = self.quan_time[q][self.ann_frame_mask].mean()
+            elif q[-3:]=='std':
+                self.quan_mean[q] = np.sqrt((self.quan_time[q][self.ann_frame_mask]**2).mean())
+
+        self.quan_mean['maavg'] =np.mean(maavg)
+        self.quan_mean['msavg'] =np.mean(vrms)
         if 1:
-            self.Ma_mean = self.quan_time['ma'][self.frame_mask].mean()
-            self.Ms_mean = self.quan_time['vrms'][self.frame_mask].mean()
+            self.Ma_mean = self.quan_time['ma'][self.ann_frame_mask].mean()
+            self.Ms_mean = self.quan_time['vrms'][self.ann_frame_mask].mean()
     def read_pdfs(self,fields, pdf_prefix='pdf_scaled'):
         if self.pdfs == None:
             print('read pdfs')
