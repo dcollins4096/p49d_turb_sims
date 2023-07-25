@@ -8,7 +8,7 @@ for directory in path_list:
     if directory not in sys.path:
         sys.path += [directory]
 
-
+import yt
 import davetools as dt
 import queb3
 import sim_colors
