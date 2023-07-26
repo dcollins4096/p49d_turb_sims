@@ -2,7 +2,7 @@
 
 from GL import *
 
-def fig_squares(nx,ny,cbar=True,figwidth=4):
+def fig_squares(nx,ny,cbar=True,figwidth=4, verbose=False):
 
 
     Lmargin=0.03
@@ -17,28 +17,27 @@ def fig_squares(nx,ny,cbar=True,figwidth=4):
     bottoms = [Bmargin + py*n for n in range(ny)]
 
     figheight = figwidth*px/py
-    print("LEFT",lefts)
-    print("BOTTOMS",bottoms)
+    if verbose:
+        print("LEFT",lefts)
+        print("BOTTOMS",bottoms)
+        print(px,py)
+        print('width %f height %f'%(px,py))
 
 
 
-    print(px,py)
-    print('width %f height %f'%(px,py))
 
     fig=plt.figure(figsize=(figwidth,figheight))
-    print('figheight',figheight,figwidth)
+    if verbose:
+        print('figheight',figheight,figwidth)
     axes=[]
     for iy in range(ny):
         axes.append([])
         for ix in range(nx):
-            print('=====',ix,iy)
             rect = [lefts[ix], bottoms[iy], px, py]
-            #rect = [0.1,0.1,0.8,0.8]
             axes[iy].append( plt.axes( rect))
-            print(rect)
     cbar_rect = [lefts[-1]+px,Bmargin,cbar_width,1-Tmargin-Bmargin]
     cbar = plt.axes(cbar_rect)
-    axes=nar(axes)
+    axes=nar(axes)[::-1,:]
 
 
     return fig, axes, cbar
