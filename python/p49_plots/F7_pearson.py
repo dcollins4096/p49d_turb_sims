@@ -1,28 +1,8 @@
 
 
 from GL import *
-from cycler import cycler
-import queb3
-from queb3 import powerlaw_fit as plfit
-import davetools as dt
-import h5py
-from matplotlib.pyplot import cm
-import sim_colors
-reload(sim_colors)
-reload(queb3)
-import get_all_quantities as gaq
-reload(gaq)
-verbose=False
-from collections import defaultdict
-all_slopes=defaultdict(list)
 
-#read_stuff reads spectra and average quantities
-#Reload to re-read, but don't do that every time.
-import read_stuff as rs
-spectra_dict = rs.spectra_dict
-import read_avg_quan as raq
-quan3=raq.quan3
-
+import simulation
 
 
 #
@@ -30,21 +10,79 @@ quan3=raq.quan3
 #
 #
 
-if 1:
+def plot_hist(simlist,LOS='y'):
     plt.close('all')
     fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
-    for nf,field in enumerate(['avg_rte', 'avg_rtb', 'avg_reb']):
-        for sim in sim_colors.simlist:
-            qu = field[-2:].upper()
+    ext=dt.extents()
+    for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
+        for sim in simlist:
+            this_sim=simulation.corral[sim]
+            this_sim.load()
+            q= np.abs(this_sim.avg_spectra[field])
+            ext(q[q>0])
+
+    bins1 = np.geomspace(ext.minmax[0],ext.minmax[1],64)
+    print(bins1)
+
+    bins2 = np.concatenate([-bins1[::-1],bins1])
+    for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
+        for sim in simlist:
+            this_sim=simulation.corral[sim]
+            this_sim.load()
+            qu = field[-3:-1].upper()
             label = r'$r_{%s} \parallel$'%qu
             #axlist[nf  ].text(0.1, -0.8, label)
             label = r'$r_{%s} \perp$'%qu
             axlist[nf].set_title(field)
             #axlist[nf+3].text(0.1, -0.8, label)
-            axlist[nf  ].plot(spectra_dict['x'][sim].lcent, spectra_dict['x'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+            xvals = this_sim.avg_spectra['k2d']
+            fit_range =this_sim.get_fitrange(xvals)
+            mask = (xvals > fit_range[0])*(xvals < fit_range[1])
+            axlist[nf].hist(this_sim.avg_spectra[field],histtype='step',color=this_sim.color,linestyle=this_sim.linestyle,bins=bins2)
+            axlist[nf].set(xlabel=field)
+            
+            #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+            #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+    for a in axlist:
+        #dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
+        #a.set_yscale('symlog',linthresh=0.09)
+        a.set_yscale('linear')
+        #a.set_ylim([-1,1])
+        #a.set_ylim([-10,10])
+        a.set_xscale('symlog',linthresh=1e-2)
+#    for a in axlist:
+#        a.set_xlabel(r'$r_{XY}$')
+#        a.axhline( 5e-2,c=[0.5]*4)
+#        a.axhline(-5e-2,c=[0.5]*4)
+#    for a in [axlist[0]]:
+#        a.set_ylabel(r'$r_{XY}$')
+#        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
+
+    outname = '%s/h_XY.pdf'%dl.plotdir
+    fig.savefig(outname)
+    print(outname)
+
+def plot_spectra(simlist,LOS='y'):
+    plt.close('all')
+    fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
+    fig.subplots_adjust(wspace=0, hspace=0)
+    axlist=ax.flatten()
+
+    for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
+        for sim in simlist:
+            this_sim=simulation.corral[sim]
+            this_sim.load()
+            qu = field[-3:-1].upper()
+            label = r'$r_{%s} \parallel$'%qu
+            #axlist[nf  ].text(0.1, -0.8, label)
+            label = r'$r_{%s} \perp$'%qu
+            axlist[nf].set_title(field)
+            #axlist[nf+3].text(0.1, -0.8, label)
+            axlist[nf  ].plot(this_sim.avg_spectra['k2d'], this_sim.avg_spectra[field], c=this_sim.color, linestyle=this_sim.linestyle)
+
             #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
             #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
     for a in axlist:
@@ -52,6 +90,7 @@ if 1:
         #a.set_yscale('symlog',linthresh=0.09)
         a.set_yscale('linear')
         a.set_ylim([-1,1])
+        #a.set_ylim([-10,10])
     for a in axlist:
         a.set_xlabel(r'$k/k_max$')
 #        a.axhline( 5e-2,c=[0.5]*4)
@@ -60,7 +99,7 @@ if 1:
 #        a.set_ylabel(r'$r_{XY}$')
 #        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
-    outname = '%s/r_XY.pdf'%plotdir
+    outname = '%s/r_XY.pdf'%dl.plotdir
     fig.savefig(outname)
     print(outname)
 
@@ -68,7 +107,7 @@ if 1:
 # reb, ttb, rte PDFs
 #
 
-if 0:
+def no():
     plt.close('all')
     fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
@@ -109,7 +148,7 @@ if 0:
 #       a.set_ylabel(r'$P(r_{XY})$')
 #       a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
-    outname = '%s/r_XY_pdf.pdf'%plotdir
+    outname = '%s/h_XY_pdf.pdf'%plotdir
     fig.savefig(outname)
     print(outname)
 
@@ -118,7 +157,7 @@ if 0:
 # reb, ttb, rte mean and variance
 #
 
-if 1:
+if 0:
     plt.close('all')
     #fig,ax = plt.subplots(2,3, sharex=True,sharey=True)
     fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
