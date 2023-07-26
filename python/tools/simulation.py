@@ -27,13 +27,17 @@ class sim():
         self.all_frames = self.get_all_frames()
         self.ann_frame_mask = nar([frame in self.ann_frames for frame in self.all_frames])
 
-        self.quan3 = None
+        self.quan_time = None
         self.all_spectra=None
         self.avg_spectra=None
         self.pdfs=None
         self.slopes=None
         self.slopesA=None
         self.ampsA=None
+    def get_fitrange(self,xvals):
+        f0 = xvals[4]
+        f1 = xvals[25]
+        return [f0,f1]
     def load_ds(self,frame):
         ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
         ds=yt.load(ds_name)
@@ -48,6 +52,7 @@ class sim():
     def load(self):
         self.read_avg_quan()
         self.read_all_spectra()
+        self.compute_pearson()
         self.average_spectra()
         self.fit_all_spectra()
 
@@ -75,7 +80,7 @@ class sim():
                     xvals = k2d
 
                 spec = self.all_spectra[frame][field]
-                fitrange = [xvals[4],xvals[25]]
+                fitrange = self.get_fitrange(xvals)
                 slope,amp,res=plfit(xvals,spec,fitrange)
                 self.slopes[frame][field]=slope
                 self.amps[frame][field]=amp
@@ -91,22 +96,33 @@ class sim():
                 else:
                     xvals = k2d
                 spec = self.avg_spectra[field]
-                fitrange = [xvals[4],xvals[25]]
+                fitrange = self.get_fitrange(xvals)
+                #fitrange = [xvals[4],xvals[25]]
                 slope,amp,res=plfit(xvals,spec,fitrange)
                 self.slopesA[field]=slope
                 self.ampsA[field]=amp
 
 
+    def compute_pearson(self):
+        for frame in self.ann_frames:
+            for LOS in 'xyz':
+                for X,Y in [['T','E'],['T','B'],['E','B']]:
+                    ClXY = self.all_spectra[frame]["Cl%s%s%s"%(X,Y,LOS)]
+                    ClXX = self.all_spectra[frame]["Cl%s%s%s"%(X,X,LOS)]
+                    ClYY = self.all_spectra[frame]["Cl%s%s%s"%(Y,Y,LOS)]
+                    self.all_spectra[frame]['r_%s%s%s'%(X,Y,LOS)]=ClXY/np.sqrt(ClXX*ClYY)
+
     def average_spectra(self):
         if self.avg_spectra is not None:
             return
         self.avg_spectra={}
-        for field in list(self.products)+['k2d','k3d']:
+        for field in list(self.products)+['k2d','k3d']+self.pearson:
             self.avg_spectra[field]=0
             nframes=len(self.ann_frames)
             for frame in self.ann_frames:
                 self.avg_spectra[field]=self.all_spectra[frame][field] + self.avg_spectra[field]
             self.avg_spectra[field]/=nframes
+
     def read_all_spectra(self):
         if self.all_spectra is not None:
             return
@@ -123,6 +139,9 @@ class sim():
                                   'ClTTx','ClTTy','ClTTz',
                                   'ClEEx','ClEEy','ClEEz',
                                   'ClBBx','ClBBy','ClBBz']
+        self.pearson=['r_TEx','r_TBx','r_EBx',
+                      'r_TEy','r_TBy','r_EBy',
+                      'r_TEz','r_TBz','r_EBz']
 
         self.all_spectra={}
         for frame in self.all_frames:
@@ -155,10 +174,9 @@ class sim():
 
         
     def read_avg_quan(self):
-        if self.quan3 != None:
+        if self.quan_time != None:
             return
 
-        #self.quan3={}
         self.quan_mean={} # the mean over the analysis frames.
         self.quan_time={}
         vrms=[]
