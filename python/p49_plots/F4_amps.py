@@ -4,7 +4,7 @@ from GL import *
 import simulation
 import simulation_info.all_sims
 
-def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y'):
+def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y', fit_herd=None):
 
     do_prim=False;do_TEB=False;do_amp=False;do_slope=False;do_log=False
     if prim_or_teb == 'prim':
@@ -92,10 +92,34 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
         fig.suptitle('Slopes', y=0.96)
 
 
+    fit_text=""
+    if fit_herd is not None:
+        fit_text="with_fit"
+        for nf, field in enumerate(product_list):
+            if amps_or_slopes=='amps':
+                this_prod = field+"_a"
+            else:
+                this_prod = field+"_s"
+            fff = fit_herd[this_prod]
+            a,b,c=fff.Params
+            thax=axes[nf][0]
+            msarr=nar([0.5,1,2,3,4,5,6])
+            #this_ma = fff.Ma.mean()
+            #print(fff.Ma, this_ma)
+            #this_ma=0.5
+            
+            for nma,ma in enumerate([0.5,1,2]):
+                line = a + msarr*b + ma*c
+                color='rgb'[nma]
+                thax.plot(msarr,line, c=color)
+
+        
+
+
     axislabel=''
     if prim_or_teb=='teb':
         axislabel='_%s'%axis
-    outname = "%s/AS_%s%s_%s"%(dl.plotdir,prim_or_teb,axislabel,amps_or_slopes)
+    outname = "%s/AS_%s%s_%s%s"%(dl.plotdir,prim_or_teb,axislabel,amps_or_slopes,fit_text)
     fig.savefig(outname)
     print(outname)
 

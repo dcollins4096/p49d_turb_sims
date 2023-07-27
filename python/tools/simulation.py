@@ -185,6 +185,7 @@ class sim():
         brms =[]
         frames=[]
         UNITS = root4pi
+        UNITS = 1
         for frame in self.all_frames:
             frames.append(frame)
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)

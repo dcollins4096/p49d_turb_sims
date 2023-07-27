@@ -24,8 +24,12 @@ def fit_all(simlist,do_plot=False):
         for sim in simlist:
             this_sim = simulation.corral[sim]
             this_sim.load()
-            msarr=np.append(msarr,this_sim.quan3['msavg'])
-            maarr=np.append(maarr,this_sim.quan3['maavg'])
+            if 0:
+                msarr=np.append(msarr,this_sim.Ms_mean)
+                maarr=np.append(maarr,this_sim.Ma_mean)
+            if 1:
+                msarr=np.append(msarr,this_sim.quan_mean['msavg'])
+                maarr=np.append(maarr,this_sim.quan_mean['maavg'])
             amparr=np.append(amparr,this_sim.ampsA[field])
             slopearr=np.append(slopearr,this_sim.slopesA[field])
         herd[field + "_s"] = bilinear.beefitter(field, msarr, maarr, slopearr)
@@ -52,5 +56,6 @@ def fit_all(simlist,do_plot=False):
         if do_plot:
             LLL=[herd[A], herd[B]]
             bilinear.plot_herd(LLL, truth=[truth[A],truth[B]], predict=[predict_Ms,predict_Ma])
+    return herd
 
 

@@ -63,6 +63,7 @@ def plot_amps(simlist, LOS='y'):
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
+    y_ext=dt.extents()
     for nf,field in enumerate(ratios):
         field_top,field_bottom = field
         field_top += LOS
@@ -81,15 +82,22 @@ def plot_amps(simlist, LOS='y'):
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
             mask = (xvals > fit_range[0])*(xvals < fit_range[1])
-            this_y = this_sim.avg_spectra[field_top][mask].mean()/this_sim.avg_spectra[field_bottom][mask].mean()
-            mean_ratio+=this_y
-            n_ratio += 1
+            #this_y = this_sim.avg_spectra[field_top][mask].mean()/this_sim.avg_spectra[field_bottom][mask].mean()
+            this_y = this_sim.ampsA[field_top]/this_sim.ampsA[field_bottom]
+            y_ext(this_y)
             ax[nf ][0].scatter(this_Ms, this_y,  **kwargs)
             ax[nf ][1].scatter(this_Ma, this_y,  **kwargs)
             ratio_ext(this_y)
 
-            qu = "%s/%s"%(field_top[-2:].upper(), field_bottom[-2:].upper())
-            ax[nf][0].set_ylabel(qu)
+            name_top = field_top[-3:-1]
+            name_bot = field_bottom[-3:-1]
+            ylab = r"$A_{%s}/A_{%s}$"%(name_top,name_bot)
+            ax[nf][0].set_ylabel(ylab)
+            
+            #heres an ugly kludge.
+            if sim[0] in '456':
+                mean_ratio+=this_y
+                n_ratio += 1
         mean_ratio = mean_ratio/n_ratio
         print('Mean Ratio %s %s %f'%(field_top, field_bottom, mean_ratio))
         #if nf == 1:
@@ -118,6 +126,7 @@ def plot_amps(simlist, LOS='y'):
     for aaa in axlist:
         y_minor = matplotlib.ticker.LogLocator(base = 10.0, subs = np.arange(1.0, 10.0) * 0.1, numticks = 10)
         aaa.yaxis.set_minor_locator(y_minor)
+        aaa.set_ylim(y_ext.minmax)
 
     outname = '%s/TEB_%s_%s_ratio_%s.pdf'%(dl.plotdir,prefix, LOS,'measured3')
     fig.savefig(outname)
