@@ -36,7 +36,7 @@ def plot_hist2(simlist,LOS='y'):
 #
 def plot_meanvar(simlist,LOS='y'):
     plt.close('all')
-    fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
+    fig,ax = plt.subplots(1,3,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
@@ -57,20 +57,23 @@ def plot_meanvar(simlist,LOS='y'):
                 ec='k'
             else:
                 ec=None
-            axlist[nf].scatter(np.abs(mean),std, c=this_sim.color,marker=this_sim.marker,edgecolor=ec)
-            axlist[nf].set(xlabel=r'$\mu$', ylabel=r'$\sigma$')
+            axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            axlist[nf].set(xlabel=r'$\mu$', ylabel=None)
             if nf==0:
                 axlist[nf].axvline(0.35,c=[0.5]*3)
             
             #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
             #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-    for a in axlist:
+    for naa,a in enumerate(axlist):
         #dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
         #a.set_yscale('symlog',linthresh=0.09)
         a.set_yscale('linear')
         #a.set_ylim([-1,1])
         #a.set_ylim([-10,10])
-        a.set_xscale('symlog',linthresh=1e-2)
+    axlist[0].set(ylabel=r'$\sigma_{XY}$')
+    axlist[0].set(xscale='linear')
+    axlist[1].set(xscale='linear', xlim=[0,0.05])
+    axlist[2].set(xscale='linear', xlim=[0,0.05])
 #    for a in axlist:
 #        a.set_xlabel(r'$r_{XY}$')
 #        a.axhline( 5e-2,c=[0.5]*4)

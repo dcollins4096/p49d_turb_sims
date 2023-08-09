@@ -509,6 +509,10 @@ class simulation_package():
         FFTs are stored in DD????.products"""
         oober = st.short_oober(self.directory, frame=frame)
         st.MakeHtotSpectra(oober,frame)
+    def make_helmholz(self,frame):
+        oober = st.short_oober(self.directory, frame=frame)
+        st.MakeHelmholz_2(oober,frame,'acceleration')
+
 
     def read_queb(self,frame,ax='x',bin_style='dx1',theta=None,phi=None):
         """ Read Q,U,E,B,Density,and Magnetic field FRBs.

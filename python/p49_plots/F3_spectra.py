@@ -26,12 +26,12 @@ def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
                 xvals = this_sim.avg_spectra['k2d']
             thax.plot( xvals, this_sim.avg_spectra[prod],c=this_sim.color,linestyle=this_sim.linestyle)
             title_dict={'density':r'$C_\ell^{\rho\rho}$', 'velocity':r'$C_\ell^{vv}$', 'Htotal':r'$C_\ell^{HH}$'}
-            title_dict['ClTTy']=r'$C_\ell^{TT}\hat{y}'
-            title_dict['ClBBy']=r'$C_\ell^{BB}\hat{y}'
-            title_dict['ClEEy']=r'$C_\ell^{EE}\hat{y}'
+            title_dict['ClTTy']=r'$C_\ell^{TT}\hat{y}$'
+            title_dict['ClBBy']=r'$C_\ell^{BB}\hat{y}$'
+            title_dict['ClEEy']=r'$C_\ell^{EE}\hat{y}$'
             thax.set(xscale='log',yscale='log',xlabel='k',title=title_dict[prod])
 
-    outname='%s/multi_spectra_%s%s'%(dl.plotdir,prim_or_teb,axis_label)
+    outname='%s/multi_spectra_%s%s.pdf'%(dl.plotdir,prim_or_teb,axis_label)
     fig.tight_layout()
     fig.savefig(outname)
     print(outname)

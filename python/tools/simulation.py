@@ -4,6 +4,18 @@ from queb3 import powerlaw_fit as plfit
 if 'corral' not in dir():
     corral={}
 
+def set_colors(the_sim,cmap_name='jet'):
+    """sets the colors on a simulation based on the mean mach number.  
+    This is not a member function so it can be easily altered if necessary."""
+
+    norm = mpl.colors.Normalize(0,7)
+    cmap_function = mpl.cm.get_cmap(cmap_name)
+    the_sim.color=cmap_function(norm(the_sim.Ms_mean))
+    marker_size = the_sim.Ma_mean**2
+    the_sim.marker='o'
+    the_sim.marker_size=marker_size
+
+
 class sim():
     def __init__(self,name=None,data_location=None,product_location=None, ms=None,ma=None,color='k',linestyle=':',marker="*",framelist=None, tdyn=None):
         self.name=name
@@ -231,6 +243,8 @@ class sim():
         if 1:
             self.Ma_mean = self.quan_time['ma'][self.ann_frame_mask].mean()
             self.Ms_mean = self.quan_time['vrms'][self.ann_frame_mask].mean()
+        set_colors(self)
+
     def read_pdfs(self,fields, pdf_prefix='pdf_scaled'):
         if self.pdfs == None:
             print('read pdfs')

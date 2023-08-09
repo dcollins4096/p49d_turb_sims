@@ -37,7 +37,6 @@ def plot_ratios(simlist, LOS='y'):
             this_y = this_sim.avg_spectra[field_top]/this_sim.avg_spectra[field_bottom]
             this_x = this_sim.avg_spectra['k2d']
             axlist[nf  ].plot(this_x, this_y, c=this_sim.color , linestyle=this_sim.linestyle)
-            print(nf)
             if nf==2:
                 axlist[nf].axhline(0.5,c=[0.5]*3)
                 axlist[nf].axhline(1.,c=[0.5]*3)
@@ -77,7 +76,7 @@ def plot_amps(simlist, LOS='y'):
             this_Ms = this_sim.Ms_mean
             this_Ma = this_sim.Ma_mean
 
-            kwargs = {"c":this_sim.color, "marker":this_sim.marker}
+            kwargs = {"c":[this_sim.color], "marker":this_sim.marker, "s":this_sim.marker_size*20}
             
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)

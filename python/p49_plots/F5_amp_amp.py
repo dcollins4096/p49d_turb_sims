@@ -37,7 +37,7 @@ def plot_amps_amps(simlist,amps_or_slopes='amps', suffix='', axis='x'):
 
 
 
-        kwargs = {"c":this_sim.color, "marker":this_sim.marker}
+        kwargs = {"c":[this_sim.color], "marker":this_sim.marker, "s":this_sim.marker_size}
         for nx,field_x in enumerate(x_list):
             for ny, field_y in enumerate(y_list):
                 ax[ny][nx].scatter( DICT[field_x], DICT[field_y], **kwargs)

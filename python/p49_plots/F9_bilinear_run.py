@@ -9,7 +9,7 @@ reload(bilinear)
 
 #save bi-linear fit parameters to an h5 file
 #function recording values for yaxis (perp to b-field)
-def fit_all(simlist,do_plot=False):
+def fit_all(simlist,do_plot=False, fit34=3):
     herd = {}
     #field_list = ['avg_clee','avg_clbb','avg_cltt','avg_v','avg_d','avg_h']
     field_list =  ['density','velocity','Htotal','ClTTy','ClEEy','ClBBy']
@@ -32,8 +32,8 @@ def fit_all(simlist,do_plot=False):
                 maarr=np.append(maarr,this_sim.quan_mean['maavg'])
             amparr=np.append(amparr,this_sim.ampsA[field])
             slopearr=np.append(slopearr,this_sim.slopesA[field])
-        herd[field + "_s"] = bilinear.beefitter(field, msarr, maarr, slopearr)
-        herd[field + "_a"] = bilinear.beefitter(field, msarr, maarr, np.log(amparr))
+        herd[field + "_s"] = bilinear.beefitter(field, msarr, maarr, slopearr, fit34=fit34)
+        herd[field + "_a"] = bilinear.beefitter(field, msarr, maarr, np.log(amparr),fit34=fit34)
 
     field_order =  ['density_s','velocity_s','Htotal_s','ClTTy_s','ClEEy_s','ClBBy_s',
                     'density_a','velocity_a','Htotal_a','ClTTy_a','ClEEy_a','ClBBy_a']

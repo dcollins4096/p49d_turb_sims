@@ -7,20 +7,24 @@ plotdir =  dl.plotdir
 def bifit_3(x, a, b, c):
     #x0 is Ms x1 is Ma
     return a+ b*x[0] + c*x[1] 
-def do_bifit(xdata, ydata, p0):
-    fitParams, fitCovariances = curve_fit(bifit, xdata, ydata, p0)
-    return fitParams, fitCovariances
+def bifit_4(x, a, b, c,d):
+    #x0 is Ms x1 is Ma
+    return a+ b*x[0] + c*x[1] +d*x[0]*x[1]
 
 
 class beefitter():
-    def __init__(self,fieldname,ms,ma,myval):
+    def __init__(self,fieldname,ms,ma,myval,fit34=3):
         self.fieldname=fieldname
         self.Ms = ms.flatten()
         self.Ma = ma.flatten()
         self.MsMa = np.row_stack([ms.flatten(),ma.flatten()])
         self.Q = myval.flatten()
-        p0=[0,1,1]
-        self.fitter = bifit_3
+        if fit34==3:
+            self.fitter = bifit_3
+            p0=[0,1,1]
+        else:
+            self.fitter = bifit_4
+            p0=[0,1,1,1]
         self.Params, self.Cov = curve_fit( self.fitter, self.MsMa, self.Q, p0)
     def plot1(self):
         plt.clf()
@@ -110,22 +114,6 @@ def plot_herd(herdlist, truth=None,predict=None):
             ax.set_title("elev %d axim %d"%(elev,azim))
             fig.savefig('%s/bilinear_%04d'%(dl.plotdir,angle))
 
-#def do_morebifit(fieldname, ms, ma, myval):
-#    x=np.row_stack([ms.flatten(),ma.flatten()])
-#    y=myval.flatten()
-#    p0 = [0,1,1,0]
-#    print(fieldname)
-#    fitParams, fitCovariances= do_bifit(x,y, p0)
-#    f = fitParams
-#    cov = fitCovariances
-##    ys = f[0] + f[1]*myx + f[2]*myy+f[3]*myx*myy
-#    Fptr = h5py.File("bi_fit_params.h5",'a')
-#    Fptr.create_dataset(fieldname, data=f)
-#    Fptr.close()
-#    Fptr = h5py.File("bi_fit_covariances.h5",'a')
-#    Fptr.create_dataset(fieldname+"_cov", data=cov)
-#    Fptr.close()
-#
 
 def pairwise( bf1, bf2, truth1, truth2):
     if 0:
@@ -139,8 +127,12 @@ def pairwise( bf1, bf2, truth1, truth2):
         # solve pair wise
         a = truth1
         f = truth2
-        b,c,d = bf1.Params
-        g,h,k = bf2.Params
+        if len(bf1.Params)==3:
+            b,c,d = bf1.Params
+            g,h,k = bf2.Params
+        else:
+            b,c,d,WWW = bf1.Params
+            g,h,k,GGG = bf2.Params
         x = (-a*k+b*k+d*f-d*g)/(d*h-c*k)
         y = ( h*(b-a)+c*(f-g))/(c*k-d*h)
         Ms=x;Ma=y

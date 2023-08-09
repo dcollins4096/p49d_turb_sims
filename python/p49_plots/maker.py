@@ -1,6 +1,7 @@
 from GL import *
 
 import simulation
+reload(simulation)
 import simulation_info.all_sims as all_sims
 
 import p49_plots.F1_proj as F1
@@ -12,8 +13,9 @@ import p49_plots.F9_bilinear_run as F9
 import p49_plots.F6_ratio as F6
 import p49_plots.F7_pearson as F7   
 import p49_plots.F8_summary as F8
-reload(F9)
-reload(F4)
+reload(F1);reload(F2);reload(F3)
+reload(F4);reload(F5);reload(F6)
+reload(F7);reload(F8);reload(F9)
 
 sim_list = all_sims.lists['suite1']
 
@@ -23,10 +25,14 @@ if 0:
     F1.proj(field='density_',LOS='y', cmap='plasma')
     F1.proj(field='E',LOS='y', no_mean=True, cmap='plasma')
     F1.proj(field='B',LOS='y', cmap='plasma')
+if 1:
     F2.nom(sim_list)
+if 0:
     F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
     F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
+if 1:
     F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
+if 1:
     F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
     F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
     F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
@@ -37,18 +43,21 @@ if 0:
     F6.plot_amps(sim_list,LOS='y')
     F7.plot_spectra(sim_list,LOS='y')
     F7.plot_meanvar(sim_list,LOS='y')
+if 1:
     F8.plot_summary(sim_list, LOS='y')
+if 0:
     F9.fit_all(simlist)
+
 
 if 0:
     F2.nom(sim_list)
 
-if 1:
+if 0:
     #fits along with amps.
     #sim_list=["%s_1"%s for s in ['half','1','2','3','4','5','6']]
     #sim_list=["%s_half"%s for s in ['half','1','2','3','4','5','6']]
     sim_list = all_sims.lists['suite1']
-    herd=F9.fit_all(sim_list)
+    herd=F9.fit_all(sim_list, fit34=3)
     F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y', fit_herd=herd)
 
 
