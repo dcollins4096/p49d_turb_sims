@@ -148,7 +148,7 @@ def write_tex(herd, fname, field_list=None):
     fptr.write( r'\hline'+newline)
     #fptr.write( r' Spectra & $a$ & $b/\left|a\right|$ & $c/\left|a\right|$ & $d/\left|a\right|$ \\'+newline)
     #fptr.write( r' Spectra & $a$ & $b/\left|a\right|$ & $c/\left|a\right|$ \\'+newline)
-    fptr.write( r' Spectra & $a$ & $b$ & $c$ \\'+newline)
+    fptr.write( r' Spectra & $a$ & $b$ & $c$ & $c/b$ \\'+newline)
 
     latex_symb = {'ClEEy_s':r'$\alpha_{EE}$', 
                   'ClBBy_s':r'$\alpha_{BB}$', 
@@ -173,6 +173,7 @@ def write_tex(herd, fname, field_list=None):
         #nrm=np.abs(herd[field].Params[0]
         line += r'& %0.2f'%(herd[field].Params[1]/nrm)
         line += r'&  %0.2f'%(herd[field].Params[2]/nrm)
+        line += r'&  %0.2f'%(herd[field].Params[2]/herd[field].Params[1])
         line += r'\\'
         fptr.write(line+newline)
 
