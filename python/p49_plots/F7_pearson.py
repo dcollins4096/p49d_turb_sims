@@ -41,12 +41,13 @@ def plot_meanvar(simlist,LOS='y'):
     axlist=ax.flatten()
 
     for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
+        collector=[]
         for sim in simlist:
             this_sim=simulation.corral[sim]
             this_sim.load()
             qu = field[-3:-1].upper()
-            label = r'$r_{%s}$'%qu
-            axlist[nf].set_title(field)
+            label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
+            axlist[nf].set_title(label)
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
             mask = (xvals > fit_range[0])*(xvals < fit_range[1])
@@ -61,9 +62,22 @@ def plot_meanvar(simlist,LOS='y'):
             axlist[nf].set(xlabel=r'$\mu$', ylabel=None)
             if nf==0:
                 axlist[nf].axvline(0.35,c=[0.5]*3)
+
+            collector.append(np.abs(mean))
+
+        if 1:
+            j = nar(collector)
+            j.sort()
+            print(field,'mode',j[j.size//2])
+            y = np.arange(j.size)/j.size
+            twin=axlist[nf].twinx()
+            twin.plot(j,y,c='r')
+            #twin.axhline(0.5)
+            twin.set(ylim=[0,1], yticks=[])
             
             #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
             #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+    twin.set(yticks=np.linspace(0,1,11), ylabel=r'$Cuml(\mu)$')
     for naa,a in enumerate(axlist):
         #dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
         #a.set_yscale('symlog',linthresh=0.09)
@@ -113,10 +127,8 @@ def plot_hist(simlist,LOS='y'):
             this_sim=simulation.corral[sim]
             this_sim.load()
             qu = field[-3:-1].upper()
-            label = r'$r_{%s} \parallel$'%qu
-            #axlist[nf  ].text(0.1, -0.8, label)
-            label = r'$r_{%s} \perp$'%qu
-            axlist[nf].set_title(field)
+            label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
+            axlist[nf].set_title(label)
             #axlist[nf+3].text(0.1, -0.8, label)
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
@@ -159,10 +171,8 @@ def plot_spectra(simlist,LOS='y'):
             this_sim=simulation.corral[sim]
             this_sim.load()
             qu = field[-3:-1].upper()
-            label = r'$r_{%s} \parallel$'%qu
-            #axlist[nf  ].text(0.1, -0.8, label)
-            label = r'$r_{%s} \perp$'%qu
-            axlist[nf].set_title(field)
+            label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
+            axlist[nf].set_title(label)
             #axlist[nf+3].text(0.1, -0.8, label)
             axlist[nf  ].plot(this_sim.avg_spectra['k2d'], this_sim.avg_spectra[field], c=this_sim.color, linestyle=this_sim.linestyle)
 
