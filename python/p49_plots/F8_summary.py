@@ -21,10 +21,10 @@ def plot_summary(simlist, LOS = 'x'):
         the_y = this_sim.slopesA['ClEE'+LOS]
         kwargs = {"c":[this_sim.color], "marker":this_sim.marker, "s":this_sim.marker_size*100}
         plot=ax.scatter( the_x, the_y, **kwargs)
-        ax.set(xlabel=r'$A^{BB}/A^{EE}$', ylabel=r'$\alpha_{EE}$')
+        ax.set(xlabel=r'$A_{BB}/A_{EE}$', ylabel=r'$\alpha_{EE}$')
 
     colorbar=fig.colorbar(sim_colors.cbar,ax=ax)
-    colorbar.label='MMM'
+    colorbar.set_label(sim_colors.mach_label)
     ax.axhline(-2.45,c= [0.5]*4)
     ax.axvline(0.5,c= [0.5]*4)
     fig.tight_layout()
