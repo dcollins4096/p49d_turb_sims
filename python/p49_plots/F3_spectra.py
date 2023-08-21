@@ -31,6 +31,13 @@ def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
             title_dict['ClEEy']=r'$C_\ell^{EE}\hat{y}$'
             thax.set(xscale='log',yscale='log',xlabel='k',title=title_dict[prod])
 
+            fitrange = this_sim.get_fitrange(xvals)
+            #print(nar(fitrange)/xvals[1])
+            #print(xvals/xvals[1])
+            thax.axvline(fitrange[0], c=[0.5]*4,linewidth=0.1)
+            thax.axvline(fitrange[1], c=[0.5]*4,linewidth=0.1)
+
+
     outname='%s/multi_spectra_%s%s.pdf'%(dl.plotdir,prim_or_teb,axis_label)
     fig.tight_layout()
     fig.savefig(outname)
