@@ -13,100 +13,21 @@ import queb3
 def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None):
     ff = Filter.FourierFilter(power)
     power_1d = np.array([power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
+    if os.path.exists('nzones.h5'):
+        Nzones = dt.dpy('nzones.h5',['Nzones'])
+    else:
+        Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
     if filename is None:
         filename = "%s/power_%s.h5"%(oober.product_dir(frame), field)
     if debug>0:
         print("Saved spectra %s"%filename)
     file = h5py.File(filename,'w')
-    file.create_dataset('power',power_1d.shape,data=power_1d)
-    kspace=ff.get_shell_k()
+    file.create_dataset('power',power_1d.shape,data=power_1d/Nzones)
+    kspace=2*np.pi*ff.get_shell_k()
     file.create_dataset('k',kspace.shape,data=kspace)
     file.close()
     return filename
 
-
-def spectra_filename(oober,frame,xfield,field):
-    dirname = oober.product_dir(frame)
-    setname = 'power_%s.h5'%field
-    if field in ['Density','LogDensity','gx','gy','gz']:
-        setname = 'power_%s-work.h5'%field
-    outname= "%s/%s"%(dirname,setname)
-    print(outname)
-    return outname
-
-ngz=0 
-def MakeDensitySpectra(oober,frame,density=0,debug=1):
-    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
-    power=0
-    setlist = ['density']
-    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'density')
-    if os.path.exists(filename):
-        return
-    rhohat = oober.fft(frame,'density',num_ghost_zones=ngz,debug=debug)
-    power += (rhohat.conjugate()*rhohat)
-    field_out='density'
-    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
-    print(fname)
-
-def MakeAccelSpectra(oober,frame,debug=1):
-    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
-    power=0
-    if mark_time:
-        mark_time('Start Velocity Spectra')
-    setlist = ['%s-acceleration'%s for s in 'xyz']
-    for i,x in enumerate('xyz'):
-        Vhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
-        field_out = 'acceleration'
-        power += (Vhat.conjugate()*Vhat)
-    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
-
-def MakeColumnDensitySpectra(oober,frame,density=0,debug=1, axis='x'):
-    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
-    power=0
-    setlist = ['density']
-    rhohat = oober.fft(frame,'density',debug=debug,project='x',num_ghost_zones=ngz)
-    power += (rhohat.conjugate()*rhohat)
-    field_out='density_%s'%axis
-    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
-    print(fname)
-
-def MakeMagneticSpectra(oober,frame,density=0,debug=1):
-    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
-    power=0
-    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'magnetic')
-    if os.path.exists(filename):
-        return
-    setlist = ['magnetic_field_%s'%s for s in 'xyz']
-    for i,x in enumerate('xyz'):
-        Bhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
-        power += (Bhat.conjugate()*Bhat)
-    field_out='magnetic'
-    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
-    print(fname)
-
-def MakeHtotSpectra(oober,frame,density=0,debug=1):
-    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
-    power=0
-
-    field = 'magnetic_field_strength'
-    directory = oober.product_dir(frame) #"%s/%s%04d.products/"%(self.directory,self.name_dir,frame)
-    #filename = "%s/fft_%s.%s"%(directory,field,'float32')
-    filename = "%s/power_Htotal.h5"%(directory)
-    if len(glob.glob(filename))>0:
-        print("WE GOT ONE", filename)
-    else:
-        print("ONE TO RUN")
-
-        Bhat = oober.fft(frame,field,num_ghost_zones=ngz,debug=debug)
-        power += (Bhat.conjugate()*Bhat)
-        field_out='Htotal'
-        fname = shell_average(power,oober,frame,field_out,debug,mark_time)
-        print(fname)
-
-
-def MinK(TheY):
-    TheY /= (TheY[ TheY != 0]).min()
-    return TheY
 class short_oober():
     def __init__(self, directory="./STUFF/", frame=0, product_directory=None, simname='SIM'):
         self.frame=frame
@@ -179,11 +100,94 @@ class short_oober():
             fptr.create_dataset(field,fft.shape, data=fft, dtype=fft_dtype)
             fptr.close()
         return fft
+
+def spectra_filename(oober,frame,xfield,field):
+    dirname = oober.product_dir(frame)
+    setname = 'power_%s.h5'%field
+    if field in ['Density','LogDensity','gx','gy','gz']:
+        setname = 'power_%s-work.h5'%field
+    outname= "%s/%s"%(dirname,setname)
+    print(outname)
+    return outname
+
+ngz=0 
+def MakeDensitySpectra(oober,frame,density=0,debug=1):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+    setlist = ['density']
+    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'density')
+    if os.path.exists(filename):
+        return
+    rhohat = oober.fft(frame,'density',num_ghost_zones=ngz,debug=debug)
+    power += (rhohat.conjugate()*rhohat)
+    field_out='density'
+    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+    print(fname)
+
+def MakeAccelSpectra(oober,frame,debug=1):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+    if mark_time:
+        mark_time('Start Velocity Spectra')
+    setlist = ['%s-acceleration'%s for s in 'xyz']
+    for i,x in enumerate('xyz'):
+        Vhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
+        field_out = 'acceleration'
+        power += (Vhat.conjugate()*Vhat)
+    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+
+def MakeColumnDensitySpectra(oober,frame,density=0,debug=1, axis='x'):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+    setlist = ['density']
+    rhohat = oober.fft(frame,'density',debug=debug,project='x',num_ghost_zones=ngz)
+    power += (rhohat.conjugate()*rhohat)
+    field_out='density_%s'%axis
+    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+    print(fname)
+
+def MakeMagneticSpectra(oober,frame,density=0,debug=1):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'magnetic')
+    if os.path.exists(filename):
+        return
+    setlist = ['magnetic_field_%s'%s for s in 'xyz']
+    for i,x in enumerate('xyz'):
+        Bhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
+        power += (Bhat.conjugate()*Bhat)
+    field_out='magnetic'
+    fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+    print(fname)
+
+def MakeHtotSpectra(oober,frame,density=0,debug=1):
+    """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
+    power=0
+
+    field = 'magnetic_field_strength'
+    directory = oober.product_dir(frame) #"%s/%s%04d.products/"%(self.directory,self.name_dir,frame)
+    #filename = "%s/fft_%s.%s"%(directory,field,'float32')
+    filename = "%s/power_Htotal.h5"%(directory)
+    if len(glob.glob(filename))>0:
+        print("WE GOT ONE", filename)
+    else:
+        print("ONE TO RUN")
+
+        Bhat = oober.fft(frame,field,num_ghost_zones=ngz,debug=debug)
+        power += (Bhat.conjugate()*Bhat)
+        field_out='Htotal'
+        fname = shell_average(power,oober,frame,field_out,debug,mark_time)
+        print(fname)
+
+
+def MinK(TheY):
+    TheY /= (TheY[ TheY != 0]).min()
+    return TheY
 mark_time = None
 def MakeVelocitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     mark_time = None
-    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'velocity')
+    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'velocity')
     if oober.check_fname(frame, 'velocity'):
         return
 
