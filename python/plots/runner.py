@@ -9,16 +9,22 @@ import plots.P3_all_spectra as p3
 import plots.P4_spectra_time as p4
 import plots.P5_pdfs as p5
 import plots.P6_mean_var as p6
+import plots.P7_dt_tool as p7
 reload(p1)
 reload(p2)
 reload(p3)
 reload(p4)
 reload(p5)
 reload(p6)
+reload(p7)
 
-#sim_list = all_sims.lists['suite1b']
-#sim_list = ['4_1','1_1']
 
+sim_list = all_sims.lists['suite1b']
+sim_list = all_sims.lists['suite1']
+#sim_list = ['4_1']#,'1_1']
+
+if 1:
+    p7.plot_dt(sim_list)
 
 if 0:
     for sim in sim_list:
@@ -59,7 +65,7 @@ if 0:
         p5.plot_pdfs(sim_list,fields, name = "3avg", pdf_prefix='pdf_scaled', all_or_ann_frames='ann', norm_axis=False, overgauss=False, logy=False, plot_all=False, all_on_one=True)
     #p5.plot_pdfs(sim_list,fields, name = "raw_norm", pdf_prefix='pdf', all_or_ann_frames='all',norm_axis=True) #have to use "all" frames with "pdf" prefix
 
-if 1:
+if 0:
     sim_list = all_sims.lists['suite1']
     fields=['magnetic_field_%s'%s for s in 'xyz']
     p5.plot_sigma(sim_list)
@@ -106,7 +112,6 @@ if 0:
     sim_list = all_sims.lists['suite1']
     fields =['magnetic_field_x','magnetic_field_y','magnetic_field_z']#,'magnetic_field_strength' ]
     p5.pdf_totals(sim_list, name = "tots")
-
 
 if 0:
     sim_list = all_sims.lists['suite1']
