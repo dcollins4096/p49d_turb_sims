@@ -500,7 +500,7 @@ class simulation_package():
         st.MakeVelocitySpectra(oober,frame)
         st.MakeMagneticSpectra(oober,frame)
         st.MakeDensitySpectra(oober,frame)
-        st.MakeHtotSpectra(oober,frame)
+        #st.MakeHtotSpectra(oober,frame)
         #st.MakeAccelSpectra(oober,frame)
 
     def make_htotal_spectra(self,frame):
