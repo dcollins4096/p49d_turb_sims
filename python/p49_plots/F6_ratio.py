@@ -17,9 +17,8 @@ LOSES = 'y'
 def plot_ratios(simlist, LOS='y'):
 
     plt.close('all')
-    fig,ax = plt.subplots(1,3, figsize=(12,4), sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
+    fig,axes = plt.subplots(1,3,figsize=(8,4))
+    axlist=axes.flatten()
 
     for nf,field in enumerate(ratios):
         field_top,field_bottom = field
@@ -32,22 +31,28 @@ def plot_ratios(simlist, LOS='y'):
 
             qu = "%s/%s"%(field_top[-3:-1].upper(), field_bottom[-3:-1].upper())
             label = r'$%s~ \hat{%s}$'%(qu, LOS)
+            label = r'$%s$'%(qu)
             #axlist[nf  ].text(1e-2, 5e-3, label)
-            axlist[nf  ].set_title( label)
             this_y = this_sim.avg_spectra[field_top]/this_sim.avg_spectra[field_bottom]
             this_x = this_sim.avg_spectra['k2d']
             axlist[nf  ].plot(this_x, this_y, c=this_sim.color , linestyle=this_sim.linestyle)
             if nf==2:
-                axlist[nf].axhline(0.5,c=[0.5]*3)
-                axlist[nf].axhline(1.,c=[0.5]*3)
+                axlist[nf].axhline(0.5,c=[0.5]*3, linewidth=0.1)
+                axlist[nf].axhline(1.,c=[0.5]*3, linewidth=0.1)
+
+            thax=axlist[nf]
+            fitrange = this_sim.get_fitrange(this_x)
+            thax.axvline(fitrange[0], c=[0.5]*4,linewidth=0.1)
+            thax.axvline(fitrange[1], c=[0.5]*4,linewidth=0.1)
+            thax.set(ylabel=label)
             
     for a in axlist:
-        dt.axbonk(a,xscale='log',yscale=LOG_OR_LIN,xlabel=None,ylabel=None, ylim=[1e-3,1000])
+        a.set(xscale='log',yscale=LOG_OR_LIN,xlabel=None, ylim=[1e-2,100])
     for a in axlist:
-        a.set_xlabel(r'$k/k_{max}$')
-    axlist[0].set_ylabel('Ratio')
+        a.set_xlabel(r'$k$')
 
     outname = '%s/%s_ratio_%s.pdf'%(dl.plotdir,prefix, LOS)
+    fig.tight_layout()
     fig.savefig(outname)
     print(outname)
 

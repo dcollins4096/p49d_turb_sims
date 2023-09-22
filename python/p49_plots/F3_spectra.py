@@ -2,18 +2,25 @@
 from GL import *
 
 import simulation
-import simulation_info.all_sims
+#import simulation_info.all_sims
 
 def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
 
     if prim_or_teb == 'prim':
-        product_list = ['density','velocity','Htotal']
+        product_list = ['density','velocity','magnetic']
         axis_label=""
     else:
         product_list = ['ClTT'+axis,'ClEE'+axis,'ClBB'+axis]
         axis_label="_%s"%axis
 
     fig,axes = plt.subplots(1,3,figsize=(8,4))
+
+    compensate = {'dens':11./3, 'velo':11./3,'magn':11./3}
+    compensate.update( {'ClTT':2.5, 'ClEE':2.5,'ClBB':2.5})
+    limits = {'dens':[1e-11,1e-5], 'velo':[1e-11,1e-5], 'magn':[1e-11,1e-5]}
+    limits.update({'ClTT':[1e-6,1],'ClEE':[1e-6,1],'ClBB':[1e-6,1]})
+    texts = {'dens':r'$\rho$', 'velo':r'$v$', 'magn':r'$H$',
+             'ClTT':r'$T$', 'ClEE':r'$E$', 'ClBB':r'$B$'}
 
     for ns,sim in enumerate(simlist):
         this_sim = simulation.corral[sim]
@@ -22,20 +29,29 @@ def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
             thax=axes[np]
             if prim_or_teb == 'prim':
                 xvals = this_sim.avg_spectra['k3d']
+                comp_label="11/3"
+
             else:
                 xvals = this_sim.avg_spectra['k2d']
-            thax.plot( xvals, this_sim.avg_spectra[prod],c=this_sim.color,linestyle=this_sim.linestyle)
-            title_dict={'density':r'$C_\ell^{\rho\rho}$', 'velocity':r'$C_\ell^{vv}$', 'Htotal':r'$C_\ell^{HH}$'}
-            title_dict['ClTTy']=r'$C_\ell^{TT}\hat{y}$'
-            title_dict['ClBBy']=r'$C_\ell^{BB}\hat{y}$'
-            title_dict['ClEEy']=r'$C_\ell^{EE}\hat{y}$'
-            thax.set(xscale='log',yscale='log',xlabel='k',title=title_dict[prod])
+                comp_label="5/2"
+
+            short_prod=prod[:4]
+            comp_exp=compensate[short_prod]
+            comp = xvals**comp_exp
+            thax.plot( xvals,comp*this_sim.avg_spectra[prod],c=this_sim.color,linestyle=this_sim.linestyle)
+            title_dict={'density':r'$C_k^{\rho\rho}$', 'velocity':r'$C_k^{vv}$', 'magnetic':r'$C_k^{HH}$'}
+            title_dict['ClTTy']=r'$C_k^{TT}$'
+            title_dict['ClBBy']=r'$C_k^{BB}$'
+            title_dict['ClEEy']=r'$C_k^{EE}$'
+            #ylabel= r"$k^{%s}$\ "%repr(comp_exp) + title_dict[prod]  
+            ylabel= r"$k^{%s}$ "%comp_label + title_dict[prod]  
+            thax.set(xscale='log',yscale='log',xlabel='k',ylabel=ylabel, ylim=limits[short_prod])
 
             fitrange = this_sim.get_fitrange(xvals)
-            #print(nar(fitrange)/xvals[1])
-            #print(xvals/xvals[1])
             thax.axvline(fitrange[0], c=[0.5]*4,linewidth=0.1)
             thax.axvline(fitrange[1], c=[0.5]*4,linewidth=0.1)
+
+            thax.text(0.9,0.9,texts[short_prod],transform=thax.transAxes, size='large')
 
 
     outname='%s/multi_spectra_%s%s.pdf'%(dl.plotdir,prim_or_teb,axis_label)

@@ -8,7 +8,7 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
 
     do_prim=False;do_TEB=False;do_amp=False;do_slope=False;do_log=False
     if prim_or_teb == 'prim':
-        product_list = ['density','velocity','Htotal']
+        product_list = ['density','velocity','magnetic']
         axis_label=""
         do_prim=True
         S1,S2,S3=r'\rho','v','H'
@@ -44,6 +44,13 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
                 y = this_sim.slopesA[field]
             axes[nf][0].scatter(ms, y, c=[this_sim.color],marker=this_sim.marker, s=this_sim.marker_size*20)
             axes[nf][1].scatter(ma, y, c=[this_sim.color],marker=this_sim.marker, s=this_sim.marker_size*20)
+            if 'one' not in dir():
+                one=True
+            if field=="velocity" and one:
+                one=False
+
+                print('yes line')
+                axes[nf][0].axhline(-11./3, c=[0.5]*4)
             if do_log and y<0:
                 pdb.set_trace()
             ext(y)
@@ -60,7 +67,8 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
     if (do_prim and do_amp):
         for aaa in axlist:
             #aaa.set_ylim([4e-6,4e-1])
-            aaa.set_ylim([5e-7,2e-2])
+            #aaa.set_ylim([5e-7,2e-2])
+            aaa.set_ylim([1e-11,5e-6])
             #print('word')
     if (do_TEB and do_amp):
         for aaa in axlist:

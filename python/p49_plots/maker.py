@@ -21,24 +21,41 @@ sim_list = all_sims.lists['suite1']
 
 
 
-sim_colors.set_cmap('cool')
+sim_colors.set_cmap('viridis')
 proj_cmap = 'plasma'
 #proj_cmap = 'cool'
-F1.proj(field='density_',LOS='y', cmap=proj_cmap)
-F1.proj(field='E',LOS='y', no_mean=True, cmap=proj_cmap)
-F1.proj(field='B',LOS='y', cmap=proj_cmap)
-F2.nom(sim_list)
-F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
-F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
-F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
-F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
-F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
-F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
-F6.plot_ratios(sim_list, LOS='y')
-F6.plot_amps(sim_list,LOS='y')
+#F1.proj(field='density_',LOS='y', cmap=proj_cmap)
+#F1.proj(field='E',LOS='y', no_mean=True, cmap=proj_cmap)
+#F1.proj(field='B',LOS='y', cmap=proj_cmap)
+#F2.nom(sim_list)
+#F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
+#F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
+#F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
+#F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
+#F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
+#F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
+#F6.plot_ratios(sim_list, LOS='y')
+#F6.plot_amps(sim_list,LOS='y')
 F7.plot_spectra(sim_list,LOS='y')
-F7.plot_meanvar(sim_list,LOS='y')
-F8.plot_summary(sim_list, LOS='y')
+#F7.plot_machmean(sim_list,LOS='y')
+#F8.plot_summary(sim_list, LOS='y')
 #F9.fit_all(sim_list)
+
+#not part of the main paper
+#import F5b_TT_rho as F5b
+#reload(F5b)
+#F5b.plot_amps_amps(sim_list,amps_or_slopes='slopes',axis='y')
+
+#import F11_gamma as F11
+#reload(F11)
+#F11.plot_gamma(sim_list)
+
+#import F12_spectratest as F12
+#reload(F12)
+#F12.plot(['4_1'])#, Nzones2, Nzones1)
+
+#import rework_spectra as rw
+#reload(rw)
+#rw.rework_spectra(sim_list)
 
 

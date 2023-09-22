@@ -58,12 +58,13 @@ def plot_meanvar(simlist,LOS='y'):
                 ec='k'
             else:
                 ec=None
-            axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            #axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            axlist[nf].scatter(mean,std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
             axlist[nf].set(xlabel=r'$\mu$', ylabel=None)
             if nf==0:
                 axlist[nf].axvline(0.35,c=[0.5]*3)
 
-            collector.append(np.abs(mean))
+            collector.append(mean)
 
         if 1:
             j = nar(collector)
@@ -86,8 +87,9 @@ def plot_meanvar(simlist,LOS='y'):
         #a.set_ylim([-10,10])
     axlist[0].set(ylabel=r'$\sigma_{XY}$')
     axlist[0].set(xscale='linear')
-    axlist[1].set(xscale='linear', xlim=[0,0.05])
-    axlist[2].set(xscale='linear', xlim=[0,0.05])
+    #kludge
+    #axlist[1].set(xscale='linear', xlim=[0,0.05])
+    #axlist[2].set(xscale='linear', xlim=[0,0.05])
 #    for a in axlist:
 #        a.set_xlabel(r'$r_{XY}$')
 #        a.axhline( 5e-2,c=[0.5]*4)
@@ -162,9 +164,8 @@ def plot_hist(simlist,LOS='y'):
 
 def plot_spectra(simlist,LOS='y'):
     plt.close('all')
-    fig,ax = plt.subplots(1,3, sharex=True,sharey=True)
-    fig.subplots_adjust(wspace=0, hspace=0)
-    axlist=ax.flatten()
+    fig,axes = plt.subplots(1,3,figsize=(8,4))
+    axlist=axes.flatten()
 
     for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
         for sim in simlist:
@@ -172,20 +173,26 @@ def plot_spectra(simlist,LOS='y'):
             this_sim.load()
             qu = field[-3:-1].upper()
             label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
-            axlist[nf].set_title(label)
+            label = r'$r_{%s}$'%(qu)
+            axlist[nf].set_ylabel(label)
             #axlist[nf+3].text(0.1, -0.8, label)
-            axlist[nf  ].plot(this_sim.avg_spectra['k2d'], this_sim.avg_spectra[field], c=this_sim.color, linestyle=this_sim.linestyle)
+            xvals=this_sim.avg_spectra['k2d']
+            axlist[nf  ].plot(xvals, this_sim.avg_spectra[field], c=this_sim.color, linestyle=this_sim.linestyle)
 
-            #axlist[nf+3].plot(spectra_dict['y'][sim].lcent, spectra_dict['y'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
-            #axlist[nf+6].plot(proj.lcent, spectra_dict['z'][sim].spectra[field], c=sim_colors.color[sim], linestyle=sim_colors.linestyle[sim])
+            fitrange = this_sim.get_fitrange(xvals)
+            axlist[nf].axvline(fitrange[0], c=[0.5]*4,linewidth=0.1)
+            axlist[nf].axvline(fitrange[1], c=[0.5]*4,linewidth=0.1)
+
     for a in axlist:
-        dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
+        a.set(xscale='log',yscale='log')
         #a.set_yscale('symlog',linthresh=0.09)
         a.set_yscale('linear')
-        a.set_ylim([-1,1])
+        a.set_ylim([-.25,.25])
+        a.axhline(0,c=[0.5]*4)
         #a.set_ylim([-10,10])
+    axlist[0].set_ylim([-1,1])
     for a in axlist:
-        a.set_xlabel(r'$k/k_max$')
+        a.set_xlabel(r'$k$')
 #        a.axhline( 5e-2,c=[0.5]*4)
 #        a.axhline(-5e-2,c=[0.5]*4)
 #    for a in [axlist[0]]:
@@ -193,6 +200,7 @@ def plot_spectra(simlist,LOS='y'):
 #        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
     outname = '%s/r_XY.pdf'%dl.plotdir
+    fig.tight_layout()
     fig.savefig(outname)
     print(outname)
 
@@ -289,3 +297,65 @@ if 0:
     fig.savefig(outname)
     print(outname)
 
+def plot_machmean(simlist,LOS='y'):
+    plt.close('all')
+    fig,ax = plt.subplots(1,3, figsize=(8,3))
+    #fig.subplots_adjust(wspace=0, hspace=0)
+
+    axlist=ax.flatten()
+
+    ext=dt.extents()
+    for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
+        collector=[]
+        for sim in simlist:
+            this_sim=simulation.corral[sim]
+            this_sim.load()
+            qu = field[-3:-1].upper()
+            label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
+            label = r'$r_{%s}$'%(qu)
+            xvals = this_sim.avg_spectra['k2d']
+            fit_range =this_sim.get_fitrange(xvals)
+            mask = (xvals > fit_range[0])*(xvals < fit_range[1])
+            signal = this_sim.avg_spectra[field][mask]
+            mean = signal.mean()
+            std  = signal.std()
+            if mean < 0:
+                ec=None
+            else:
+                ec=None
+            #axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            axlist[nf].scatter(this_sim.Ms_mean,mean, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            axlist[nf].set(xlabel=sim_colors.mach_label, ylabel=label)
+
+            if nf>0:
+                ext(mean)
+            collector.append(mean)
+
+            fid_line=[0.355,0.05,None][nf]
+            if fid_line is not None:
+                axlist[nf].axhline(fid_line,c=[0.5]*3,linewidth=0.1)
+
+    for naa,a in enumerate(axlist):
+        #dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)
+        #a.set_yscale('symlog',linthresh=0.09)
+        a.set_yscale('linear')
+        #a.set_ylim([-1,1])
+        #a.set_ylim([-10,10])
+        if naa>0:
+            a.set(ylim=ext.minmax)
+    axlist[0].set(xscale='linear')
+    #kludge
+    #axlist[1].set(xscale='linear', xlim=[0,0.05])
+    #axlist[2].set(xscale='linear', xlim=[0,0.05])
+#    for a in axlist:
+#        a.set_xlabel(r'$r_{XY}$')
+#        a.axhline( 5e-2,c=[0.5]*4)
+#        a.axhline(-5e-2,c=[0.5]*4)
+#    for a in [axlist[0]]:
+#        a.set_ylabel(r'$r_{XY}$')
+#        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
+
+    outname = '%s/mach_mean_rXY.pdf'%dl.plotdir
+    fig.tight_layout()
+    fig.savefig(outname)
+    print(outname)

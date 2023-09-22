@@ -28,7 +28,7 @@ def nom(simlist):
     #pdb.set_trace()
     print('args')
     
-    dt.axbonk(ax,xlabel=sim_colors.mach_label,ylabel=sim_colors.mach_label)
+    dt.axbonk(ax,xlabel=sim_colors.alf_mach_label,ylabel=sim_colors.mach_label)
     outname='%s/point_legend_measured.pdf'%plotdir
     fig.savefig(outname)
     print(outname)

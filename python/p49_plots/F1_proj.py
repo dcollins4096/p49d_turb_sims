@@ -36,6 +36,7 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
     def hhh(ttt):
         if ttt == "half":
             Mtext=r"\frac{1}{2}"
+            Mtext="0.5"
         else:
             Mtext="%s"%ttt
         return Mtext
@@ -51,8 +52,12 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             nplot+=1
             plot=thax.imshow(arr, origin='lower',interpolation='nearest',norm=norm, cmap=cmap)
             cmap_tool=mpl.cm.get_cmap(cmap)
-            text_color=cmap_tool(256)
-            box_color=list(cmap_tool(0))
+            if 0:
+                text_color=cmap_tool(256)
+                box_color=list(cmap_tool(0))
+            else:
+                text_color = cmap_tool(0)
+                box_color  = list(cmap_tool(256))
             box_color[3]=0.5
             edge_color=cmap_tool(128)
             thax.set(xticks=[],yticks=[])
