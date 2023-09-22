@@ -54,6 +54,10 @@ class sim():
         ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
         ds=yt.load(ds_name)
         return ds
+    def return_queb3_package(self):
+        package=queb3.simulation_package( directory=self.data_location,frames=self.all_frames,
+                                                                         product_directory=self.product_location, simname=self.name)
+        return package
     def get_all_frames(self):
         all_dirs=glob.glob("%s/DD????"%(self.data_location))
         dir_nums = sorted([int( os.path.basename(s)[2:]) for s in all_dirs])
@@ -139,15 +143,15 @@ class sim():
         if self.all_spectra is not None:
             return
 
-        self.products=['density','velocity','Htotal',
+        self.products=['density','velocity','magnetic',
                        'ClTTx','ClTTy','ClTTz',
                        'ClEEx','ClEEy','ClEEz',
                        'ClBBx','ClBBy','ClBBz',
                        'ClTEx','ClTEy','ClTEz',
                        'ClTBx','ClTBy','ClTBz',
                        'ClEBx','ClEBy','ClEBz']
-        self.products_3d = ['density','velocity','Htotal']
-        self.products_positive = ['density','velocity','Htotal',
+        self.products_3d = ['density','velocity','magnetic']
+        self.products_positive = ['density','velocity','magnetic',
                                   'ClTTx','ClTTy','ClTTz',
                                   'ClEEx','ClEEy','ClEEz',
                                   'ClBBx','ClBBy','ClBBz']
@@ -159,13 +163,16 @@ class sim():
         for frame in self.all_frames:
             self.all_spectra[frame]={}
 
-            k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
-            k3d, Htotal  = dt.dpy('%s/DD%04d.products/power_Htotal.h5'%(self.product_location,frame), ['k','power'])
-            k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
+            k3d, density = dt.dpy('%s/DD%04d.products/avg_power_density.h5'%(self.product_location,frame), ['k','power'])
+            k3d, magnetic  = dt.dpy('%s/DD%04d.products/avg_power_magnetic.h5'%(self.product_location,frame), ['k','power'])
+            k3d, velocity = dt.dpy('%s/DD%04d.products/avg_power_velocity.h5'%(self.product_location,frame), ['k','power'])
+            #k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
+            #k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','power'])
+            #k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
             self.all_spectra[frame]['k3d']=k3d.real
             self.all_spectra[frame]['density']=density.real
             self.all_spectra[frame]['velocity']=velocity.real
-            self.all_spectra[frame]['Htotal']=Htotal.real
+            self.all_spectra[frame]['magnetic']=magnetic.real
             for axis in 'xyz':
                 k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
                 k2d, ClEE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEE'])
