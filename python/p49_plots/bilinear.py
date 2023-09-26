@@ -155,13 +155,13 @@ def write_tex(herd, fname, field_list=None):
                   'ClTTy_s':r'$\alpha_{TT}$', 
                   'density_s':r'$\alpha_\rho$', 
                   'velocity_s':r'$\alpha_v$', 
-                  'Htotal_s':r'$\alpha_H$',
+                  'magnetic_s':r'$\alpha_H$',
                   'ClEEy_a':r'$\ln A_{EE}$', 
                   'ClBBy_a':r'$\ln A_{BB}$', 
                   'ClTTy_a':r'$\ln A_{TT}$', 
                   'density_a':r'$\ln A_\rho$', 
                   'velocity_a':r'$\ln A_v$', 
-                  'Htotal_a':r'$\ln A_H$'}
+                  'magnetic_a':r'$\ln A_H$'}
     for nf,field in enumerate(field_list):
         if field not in herd:
             print("Not in the herd:", field)

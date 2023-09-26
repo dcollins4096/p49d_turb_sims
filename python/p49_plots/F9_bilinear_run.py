@@ -12,7 +12,7 @@ reload(bilinear)
 def fit_all(simlist,do_plot=False, fit34=3):
     herd = {}
     #field_list = ['avg_clee','avg_clbb','avg_cltt','avg_v','avg_d','avg_h']
-    field_list =  ['density','velocity','Htotal','ClTTy','ClEEy','ClBBy']
+    field_list =  ['density','velocity','magnetic','ClTTy','ClEEy','ClBBy']
     #field_list = ['avg_d']
     #field_list = ['avg_clee','avg_clbb','avg_cltt']
     for nf,field in enumerate(field_list):
@@ -35,8 +35,8 @@ def fit_all(simlist,do_plot=False, fit34=3):
         herd[field + "_s"] = bilinear.beefitter(field, msarr, maarr, slopearr, fit34=fit34)
         herd[field + "_a"] = bilinear.beefitter(field, msarr, maarr, np.log(amparr),fit34=fit34)
 
-    field_order =  ['density_s','velocity_s','Htotal_s','ClTTy_s','ClEEy_s','ClBBy_s',
-                    'density_a','velocity_a','Htotal_a','ClTTy_a','ClEEy_a','ClBBy_a']
+    field_order =  ['density_s','velocity_s','magnetic_s','ClTTy_s','ClEEy_s','ClBBy_s',
+                    'density_a','velocity_a','magnetic_a','ClTTy_a','ClEEy_a','ClBBy_a']
     bilinear.write_tex( herd, '%s/table1.tex'%dl.plotdir, field_order)
 
     #predict

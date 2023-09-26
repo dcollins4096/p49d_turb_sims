@@ -20,8 +20,13 @@ reload(F7);reload(F8);reload(F9)
 sim_list = all_sims.lists['suite1']
 
 
-
 sim_colors.set_cmap('viridis')
+for ns, sim in enumerate(sim_list):
+    this_sim = simulation.corral[sim]
+    this_sim.load()
+    #simulation.set_colors(this_sim)
+    simulation.set_colors(this_sim,cmap_name=sim_colors.cmap)
+
 proj_cmap = 'plasma'
 #proj_cmap = 'cool'
 #F1.proj(field='density_',LOS='y', cmap=proj_cmap)
@@ -36,10 +41,10 @@ proj_cmap = 'plasma'
 #F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
 #F6.plot_ratios(sim_list, LOS='y')
 #F6.plot_amps(sim_list,LOS='y')
-F7.plot_spectra(sim_list,LOS='y')
+#F7.plot_spectra(sim_list,LOS='y')
 #F7.plot_machmean(sim_list,LOS='y')
 #F8.plot_summary(sim_list, LOS='y')
-#F9.fit_all(sim_list)
+F9.fit_all(sim_list)
 
 #not part of the main paper
 #import F5b_TT_rho as F5b

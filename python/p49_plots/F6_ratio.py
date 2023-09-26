@@ -59,11 +59,17 @@ def plot_ratios(simlist, LOS='y'):
 #
 # Ratio amplitudes
 #
-def plot_amps(simlist, LOS='y'):
+def plot_amps(simlist, LOS='y', use_alf=False):
     ratio_ext = dt.extents()
     plt.close('all')
     #fig,ax = plt.subplots(1,3, sharex=True,sharey=True,figsize=(12,4))
-    fig,ax = plt.subplots(3,2, figsize=(8,4))#,sharey=True)
+    if use_alf:
+        ncol=2
+        xsize=8
+    else:
+        ncol=1
+        xsize=5
+    fig,ax = plt.subplots(3,ncol, figsize=(xsize,4))#,sharey=True)
     fig.subplots_adjust(wspace=0, hspace=0)
     axlist=ax.flatten()
 
@@ -78,6 +84,9 @@ def plot_amps(simlist, LOS='y'):
             this_sim.load()
 
 
+            name_top = field_top[-3:-1]
+            name_bot = field_bottom[-3:-1]
+            ylab = r"$A_{%s}/A_{%s}$"%(name_top,name_bot)
             this_Ms = this_sim.Ms_mean
             this_Ma = this_sim.Ma_mean
 
@@ -89,14 +98,15 @@ def plot_amps(simlist, LOS='y'):
             #this_y = this_sim.avg_spectra[field_top][mask].mean()/this_sim.avg_spectra[field_bottom][mask].mean()
             this_y = this_sim.ampsA[field_top]/this_sim.ampsA[field_bottom]
             y_ext(this_y)
-            ax[nf ][0].scatter(this_Ms, this_y,  **kwargs)
-            ax[nf ][1].scatter(this_Ma, this_y,  **kwargs)
+            if use_alf:
+                ax[nf ][0].scatter(this_Ms, this_y,  **kwargs)
+                ax[nf ][1].scatter(this_Ma, this_y,  **kwargs)
+                ax[nf][0].set_ylabel(ylab)
+            else:
+                ax[nf ].scatter(this_Ms, this_y,  **kwargs)
+                ax[nf].set_ylabel(ylab)
             ratio_ext(this_y)
 
-            name_top = field_top[-3:-1]
-            name_bot = field_bottom[-3:-1]
-            ylab = r"$A_{%s}/A_{%s}$"%(name_top,name_bot)
-            ax[nf][0].set_ylabel(ylab)
             
             #heres an ugly kludge.
             if sim[0] in '456':
@@ -107,11 +117,15 @@ def plot_amps(simlist, LOS='y'):
         #if nf == 1:
             #print("EE/BB mean ", mean_ratio)
         #ax[nf][0].plot( [0.45, 2.7], [0.5]*2, c=[0.5]*4)
-        ax[nf][0].axhline( 0.5, c=[0.5]*4)
-        ax[nf][1].axhline( 0.5, c=[0.5]*4)
+        if use_alf:
+            ax[nf][0].axhline( 0.5, c=[0.5]*4)
+            ax[nf][1].axhline( 0.5, c=[0.5]*4)
+            ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
+            ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
+        else:
+            ax[nf].axhline( 0.5, c=[0.5]*4)
+            ax[2].set_xlabel(r'$M_{\rm{s}}$')
 
-    ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
-    ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
 
     if LOG_OR_LIN == 'log':
         for aaa in axlist:
@@ -123,9 +137,10 @@ def plot_amps(simlist, LOS='y'):
     #        #aaa.set_ylim(1e-2,5)
     #        #aaa.set_ylim( ratio_ext.minmax)
 
-    for n in range(3):
-        ax[n][1].set_ylim( ax[n][0].get_ylim())
-        ax[n][1].yaxis.tick_right()
+    if use_alf:
+        for n in range(3):
+            ax[n][1].set_ylim( ax[n][0].get_ylim())
+            ax[n][1].yaxis.tick_right()
 
     for aaa in axlist:
         y_minor = matplotlib.ticker.LogLocator(base = 10.0, subs = np.arange(1.0, 10.0) * 0.1, numticks = 10)
