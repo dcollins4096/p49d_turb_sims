@@ -1,0 +1,16 @@
+Hi!
+
+This is the CMB stuff repository.
+
+For now, what you want is in p71_play.
+In there is 
+fake1.py
+and
+turb1.py
+
+Fake1.py is the thing to look at.
+It makes fake filaments
+and then makes plots.
+
+You can store scrips in this directory.
+
