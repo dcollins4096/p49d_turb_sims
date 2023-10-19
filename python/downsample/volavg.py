@@ -34,7 +34,7 @@ def volavg(array, rank=None, refine_by=None,debug=0):
             print("dims: last",last.shape, "next",next.shape)
         for i in range(refine_by):
             this_set[d] = sub[i]
-            next += last[this_set] * r_inv
+            next += last[tuple(this_set)] * r_inv
         last = next
     return next  
 if 0:

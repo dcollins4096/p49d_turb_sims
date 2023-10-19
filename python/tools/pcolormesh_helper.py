@@ -1,5 +1,5 @@
 from starter1 import *
-import davetools
+import tools.davetools as davetools
 def simple_phase(field1,field2,log=False,ax=None,nbins=64, weights=None,bins=None ):
     ext1=davetools.extents()
     ext2=davetools.extents()

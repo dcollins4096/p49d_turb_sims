@@ -41,18 +41,18 @@ def make_random_1(Nfil=1,Nside=16):
         total += g1
     return total
 
-if 0:
-
-#p2 = np.array([[1,0,0],[0,1,0],[0.5]*3,[0.75,0.75,0],[1,1,1]]).transpose()
-#p2=np.array([[0.5]*3,[1,1,1]]).transpose()
-
-    a = np.array([0,0,0])/N
-    b = np.array([1,1,1])/N
-    a.shape=a.size,1
-    b.shape=b.size,1
-    p1 = np.array([3,3,3])/N
-    total = np.zeros([N,N,N])
-    for nfil in np.arange(10):
+def make_random_2(Nfil=1,Nside=16,sigma=None):
+    dx = 1/Nside
+    x,y,z=np.mgrid[0:1:dx,0:1:dx,0:1:dx]
+    x=x.flatten()
+    y=y.flatten()
+    z=z.flatten()
+    p2 = np.stack([x,y,z])
+    p2.transpose()
+    total = np.zeros([Nside,Nside,Nside])
+    if sigma==None:
+        sigma=0.1*dx
+    for nfil in np.arange(Nfil):
         print("make filament",nfil)
         a = np.random.random(3)
         a.shape=a.size,1
@@ -60,30 +60,8 @@ if 0:
         b.shape=b.size,1
         
         r1=(lineseg_dist( p2,a,b))
-        r1.shape=N,N,N
-        g1=np.exp(-r1**2/(2*dx))
+        r1.shape=Nside,Nside,Nside
+        g1=np.exp(-r1**2/(2*sigma))
         total += g1
+    return total
 
-    r1.shape=N,N,N
-    print(r1)
-    plt.close('all')
-    fig,axes=plt.subplots(2,2)
-
-    if 0:
-        axes[0][0].imshow(r1.sum(axis=0),origin='lower',interpolation='nearest')
-        axes[0][1].imshow(r1.sum(axis=1),origin='lower',interpolation='nearest')
-        axes[1][0].imshow(r1.sum(axis=2),origin='lower',interpolation='nearest')
-        fig.savefig('%s/fake'%plotdir)
-    if 0:
-        axes[0][0].imshow(g1.sum(axis=0),origin='lower',interpolation='nearest')
-        axes[0][1].imshow(g1.sum(axis=1),origin='lower',interpolation='nearest')
-        axes[1][0].imshow(g1.sum(axis=2),origin='lower',interpolation='nearest')
-        fig.savefig('%s/flake'%plotdir)
-    if 1:
-        axes[0][0].imshow(total.sum(axis=0),origin='lower',interpolation='nearest')
-        axes[0][1].imshow(total.sum(axis=1),origin='lower',interpolation='nearest')
-        axes[1][0].imshow(total.sum(axis=2),origin='lower',interpolation='nearest')
-        fig.savefig('%s/snake'%plotdir)
-#print('w',r1)
-#print('x',r2)
-#print('wtf')

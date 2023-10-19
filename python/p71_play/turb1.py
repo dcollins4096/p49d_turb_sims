@@ -9,6 +9,7 @@ from starter1 import *
 import downsample.volavg as volavg
 import filament.hessian as hessian
 import tools.pcolormesh_helper as pch
+import yt
 
 plotdir = "%s/PigPen"%(os.environ['HOME'])
 
