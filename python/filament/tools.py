@@ -1,5 +1,6 @@
 from starter1 import *
-
+import yt
+import downsample.volavg as volavg
 import filament.hessian as hessian
 import tools.pcolormesh_helper as pch
 import tools.davetools as dt
@@ -53,79 +54,6 @@ def contour(estuff,outname=None):
     ax.contour( doer(estuff.e0,axis),levels=[-0.25])
     fig.savefig(outname)
 
-def color_game(estuff,outname=None):
-    def doer(arr,axis):
-        sl = [slice(None),slice(None),slice(None)]
-        sl[axis]=12
-        b= arr[tuple(sl)]
-        c = np.log(np.abs(b))
-        c /= c.max()-c.min()
-        c -= c.min()
-        return c
-
-    fig,ax=plt.subplots(2,3,figsize=(8,8))
-    ext=dt.extents()
-    ext(estuff.e0)
-    ext(estuff.e1)
-    ext(estuff.e2)
-    a = np.array(ext.minmax)
-    edge = np.max(np.abs(a))
-    bins = np.linspace(-edge,edge,128)
-
-    def packer(a,b,c):
-        return np.stack([a,b,c]).transpose()
-    rho= doer(estuff.arr,0)
-    a1 = doer(estuff.e0,0)
-    a2 = doer(estuff.e1,0)
-    a3 = doer(estuff.e2,0)
-    zero=np.zeros_like(a1)
-    #ax.imshow(y)
-    ax[0][0].imshow( packer(a1,zero,zero))
-    ax[0][1].imshow( packer(zero,a2,zero))
-    ax[0][2].imshow( packer(zero,zero,a3))
-    ax[1][0].imshow( packer(a1,a2,a3))
-    ax[1][2].imshow( packer(a1,zero,a3))
-    #pch.simple_phase(estuff.e0.flatten(),estuff.e1.flatten(),bins=[bins,bins], ax=axes[0])
-    #pch.simple_phase(estuff.e1.flatten(),estuff.e2.flatten(),bins=[bins,bins], ax=axes[1])
-    #pch.simple_phase(estuff.e0.flatten(),estuff.e2.flatten(),bins=[bins,bins], ax=axes[2])
-    #axes[0].set(title='E1 vs E0')
-    #axes[1].set(title='E2 vs E1')
-    #axes[2].set(title='E2 vs E0')
-    fig.tight_layout()
-    fig.savefig(outname)
-    plt.close(fig)
-    fig,ax=plt.subplots(1,1,figsize=(8,8))
-    ax.imshow(packer(a1,zero,zero))
-    fig.savefig('%s_e0'%outname)
-    ax.clear()
-    ax.imshow(packer(a2,zero,zero))
-    fig.savefig('%s_e1'%outname)
-    ax.clear()
-    ax.imshow(packer(a3,zero,zero))
-    fig.savefig('%s_e2'%outname)
-    plt.close(fig)
-    def packer2(a,vec):
-        return np.stack([a*vec[0],a*vec[1],a*vec[2]]).transpose()
-    fig,ax=plt.subplots(1,3,figsize=(8,4))
-    v1=packer2(a1,[1,0.5,0])
-    ax[0].imshow(v1)
-    v2=packer2(a3,[0,0.5,1])
-    ax[1].imshow(v2)
-    ax[2].imshow(v1+v2)
-    #ax[1][0].imshow(packer(rho,rho,rho))
-    #ax[1][0].imshow(packer(rho,rho,rho))
-    #ax[1][1].imshow(packer(a1,a3,rho))
-    fig.savefig('%s_game2'%outname)
-    plt.close(fig)
-    fig,ax=plt.subplots(2,2,figsize=(8,8))
-    ax[0][0].imshow(packer(a1,zero,zero))
-    ax[0][1].imshow(packer(zero,a3,zero))
-    ax[1][0].imshow(packer(zero,zero,rho))
-    ax[1][1].imshow(packer(a1,a3,rho))
-    fig.savefig('%s_game3'%outname)
-    plt.close(fig)
-
-
 
 
 
@@ -177,6 +105,16 @@ def doslice(estuff,outname=None):
 
     fig.tight_layout()
     fig.savefig(outname)
+
+def get_cubes(sim,frame):
+    ds = yt.load("/data/cb1/Projects/P49_EE_BB/%s/DD%04d/data%04d"%(sim, frame, frame))
+    print('get cg')
+    cg = ds.covering_grid(0, [0.0]*3, [512]*3)
+    dds = cg.dds
+    rho_full = cg["density"].v
+    rho = volavg.volavg(rho_full,rank=3,refine_by=2)
+    return rho_full, rho
+
 class eigen_stuff():
     def __init__(self,array,dds=None, cut_periodic=False):
         self.dds=dds
