@@ -10,9 +10,10 @@ import bucket
 def brunt_spectra(simlist, ftool=None):
     plt.close('all')
 
-    ncol = int(np.ceil(len(simlist)/3))
-    fig,axes = plt.subplots(ncol,3,figsize=(12,12))
-    if len(axes)==1:
+    nrow = int(np.ceil(len(simlist)/3))
+    ncol = min([3,len(simlist)])
+    fig,axes = plt.subplots(nrow,ncol,figsize=(12,12))
+    if ncol==1:
         axlist=[axes]
     else:
         axlist=axes.flatten()
@@ -26,12 +27,14 @@ def brunt_spectra(simlist, ftool=None):
         this_sim.load()
         simulation.set_colors(this_sim,cmap_name=sim_colors.cmap)                                                                                                                 #ax.scatter( raq.quan3[sim]['maavg'], raq.quan3[sim]['msavg'],c=sim_colors.color[sim], marker=sim_colors.marker[sim],s=60)
         frame=this_sim.ann_frames[-1]
+        print('FRAME',frame)
 
 
         
         ftool=bucket.things.get(sim,None)
         if ftool is None:
             rho_full, rho = bt.get_cubes(sim,frame)
+            print(sim,frame)
 
             ftool = bt.fft_tool(rho)
             ftool.do3()
@@ -41,8 +44,10 @@ def brunt_spectra(simlist, ftool=None):
         ax=axlist[i]
 
 
+        xvals=ftool.k2d
         fit_range =this_sim.get_fitrange(xvals)
         mask = (xvals > fit_range[0])*(xvals < fit_range[1])
+        mask = slice(4,25)
         ax.plot(ftool.k2d,          ftool.power_1d2.real,c=[0.5]*3, label='P2d')
         ax.plot(ftool.k2d[mask],          ftool.power_1d2.real[mask],c='r', label='P2d')
         ax.plot(ftool.k3d[mask],          ftool.power_1d3.real[mask],c='g', label='P3d')
@@ -98,8 +103,6 @@ def brunt_spectra(simlist, ftool=None):
             R1 =sigma_Brunt/sigma_rho
             R2 = sigma_Brunt_actual/sigma_rho
             #ax.set(title='%s %0.1e %0.1e'%(sim,R2,R1))
-            ax.text(0.1,0.1,"%s"%sim,transform=ax.transAxes)
-            ax.text(0.25,0.1,"%0.1f"%(np.sqrt(R1)),transform=ax.transAxes)
 
         if 1:
             xvals = this_sim.avg_spectra['k2d']
@@ -120,11 +123,29 @@ def brunt_spectra(simlist, ftool=None):
             R1 =sigma_Brunt/sigma_rho
             R2 = sigma_Brunt_actual/sigma_rho
             #ax.set(title='%s %0.1e %0.1e'%(sim,R2,R1))
-            ax.text(0.35,0.1,"%0.1f"%(np.sqrt(R1)),transform=ax.transAxes)
-            ax.text(0.45,0.1,"%0.1f"%(np.sqrt(sigma_rho)),transform=ax.transAxes)
-            ax.text(0.55,0.1,"%0.3f"%(np.sqrt(Rinv.real)),transform=ax.transAxes)
+            if 0:
+                ax.text(0.1,0.1,"%s"%sim,transform=ax.transAxes)
+                ax.text(0.25,0.1,"%0.1f"%(np.sqrt(R1)),transform=ax.transAxes)
+                ax.text(0.35,0.1,"%0.2e R"%(np.sqrt(R1)),transform=ax.transAxes)
+                ax.text(0.45,0.1,"%0.2e R"%(np.sqrt(sigma_rho)),transform=ax.transAxes)
+                ax.text(0.55,0.1,"%0.2e R"%(np.sqrt(Rinv.real)),transform=ax.transAxes)
+            if 1:
+                textx=0.05
+                texty=0.3
+                dy = 0.05
+                error = 1-np.sqrt(sigma_Brunt/sigma_rho)
+                ax.text(textx, texty-0*dy, "%0.2e sigma_x3d"%np.sqrt(sigma_rho),transform=ax.transAxes)
+                ax.text(textx, texty-1*dy, "%0.2e sigma_x2d"%np.sqrt(sigma_col),transform=ax.transAxes)
+                ax.text(textx, texty-2*dy, "%0.2e R"%(np.sqrt(1/Rinv)),transform=ax.transAxes)
+                ax.text(textx, texty-3*dy, "%0.2e sigma_b"%(np.sqrt(sigma_Brunt)),transform=ax.transAxes)
+                ax.text(textx, texty-4*dy, "%0.2e error"%(error),transform=ax.transAxes)
+                ax.text(textx, texty-5*dy, "%0.2e Rat"%(np.sqrt(R1)),transform=ax.transAxes)
 
-        if 1:
+
+
+
+
+        if 0:
             a2.scatter(np.sqrt(Rinv.real), np.sqrt(sigma_rho), c=[this_sim.color],s=this_sim.marker_size*100)
             a2b.scatter(this_sim.Ms_mean, np.sqrt(sigma_rho), c=[this_sim.color],s=this_sim.marker_size*100)
             SR,SB=np.sqrt(sigma_rho), np.sqrt(sigma_Brunt)
@@ -135,7 +156,6 @@ def brunt_spectra(simlist, ftool=None):
         
         #a2c.plot([0,2.5],[0,2.5],c=[0.5]*3)
         f2.savefig('%s/Rsig'%dl.plotdir)
-        print(outname)
         #ax.legend(loc=0)
         #ax.set(yscale='log',xscale='log')
 

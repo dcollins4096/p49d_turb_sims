@@ -15,13 +15,14 @@ plotdir='%s/PigPen/'%(os.environ['HOME'])
 #sim='1_1'
 #frame=31
 sim='6_2'
-frame=35
+frame=51
 #sim = ms_ma ms = 123456 ma = half,1,2
 
 #get cubes; rho_full is straight off disk.  rho is downsampled by 2
 if 'rho' not in dir():
     print('load and cg')
     rho_full, rho = bt.get_cubes(sim,frame)
+    print(sim,frame)
 
 if 'ftool' not in dir():
     ftool = bt.fft_tool(rho)
@@ -31,8 +32,17 @@ if 'ftool' not in dir():
 if 1:
     bt.plot_fft(ftool,"%s/ffts_%s_%04d"%(plotdir,sim,frame))
 
-
 if 1:
+    outname="%s/fft_full_%s_n%04d"%(plotdir,sim,frame)
+    bt.plot_brunt(ftool, outname=outname,method='full')
+
+    outname="%s/fft_norm_%s_n%04d"%(plotdir,sim,frame)
+    bt.plot_brunt(ftool, outname=outname,method='norm')
+
+    outname="%s/fft_range_%s_n%04d"%(plotdir,sim,frame)
+    bt.plot_brunt(ftool, outname=outname,method='range', fitrange=[4,25])
+
+if 0:
     #try brunt.  Works to a factor of 2, not bad.
     sigma_rho = (ftool.rho**2).sum().real
     sigma_fft = (ftool.power_1d3).sum().real

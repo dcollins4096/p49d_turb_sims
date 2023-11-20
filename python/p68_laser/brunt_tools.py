@@ -76,6 +76,119 @@ def plot_fft3(ftool,apod=None, outname=None):
     ax[1][1].legend(loc=0)
     fig.savefig(outname)
 
+def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
+
+    if method=='full':
+        #ftool.sigmas_full()
+        sigmas_full(ftool)
+    elif method=='norm':
+        sigmas_norm(ftool)
+    elif method=='range':
+        sigmas_range(ftool, fitrange)
+    savefig=False
+    if ax is None:
+        savefig=True
+        fig,ax=plt.subplots(1,1)
+    if fitrange is None:
+        mask = slice(None)
+    else:
+        mask = slice(fitrange[0],fitrange[1])
+    ax.plot(ftool.k2d,          ftool.power_1d2.real,c=[0.5]*3, label='P2d')
+    ax.plot(ftool.k2d[mask],          ftool.power_1d2.real[mask],c='r', label='P2d')
+    ax.plot(ftool.k3d[mask],          ftool.power_1d3.real[mask],c='g', label='P3d')
+    ax.plot(ftool.k2d[mask],ftool.k2d[mask]*ftool.power_1d2.real[mask],c='b', label = 'k P2d')
+    ax.set(xscale='log',yscale='log')
+    error = 1-ftool.sigma_Brunt/ftool.sigma_x3d
+    text_x=0.05
+    text_y=0.3
+    dy=0.05
+    ax.text(text_x, text_y-1*dy,"%0.2e sigma_x3d"%ftool.sigma_x3d, transform=ax.transAxes)
+    ax.text(text_x, text_y-2*dy,"%0.2e sigma_x2d"%ftool.sigma_x2d, transform=ax.transAxes)
+    ax.text(text_x, text_y-3*dy,"%0.2e R "%(1./ftool.Rinv), transform=ax.transAxes)
+    ax.text(text_x, text_y-4*dy,"%0.2e sigma_B "%ftool.sigma_Brunt,  transform=ax.transAxes)
+    ax.text(text_x, text_y-5*dy,"%0.2e  error  "%error,  transform=ax.transAxes)
+    ax.text(text_x, text_y-6*dy,"%0.2e  rat  "%(ftool.sigma_Brunt/ftool.sigma_x3d),  transform=ax.transAxes)
+
+    if savefig:
+        fig.savefig(outname)
+
+def sigmas_full(self):
+    #this works.  Not normalized, though.
+    self.sigma_x3d = np.sqrt((self.rho**2).sum().real)
+    self.sigma_k3d = np.sqrt((self.power_1d3).sum().real)
+    self.sigma_x2d = np.sqrt(((self.rho2)**2).sum().real)
+    self.sigma_k2d = np.sqrt(self.power_1d2[1:].sum().real)
+    self.sigma_k2dk= np.sqrt(( self.k2d*self.power_1d2)[1:].sum())
+    self.Rinv = self.sigma_k2dk.real/self.sigma_k2d.real
+    self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
+    self.R1 =self.sigma_Brunt/self.sigma_x3d
+    #just to check that everything works right, do it with the actual 3d power spectrum.
+    #R2 should be 1
+    self.Rinv_actual = self.power_1d3.sum()/self.power_1d2.sum()
+    self.sigma_Brunt_actual = self.sigma_x2d*self.Rinv_actual
+    self.R2 = self.sigma_Brunt_actual/self.sigma_x3d
+def sigmas_norm(self):
+    #works, normalized, only using the fit range
+    Nz = self.rho.size
+    N2d = self.rho2.size
+    self.mean_rho=(self.rho).sum()/Nz
+    self.mean_column= self.rho2.sum()/N2d
+    self.sigma_x3d  =np.sqrt(((self.rho-self.mean_rho)**2).sum().real/Nz)
+    self.sigma_k3d  =np.sqrt((self.power_1d3[1:]).sum().real/Nz)
+    self.sigma_k2dk =np.sqrt(( self.k2d*self.power_1d2)[1:].sum()/Nz)
+    self.sigma_x2d  =np.sqrt(((self.rho2-self.mean_column)**2).sum().real/N2d)
+    self.sigma_k2d  =np.sqrt(self.power_1d2[1:].sum().real/N2d)
+
+    #self.Rinv = ()/((self.power_1d2)[1:].sum()/N2d)
+    self.Rinv = (self.sigma_k2dk/self.sigma_k2d).real
+    #this should give us the right answer.
+    #Rinv_actual = (self.power_1d3[1:].sum()/Nz)/(self.power_1d2[1:].sum()/N2d)
+    self.Rinv_actual = (self.sigma_k3d/self.sigma_k2d).real
+    self.sigma_Brunt = (self.sigma_k2d*self.Rinv).real
+    sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
+
+    R1 =self.sigma_Brunt/self.sigma_x3d
+    R2 = self.sigma_Brunt_actual/self.sigma_x3d
+
+def sigmas_range(self, fitrange):
+    mask = slice(fitrange[0],fitrange[1])
+    Nz = self.rho.size
+    N2d = self.rho2.size
+    self.mean_rho=(self.rho).sum()/Nz
+    self.mean_column= self.rho2.sum()/N2d
+    self.sigma_x3d  =np.sqrt(((self.rho-self.mean_rho)**2).sum().real/Nz)
+    self.sigma_k3d  =np.sqrt((self.power_1d3[mask]).sum().real/Nz)
+    self.sigma_k2dk =np.sqrt(( self.k2d*self.power_1d2)[mask].sum()/Nz)
+    self.sigma_x2d  =np.sqrt(((self.rho2-self.mean_column)**2).sum().real/N2d)
+    self.sigma_k2d  =np.sqrt(self.power_1d2[mask].sum().real/N2d)
+
+    #self.Rinv = ()/((self.power_1d2)[1:].sum()/N2d)
+    self.Rinv = (self.sigma_k2dk/self.sigma_k2d).real
+    #this should give us the right answer.
+    #Rinv_actual = (self.power_1d3[1:].sum()/Nz)/(self.power_1d2[1:].sum()/N2d)
+    self.Rinv_actual = (self.sigma_k3d/self.sigma_k2d).real
+    self.sigma_Brunt = (self.sigma_x2d*self.Rinv).real
+    sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
+
+    R1 =self.sigma_Brunt/self.sigma_x3d
+    R2 = self.sigma_Brunt_actual/self.sigma_x3d
+
+if 0:
+    N2d = ftool.rho2.size
+    mean_column = ftool.rho2.sum()/N2d
+    sigma_col = ((ftool.rho2-mean_column)**2).sum().real/N2d
+    sigma_2d_fft = ftool.power_1d2[mask].sum().real/N2d
+    #print("col %0.2e fft %0.2e ratio %0.2e"%(sigma_col, sigma_2d_fft, sigma_col/sigma_2d_fft))
+    Rinv = (( ftool.k2d*ftool.power_1d2)[mask].sum()/Nz)/((ftool.power_1d2)[mask].sum()/N2d)
+    Rinv_actual = (ftool.power_1d3[mask].sum()/Nz)/(ftool.power_1d2[mask].sum()/N2d)
+    sigma_Brunt = (sigma_col*Rinv).real
+    sigma_Brunt_actual = (sigma_col*Rinv_actual).real
+    #print("Brunt", sigma_Brunt/sigma_rho)
+    #print("One", sigma_Brunt_actual/sigma_rho)
+
+    R1 =sigma_Brunt/sigma_rho
+    R2 = sigma_Brunt_actual/sigma_rho
+
 class fft_tool():
     def __init__(self,rho):
         self.rho=rho
@@ -84,12 +197,7 @@ class fft_tool():
         self.done2=False
         self.done3=False
 
-    def brunt_sigma(self):
-        sigma_3d = (self.rho**2).sum()
-        sigma_col = (self.rho2**2).sum()
-        Rinv = (self.k2d*self.power_1d2).sum()/self.power_1d2.sum()
-        sigma_brunt = sigma_col*Rinv
-        return sigma_brunt, sigma_3d
+
 
     def do3(self):
         print('3d fourier transform')
