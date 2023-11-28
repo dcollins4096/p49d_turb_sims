@@ -35,16 +35,25 @@ proj_cmap = 'plasma'
 #F2.nom(sim_list)
 #F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
 #F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
-#F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
-#F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
-#F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
-#F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
+##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
+##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
+##F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
+##F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
+#F4.plot_slopes(sim_list, prim_or_teb='prim')
+#F4.plot_slopes(sim_list, prim_or_teb='teb')
 #F6.plot_ratios(sim_list, LOS='y')
 #F6.plot_amps(sim_list,LOS='y')
 #F7.plot_spectra(sim_list,LOS='y')
-#F7.plot_machmean(sim_list,LOS='y')
+F7.plot_machmean(sim_list,LOS='y')
 #F8.plot_summary(sim_list, LOS='y')
-F9.fit_all(sim_list)
+#F9.fit_all(sim_list)
+
+if 0:
+    fig,ax=plt.subplots(2,1, figsize=(4,8))
+    F8.plot_summary(sim_list, LOS='y', ax=ax[1])
+    F7.plot_tb_eb(sim_list,LOS='y',ax=ax[0])
+    fig.tight_layout()
+    fig.savefig("%s/things"%dl.plotdir)
 
 #not part of the main paper
 #import F5b_TT_rho as F5b

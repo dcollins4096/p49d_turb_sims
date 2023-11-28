@@ -4,6 +4,65 @@ from GL import *
 import simulation
 import simulation_info.all_sims
 
+def plot_slopes(sim_list, prim_or_teb='prim', axis='y'):
+
+    do_prim=False;do_TEB=False;do_amp=False;do_slope=False;do_log=False
+    if prim_or_teb == 'prim':
+        product_list = ['density','velocity','magnetic']
+        axis_label=""
+        do_prim=True
+        S1,S2,S3=r'\rho','v','H'
+    else:
+        product_list = ['ClTT'+axis,'ClEE'+axis,'ClBB'+axis]
+        axis_label="_%s"%axis
+        do_TEB=True
+        S1,S2,S3='TT','EE','BB'
+    do_slope=True
+    Aalpha='\\alpha'
+
+    fig,axes = plt.subplots(1,3, figsize=(8,3))#,sharey=True)
+    axlist=axes.flatten()
+
+    ext = dt.extents()
+    for ns, sim in enumerate(sim_list):
+        this_sim = simulation.corral[sim]
+        this_sim.load()
+        #simulation.set_colors(this_sim)
+        simulation.set_colors(this_sim,cmap_name=sim_colors.cmap)
+        ms = this_sim.Ms_mean
+        ma = this_sim.Ma_mean
+        for nf, field in enumerate(product_list):
+            if nf < 2:
+                x = ms
+            elif nf == 2:
+                x = ma
+
+            y = this_sim.slopesA[field]
+            axes[nf].scatter(x, y, c=[this_sim.color],marker=this_sim.marker, s=this_sim.marker_size*20)
+            if 'one' not in dir():
+                one=True
+            if field=="velocity" and one:
+                one=False
+
+                print('yes line')
+                axes[nf].axhline(-11./3, c=[0.5]*4)
+            if do_log and y<0:
+                pdb.set_trace()
+            ext(y)
+    axes[0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S1))
+    axes[1].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S2))
+    axes[2].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S3))
+    axes[0].set_xlabel(r'$M_{\rm{s}}$')
+    axes[1].set_xlabel(r'$M_{\rm{s}}$')
+    axes[2].set_xlabel(r'$M_{\rm{A}}$')
+    axislabel=''
+    if prim_or_teb=='teb':
+        axislabel='_%s'%axis
+    outname = "%s/SlopesOnly_%s%s.pdf"%(dl.plotdir,prim_or_teb,axislabel)
+    fig.tight_layout()
+    fig.savefig(outname)
+    print(outname)
+
 def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y', fit_herd=None):
 
     do_prim=False;do_TEB=False;do_amp=False;do_slope=False;do_log=False

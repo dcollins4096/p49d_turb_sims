@@ -313,6 +313,7 @@ def plot_machmean(simlist,LOS='y'):
             qu = field[-3:-1].upper()
             #label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
             label = r'$\langle r_{%s}\rangle$'%(qu)
+            #label = r'$r_{%s}$'%(qu)
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
             mask = (xvals > fit_range[0])*(xvals < fit_range[1])
@@ -359,3 +360,25 @@ def plot_machmean(simlist,LOS='y'):
     fig.tight_layout()
     fig.savefig(outname)
     print(outname)
+
+def plot_tb_eb(simlist,LOS='y', ax=None):
+
+    save_fig=False
+    if ax is None:
+        fig,ax=plt.subplots(1,1)
+        save_fig=True
+    for sim in simlist:
+        this_sim=simulation.corral[sim]
+        this_sim.load()
+        xvals = this_sim.avg_spectra['k2d']
+        fit_range =this_sim.get_fitrange(xvals)
+        mask = (xvals > fit_range[0])*(xvals < fit_range[1])
+        TB = this_sim.avg_spectra['r_TB'+LOS][mask].mean()
+        EB = this_sim.avg_spectra['r_EB'+LOS][mask].mean()
+        ax.scatter(TB, EB, c=[this_sim.color],marker=this_sim.marker, s=this_sim.marker_size*20)
+    ax.set(xlabel=r'$r^{TB}$',ylabel = r'$r^{EB}$')
+    colorbar=plt.colorbar(sim_colors.cbar,ax=ax)
+    colorbar.set_label(sim_colors.mach_label)
+    if save_fig:
+        fig.savefig('%s/TB_EB.pdf'%dl.plotdir)
+

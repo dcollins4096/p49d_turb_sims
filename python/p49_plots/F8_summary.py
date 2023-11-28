@@ -6,9 +6,12 @@ from GL import *
 import simulation
 reload(simulation)
 reload(sim_colors)
-def plot_summary(simlist, LOS = 'x'):
+def plot_summary(simlist, LOS = 'x',ax=None):
     
-    fig,ax=plt.subplots(1,1)
+    savefig=False
+    if ax is None:
+        fig,ax=plt.subplots(1,1)
+        savefig=True
     plotdir =  "/home/dccollins/PigPen"
 
     for sim in simlist:
@@ -23,11 +26,12 @@ def plot_summary(simlist, LOS = 'x'):
         plot=ax.scatter( the_x, the_y, **kwargs)
         ax.set(xlabel=r'$A_{BB}/A_{EE}$', ylabel=r'$\alpha_{EE}$')
 
-    colorbar=fig.colorbar(sim_colors.cbar,ax=ax)
+    colorbar=plt.colorbar(sim_colors.cbar,ax=ax)
     colorbar.set_label(sim_colors.mach_label)
     ax.axhline(-2.45,c= [0.5]*4)
     ax.axvline(0.5,c= [0.5]*4)
-    fig.tight_layout()
-    outname = '%s/summary.pdf'%dl.plotdir
-    fig.savefig(outname)
-    print(outname)
+    if savefig:
+        fig.tight_layout()
+        outname = '%s/summary.pdf'%dl.plotdir
+        fig.savefig(outname)
+        print(outname)
