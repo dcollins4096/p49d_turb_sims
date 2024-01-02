@@ -4,6 +4,84 @@ import downsample.volavg as volavg
 import filament.hessian as hessian
 import tools.pcolormesh_helper as pch
 import tools.davetools as dt
+import filament.color_games as cg
+reload(cg)
+
+def asinh(arr,sigma):
+    const=0.25
+    c0=const*np.arcsinh(np.abs(arr)/(const*sigma))
+    c0/=c0.max()
+    return c0
+def pproj(estuff,outname):
+    fig,axes=plt.subplots(4,3,figsize=(12,12))
+    scale_proj=estuff.proj
+    scale_proj-=scale_proj.min()
+    scale_proj/=scale_proj.max()
+    print(scale_proj.min(),scale_proj.max())
+    axes[0][0].imshow(cg.color_packer(scale_proj, scale_proj,scale_proj))
+    bins=np.linspace(-100,100,1000)
+    kwargs={'histtype':'step','bins':bins}
+    axes[0][1].hist( estuff.eP0f,label='eP0',color='m',**kwargs)
+    axes[0][1].hist( estuff.eP1f,label='eP1',color='c',**kwargs)
+    pch.simple_phase( estuff.eP0f, estuff.eP1f, ax=axes[0][2])
+
+
+    sigma = np.std(estuff.eP0)
+    const=0.25
+    c0=asinh(estuff.eP0,sigma)
+    c1=asinh(estuff.eP1,sigma)
+    zeros=np.zeros_like(c1)
+    axes[1][0].imshow(cg.color_packer(c0, zeros, zeros))
+    axes[1][1].imshow(cg.color_packer(zeros, c1, zeros))
+    axes[1][2].imshow(cg.color_packer(c0, c1, zeros))
+
+    paxis=0
+    print(estuff.e0.shape)
+    pe0=estuff.e0.sum(axis=paxis)
+    pe1=estuff.e1.sum(axis=paxis)
+    pe2=estuff.e2.sum(axis=paxis)
+    sigma = np.std(estuff.e1)
+    const=0.25
+    ee0=asinh(pe0,sigma)
+    ee1=asinh(pe1,sigma)
+    ee2=asinh(pe2,sigma)
+    axes[2][0].imshow(cg.color_packer(ee0, zeros, zeros))
+    axes[2][1].imshow(cg.color_packer(zeros, ee2, zeros))
+    axes[2][2].imshow(cg.color_packer(ee0, ee2, zeros))
+
+    axes[0][1].hist( pe0.flatten(),label='e0',color='r',**kwargs)
+    axes[0][1].hist( pe1.flatten(),label='e1',color='g',**kwargs)
+    axes[0][1].hist( pe2.flatten(),label='e2',color='b',**kwargs)
+
+    xx1,yy1=estuff.eP0f.flatten(), pe0.flatten()
+    xx2,yy2=estuff.eP1f.flatten(), pe2.flatten()
+    pfit1=np.polyfit(xx1,yy1,1)
+    pfit2=np.polyfit(xx2,yy2,1)
+    print("fit1",pfit1)
+    print("fit2",pfit2)
+    pch.simple_phase( xx1,yy1, ax=axes[3][0])
+    pch.simple_phase( xx2,yy2, ax=axes[3][1])
+    xi = nar([xx1.min(),xx1.max()])
+    xi2 = nar([xx2.min(),xx2.max()])
+    axes[3][0].plot( xi,pfit1[0]*xi+pfit1[1])
+    axes[3][1].plot( xi2,pfit2[0]*xi2+pfit2[1])
+    #axes[3][0].plot( xi, xi-33)
+    #axes[3][0].plot([-100,20],[-100,20])
+    #axes[3][1].plot([-25,100],[-25,100])
+    #axes[2][2].contour(Q,levels=[15])
+
+    if 1:
+        x1 = cg.color_vec(c0, [1.0,0.5,0.0])
+        x2 = cg.color_vec(ee0, [0.0,0.5,1.0])
+        axes[3][2].imshow( x1+x2)
+    if 0:
+        Q = np.abs(estuff.eP0)+np.abs(estuff.eP1)
+        Qs=asinh(Q,sigma)
+        axes[3][2].imshow( cg.color_packer(Qs,Qs,Qs))
+        axes[0][1].hist(Q.flatten(), label='Q',color='k',**kwargs)
+
+    axes[0][1].legend(loc=0)
+    fig.savefig(outname)
 
 def hist_evals(estuff, outname,bins=None):
     fig,axes=plt.subplots(1,1)
@@ -138,5 +216,21 @@ class eigen_stuff():
         self.e0f=self.evals[:,:,:,0].flatten()
         self.e1f=self.evals[:,:,:,1].flatten()
         self.e2f=self.evals[:,:,:,2].flatten()
+        self.done=True
+    def doproj(self,axis):
+        self.rho_periodic=hessian.extend_periodic(self.arr,1)
+        self.proj = self.rho_periodic.sum(axis=axis)
+        self.hess_proj = hessian.hessian(self.proj,self.dds)
+        self.evals_proj,self.evecs_proj=hessian.eigensystem(self.hess_proj)
+        hessian.sort_hessian(self.evals_proj,self.evecs_proj)
+
+        self.eP0= self.evals_proj[...,0]
+        self.eP1= self.evals_proj[...,1]
+        #self.eP2= self.evals_proj[...,2]
+        self.eP0f=self.evals_proj[...,0].flatten()
+        self.eP1f=self.evals_proj[...,1].flatten()
+        #self.eP2f=self.evals_proj[...,2].flatten()
+        print('hoot')
+
         self.done=True
 

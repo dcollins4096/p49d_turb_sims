@@ -109,7 +109,7 @@ def color_game_4(estuff,outname=None):
     ax[0][1].imshow(color_packer(zero,zero,a3))
     ax[1][1].imshow(color_packer(rho,a1,a3))
     #ax[1].imshow(color_packer(a1,a2,a3))
-    fig.savefig('%s_game3'%outname)
+    fig.savefig('%s_game4'%outname)
     plt.close(fig)
 
 
@@ -125,11 +125,13 @@ def color_game_5(estuff,outname=None):
     ax[1][0].imshow(color_packer(a1,a1,zero))
     ax[0][1].imshow(color_packer(zero,a3,a3))
     #ax[1][1].imshow(color_packer(rho,rho,ro))
-    b1 = asinh(np.abs(estuff.e1)+np.abs(estuff.e0)+np.abs(estuff.e2),sigma,0)
-    #ax[1][1].imshow( color_packer(b1,zero,b1))
-    #ax[1][1].hist(b1.flatten())
-    mask=(b1>0.4)*(mslice(estuff.e0,0)<0)*(mslice(estuff.e1,0)<0)
-    #mask = (0wi
+    if 0:
+        b1 = asinh(np.abs(estuff.e1)+np.abs(estuff.e0)+np.abs(estuff.e2),sigma,0)
+        mask=(b1>0.4)*(mslice(estuff.e0,0)<0)*(mslice(estuff.e1,0)<0)
+    if 1:
+        b1 = asinh(np.abs(estuff.e1)+np.abs(estuff.e0)+np.abs(estuff.e2),sigma,0)
+        mask=(b1>0.4)*(mslice(estuff.e0,0)<0)*(mslice(estuff.e1,0)<0)
+
     ok = rho * mask
     img = color_packer(ok,ok,zero)
     img[~mask.transpose()]=[1,1,1]
@@ -143,7 +145,36 @@ def color_game_5(estuff,outname=None):
 
     #ax[1][1].imshow(color_packer(rho,a1,a3))
     #ax[1].imshow(color_packer(a1,a2,a3))
-    fig.savefig('%s_game3'%outname)
+    fig.savefig('%s_game5'%outname)
+    plt.close(fig)
+
+
+def color_game_6(estuff,outname=None):
+    fig,ax=plt.subplots(2,2,figsize=(8,8))
+    sigma = estuff.e1.std()
+    rho = shift(estuff.arr,0)
+    e1p=np.zeros_like(estuff.e1)
+    e1m=np.zeros_like(estuff.e1)
+    e1p[estuff.e1>0]=estuff.e1[estuff.e1>0]
+    e1m[estuff.e1<0]=estuff.e1[estuff.e1<0]
+    #a1 = asinh(estuff.e0,sigma,0)
+    #a2 = asinh(estuff.e1,sigma,0)
+    #a3 = asinh(estuff.e2,sigma,0)
+    a1p = asinh(e1p,sigma,projax)
+    a1m = asinh(e1m,sigma,projax)
+    zero=np.zeros_like(a1p)
+
+    #ax[0][0].imshow(color_packer(a1p,a1p,zero))
+    #ax[0][1].imshow(color_packer(zero,a1m,a1m))
+    #ax[1][1].imshow(color_packer(a1p,a1m,zero))
+    v1 = color_vec( a1p, [1,0.5,0])
+    v2 = color_vec( a1m, [0,0.5,1])
+    ax[0][0].imshow(v1)
+    ax[0][1].imshow(v2)
+    ax[1][0].imshow(v1+v2)
+
+
+    fig.savefig('%s_game6'%outname)
     plt.close(fig)
 
 
