@@ -123,7 +123,8 @@ def plot_amps(simlist, LOS='y', use_alf=False):
             ax[2][0].set_xlabel(r'$M_{\rm{s}}$')
             ax[2][1].set_xlabel(r'$M_{\rm{A}}$')
         else:
-            ax[nf].axhline( 0.5, c=[0.5]*4)
+            if nf == 2:
+                ax[2].axhline( 0.5, c=[0.5]*4)
             ax[2].set_xlabel(r'$M_{\rm{s}}$')
 
 

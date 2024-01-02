@@ -28,7 +28,9 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             frb_name = "%s/DD%04d.products/DD%04d_%s%s.fits"%(this_sim.product_location,frame,frame,field,LOS)
             arr = pyfits.open(frb_name)[0].data
             if is_density:
-                arr=np.log(arr)
+                pass
+                #arr=np.log(arr)
+
             if no_mean:
                 arr-=arr.mean()
             array_array.append(arr)
@@ -46,7 +48,7 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             label=r'$%s,%s$'%(hhh(MMM),hhh(AAA))
 
             this_sim = simulation.corral[name]
-            norm = mpl.colors.SymLogNorm(linthresh = 0.1, vmin=-1.1,vmax=1.1)
+            norm = mpl.colors.SymLogNorm(linthresh = 0.1, vmin=-1.1,vmax=1.1, base=np.e)
             thax=axes[nm][na]
             arr=array_array[nplot]
             nplot+=1
@@ -63,7 +65,7 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             thax.set(xticks=[],yticks=[])
             thax.text(50,70,label,c=text_color, bbox={'boxstyle':'round','ec':edge_color, 'fc':box_color})
     cb=fig.colorbar(plot, cax=ccc)
-    outname='%s/proj_%s'%(dl.plotdir,field)
+    outname='%s/proj_%s.pdf'%(dl.plotdir,field)
     fig.savefig(outname)
     print(outname)
 

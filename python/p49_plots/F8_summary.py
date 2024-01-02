@@ -28,8 +28,8 @@ def plot_summary(simlist, LOS = 'x',ax=None):
 
     colorbar=plt.colorbar(sim_colors.cbar,ax=ax)
     colorbar.set_label(sim_colors.mach_label)
-    ax.axhline(-2.45,c= [0.5]*4)
-    ax.axvline(0.5,c= [0.5]*4)
+    ax.axhline(sim_colors.planck_E_slope,c= [0.5]*4)
+    ax.axvline(sim_colors.planck_ratio,c= [0.5]*4)
     if savefig:
         fig.tight_layout()
         outname = '%s/summary.pdf'%dl.plotdir

@@ -43,6 +43,9 @@ def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
             title_dict['ClTTy']=r'$C_k^{TT}$'
             title_dict['ClBBy']=r'$C_k^{BB}$'
             title_dict['ClEEy']=r'$C_k^{EE}$'
+            title_dict['ClTTx']=r'$C_k^{TT}$'
+            title_dict['ClBBx']=r'$C_k^{BB}$'
+            title_dict['ClEEx']=r'$C_k^{EE}$'
             #ylabel= r"$k^{%s}$\ "%repr(comp_exp) + title_dict[prod]  
             ylabel= r"$k^{%s}$ "%comp_label + title_dict[prod]  
             thax.set(xscale='log',yscale='log',xlabel='k',ylabel=ylabel, ylim=limits[short_prod])

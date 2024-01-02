@@ -180,8 +180,6 @@ def plot_spectra(simlist,LOS='y'):
             axlist[nf  ].plot(xvals, this_sim.avg_spectra[field], c=this_sim.color, linestyle=this_sim.linestyle)
 
             fitrange = this_sim.get_fitrange(xvals)
-            axlist[nf].axvline(fitrange[0], c=[0.5]*4,linewidth=0.1)
-            axlist[nf].axvline(fitrange[1], c=[0.5]*4,linewidth=0.1)
 
     for a in axlist:
         a.set(xscale='log',yscale='log')
@@ -189,6 +187,8 @@ def plot_spectra(simlist,LOS='y'):
         a.set_yscale('linear')
         a.set_ylim([-.25,.25])
         a.axhline(0,c=[0.5]*4)
+        a.axvline(fitrange[0], c=[0.5]*4)
+        a.axvline(fitrange[1], c=[0.5]*4)
         #a.set_ylim([-10,10])
     axlist[0].set_ylim([-1,1])
     for a in axlist:
@@ -305,6 +305,8 @@ def plot_machmean(simlist,LOS='y'):
     axlist=ax.flatten()
 
     ext=dt.extents()
+    from collections import defaultdict
+    rte_collector=defaultdict(list)
     for nf,field in enumerate(['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]):
         collector=[]
         for sim in simlist:
@@ -327,14 +329,21 @@ def plot_machmean(simlist,LOS='y'):
             #axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
             axlist[nf].scatter(this_sim.Ms_mean,mean, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
             axlist[nf].set(xlabel=sim_colors.mach_label, ylabel=label)
+            rte_collector[field].append(mean)
 
             if nf>0:
                 ext(mean)
             collector.append(mean)
 
-            fid_line=[0.355,0.05,None][nf]
-            if fid_line is not None:
-                axlist[nf].axhline(fid_line,c=[0.5]*3,linewidth=0.1)
+    for f in rte_collector:
+        print(f)
+        rte=nar(rte_collector[f])
+        print(rte.mean())
+        print(rte.std())
+    for nf in [0,1,2]:
+        fid_line=[0.355,0.05,None][nf]
+        if fid_line is not None:
+            axlist[nf].axhline(fid_line,c=[0.5]*4)
 
     for naa,a in enumerate(axlist):
         #dt.axbonk(a,xscale='log',yscale='log',xlabel=None,ylabel=None)

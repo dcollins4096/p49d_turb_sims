@@ -40,8 +40,8 @@ def fit_all(simlist,do_plot=False, fit34=3):
     bilinear.write_tex( herd, '%s/table1.tex'%dl.plotdir, field_order)
 
     #predict
-    truth = {'ClEEy_s':-2.4, 'ClBBy_s':-2.5, 'ClTTy_s':-2.6}
-    truth = {'ClEEy_s':-2.4, 'ClBBy_s':-2.5}#, 'ClTTy_s':-2.6}
+    truth = {'ClEEy_s':sim_colors.planck_E_slope, 'ClBBy_s':sim_colors.planck_B_slope, 'ClTTy_s':-2.6}
+    truth = {'ClEEy_s':sim_colors.planck_E_slope, 'ClBBy_s':sim_colors.planck_B_slope}#, 'ClTTy_s':-2.6}
     truth_fields=truth.keys()
 
     print('real values')

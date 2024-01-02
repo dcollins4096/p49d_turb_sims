@@ -7,11 +7,13 @@ import simulation_info.all_sims
 def plot_slopes(sim_list, prim_or_teb='prim', axis='y'):
 
     do_prim=False;do_TEB=False;do_amp=False;do_slope=False;do_log=False
+    do_ma=False;
     if prim_or_teb == 'prim':
         product_list = ['density','velocity','magnetic']
         axis_label=""
         do_prim=True
         S1,S2,S3=r'\rho','v','H'
+        do_ma=True
     else:
         product_list = ['ClTT'+axis,'ClEE'+axis,'ClBB'+axis]
         axis_label="_%s"%axis
@@ -32,9 +34,8 @@ def plot_slopes(sim_list, prim_or_teb='prim', axis='y'):
         ms = this_sim.Ms_mean
         ma = this_sim.Ma_mean
         for nf, field in enumerate(product_list):
-            if nf < 2:
-                x = ms
-            elif nf == 2:
+            x = ms
+            if nf == 2 and do_ma:
                 x = ma
 
             y = this_sim.slopesA[field]
@@ -49,12 +50,17 @@ def plot_slopes(sim_list, prim_or_teb='prim', axis='y'):
             if do_log and y<0:
                 pdb.set_trace()
             ext(y)
+    axes[1].axhline(sim_colors.planck_E_slope,c=[0.5]*4)
+    axes[2].axhline(sim_colors.planck_B_slope,c=[0.5]*4)
     axes[0].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S1))
     axes[1].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S2))
     axes[2].set_ylabel(r'$%s_{\rm{%s}}$'%(Aalpha,S3))
     axes[0].set_xlabel(r'$M_{\rm{s}}$')
     axes[1].set_xlabel(r'$M_{\rm{s}}$')
-    axes[2].set_xlabel(r'$M_{\rm{A}}$')
+    if do_ma:
+        axes[2].set_xlabel(r'$M_{\rm{A}}$')
+    else:
+        axes[2].set_xlabel(r'$M_{\rm{S}}$')
     axislabel=''
     if prim_or_teb=='teb':
         axislabel='_%s'%axis

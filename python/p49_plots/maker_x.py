@@ -29,30 +29,21 @@ for ns, sim in enumerate(sim_list):
 
 proj_cmap = 'plasma'
 #proj_cmap = 'cool'
-F1.proj(field='density_',LOS='y', cmap=proj_cmap)
-#F1.proj(field='E',LOS='y', no_mean=True, cmap=proj_cmap)
-#F1.proj(field='B',LOS='y', cmap=proj_cmap)
-#F2.nom(sim_list)
-#F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
-#F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
-##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
-##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
-##F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='slopes', axis='y')
-##F4.plot_amps_slopes(sim_list, prim_or_teb='teb',amps_or_slopes='amps', axis='y')
-#F4.plot_slopes(sim_list, prim_or_teb='prim')
-F4.plot_slopes(sim_list, prim_or_teb='teb')
-#F4.plot_slopes(sim_list, prim_or_teb='teb', axis='x')
-#F6.plot_ratios(sim_list, LOS='y')
-#F6.plot_amps(sim_list,LOS='y')
-#F7.plot_spectra(sim_list,LOS='y')
-#F7.plot_machmean(sim_list,LOS='y')
-#F8.plot_summary(sim_list, LOS='y')
+F1.proj(field='density_',LOS='x', cmap=proj_cmap)
+F1.proj(field='E',LOS='x', no_mean=True, cmap=proj_cmap)
+F1.proj(field='B',LOS='x', cmap=proj_cmap)
+F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='x')
+F4.plot_slopes(sim_list, prim_or_teb='teb', axis='x')
+F6.plot_ratios(sim_list, LOS='x')
+F6.plot_amps(sim_list,LOS='x')
+F7.plot_spectra(sim_list,LOS='x')
+F7.plot_machmean(sim_list,LOS='x')
+F8.plot_summary(sim_list, LOS='x')
 #F9.fit_all(sim_list)
 
-if 0:
-    import F13_density_pdf as F13
-    reload(F13)
-    F13.plot_pdf(sim_list)
+#import F13_density_pdf as F13
+#reload(F13)
+#F13.plot_pdf(sim_list)
 
 if 0:
     fig,ax=plt.subplots(2,1, figsize=(4,8))
