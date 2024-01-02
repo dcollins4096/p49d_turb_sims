@@ -258,6 +258,7 @@ class sim():
 
         self.pdfs = {}
         self.avg_pdf={}
+        self.cbins={}
         for field in fields:
             if field not in self.pdfs:
                 self.pdfs[field]={}
@@ -280,6 +281,7 @@ class sim():
                     avg_pdf = hist + avg_pdf
                     Npdf+=1
             self.avg_pdf[field]=avg_pdf/Npdf
+            self.cbins[field]=cbins
 
 
 
