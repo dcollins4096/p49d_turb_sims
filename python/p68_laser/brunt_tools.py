@@ -1,7 +1,7 @@
 
 from starter1 import *
 import yt
-from dtools import volavg
+from downsample import volavg
 import fourier_tools_py3.fourier_filter as Filter
 
 class shell_average():
@@ -98,6 +98,7 @@ def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
     ax.plot(ftool.k3d[mask],          ftool.power_1d3.real[mask],c='g', label='P3d')
     ax.plot(ftool.k2d[mask],ftool.k2d[mask]*ftool.power_1d2.real[mask],c='b', label = 'k P2d')
     ax.set(xscale='log',yscale='log')
+    ax.legend(loc=1)
     error = 1-ftool.sigma_Brunt/ftool.sigma_x3d
     text_x=0.05
     text_y=0.3
