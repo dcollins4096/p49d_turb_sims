@@ -1,18 +1,16 @@
 from GL import *
 import yt
-import sim_colors
 import downsampler as DOON
 reload(DOON)
+import simulation
+import simulation_info.all_sims as all_sims
 
-counter=0
-for sim in sim_colors.simlist:
-    for frame in sim_colors.frames[sim]:
-        counter += 1
-        source_fname = "%s/%s/DD%04d/data%04d"%(sim_colors.cloudbreak_base, sim, frame, frame)
-        if not os.path.exists(source_fname):
-            continue
-        dir_128 =  "%s/%s/DD%04d/"%(sim_colors.cloudbreak_128, sim, frame)
-        print(source_fname)
+sim_list=all_sims.lists['suite1']
+for sim in sim_list:
+    this_sim = simulation.corral[sim]
+    for frame in this_sim.ann_frames[-1:]:
+        base_dir="/data/cb1/Share/MHDTurbulence"
+        dir_128 =  "%s/%s/"%(base_dir, sim)
         already_got_this_dir=False
         if not os.path.exists( dir_128 ):
             os.mkdir( dir_128 )
@@ -20,12 +18,24 @@ for sim in sim_colors.simlist:
             already_got_this_dir=True
 
         #Maybe we want do not repeat ourselves.
-        if already_got_this_dir:
+        #if already_got_this_dir:
+        #    continue
+
+        dest_fname = "%s/data%04d.cube.h5"%(dir_128,frame)
+        if os.path.exists(dest_fname):
             continue
 
-        dest_fname = "%s/%s/DD%04d/data%04d.cube.h5"%(sim_colors.cloudbreak_128, sim, frame, frame)
-        ds = yt.load(source_fname)
-        DOON.downsample_and_write(ds,dest_fname)
-        print(ds)
+        ds = this_sim.load_ds(frame)
+        #DOON.downsample_and_write(ds,dest_fname, refine_by=1, write_hdf5=True,write_fits=False)
+        cg = ds.covering_grid(0,[0.0]*3,ds.domain_dimensions)
+        fptr = h5py.File(dest_fname,"w")
+        for in_field_name in ['Density',
+                              'x-velocity','y-velocity','z-velocity',
+                              'Bx','By','Bz']: #['Density','x-velocity','y-velocity','z-velocity','BxF','ByF','BzF']:
+            print("Read %s"%in_field_name)
+            field_to_store = cg[in_field_name]
+            print("Write %s"%in_field_name)
+            fptr.create_dataset(in_field_name, data=field_to_store)
+        fptr.close()
 
 

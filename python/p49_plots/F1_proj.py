@@ -5,17 +5,24 @@ import simulation
 import tight_plots
 reload(tight_plots)
 
-def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
+def proj(field='density_',LOS='y', cmap="winter",no_mean=True, group=1):
 
     is_density=False
     if field=='density_':
         is_density=True
 
-    MACHS = ['half','3','6']
-    ALF   = ['half','1','2']
+    if group==1:
+        MACHS = ['half','3','6']
+        ALF   = ['half','1','2']
+        suffix=""
+    else:
+        MACHS = ['4', '4']
+        ALF   = ['half','1','2']
+        suffix="_Mach4"
 
 
-    fig,axes,ccc = tight_plots.fig_squares(len(MACHS),len(ALF))
+
+    fig,axes,ccc = tight_plots.fig_squares(len(ALF),len(MACHS))
 
     array_array=[]
     ext=dt.extents()
@@ -25,7 +32,11 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             this_sim = simulation.corral[name]
 
             frame = this_sim.ann_frames[-1]
-            frb_name = "%s/DD%04d.products/DD%04d_%s%s.fits"%(this_sim.product_location,frame,frame,field,LOS)
+            this_los = LOS
+            if LOS == 'xy':
+                this_los = 'xy'[nm]
+            print("LOS",nm)
+            frb_name = "%s/DD%04d.products/DD%04d_%s%s.fits"%(this_sim.product_location,frame,frame,field,this_los)
             arr = pyfits.open(frb_name)[0].data
             if is_density:
                 pass
@@ -46,6 +57,9 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
         for na, AAA in enumerate(ALF):
             name = "%s_%s"%(MMM,AAA)
             label=r'$%s,%s$'%(hhh(MMM),hhh(AAA))
+            if group==2:
+                label += r'$,\hat{%s}$'%LOS[nm]
+
 
             this_sim = simulation.corral[name]
             norm = mpl.colors.SymLogNorm(linthresh = 0.1, vmin=-1.1,vmax=1.1, base=np.e)
@@ -65,7 +79,7 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True):
             thax.set(xticks=[],yticks=[])
             thax.text(50,70,label,c=text_color, bbox={'boxstyle':'round','ec':edge_color, 'fc':box_color})
     cb=fig.colorbar(plot, cax=ccc)
-    outname='%s/proj_%s.pdf'%(dl.plotdir,field)
+    outname='%s/proj_%s%s.pdf'%(dl.plotdir,field,suffix)
     fig.savefig(outname)
     print(outname)
 

@@ -50,10 +50,6 @@ class sim():
         f0 = xvals[4]
         f1 = xvals[25]
         return [f0,f1]
-    def load_ds(self,frame):
-        ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
-        ds=yt.load(ds_name)
-        return ds
     def return_queb3_package(self):
         package=queb3.simulation_package( directory=self.data_location,frames=self.all_frames,
                                                                          product_directory=self.product_location, simname=self.name)
@@ -65,12 +61,32 @@ class sim():
             if dir_nums[0]==0:
                 dir_nums.pop(0)
         return dir_nums
+    def load_ds(self,frame):
+        ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
+        ds=yt.load(ds_name)
+        return ds
     def load(self):
         self.read_avg_quan()
         self.read_all_spectra()
         self.compute_pearson()
         self.average_spectra()
         self.fit_all_spectra()
+    def load_spectra_tensor(self):
+        fname = "%s/slope_tensor.h5"%self.product_location
+        h5ptr=h5py.File(fname,'r')
+        self.slope_lefts=h5ptr['lefts'][()]
+        self.slope_rights=h5ptr['rights'][()]
+        self.slope_frames=h5ptr['frames'][()]
+        self.slope_tensor={}
+        self.slope_mean={}
+        self.slope_std={}
+        for field in h5ptr:
+            if field in ['lefts','rights','frames']:
+                continue
+            self.slope_tensor[field]=h5ptr[field][()]
+            self.slope_mean[field]=self.slope_tensor[field].mean()
+            self.slope_std[field]=self.slope_tensor[field].std()
+
 
     def fit_all_spectra(self):
         if self.all_spectra is None:

@@ -328,6 +328,7 @@ def plot_machmean(simlist,LOS='y'):
                 ec=None
             #axlist[nf].scatter(np.abs(mean),std, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
             axlist[nf].scatter(this_sim.Ms_mean,mean, c=[this_sim.color],marker=this_sim.marker,edgecolor=ec, s=this_sim.marker_size*20)
+            axlist[nf].errorbar(this_sim.Ms_mean,mean, yerr=std, c=this_sim.color)
             axlist[nf].set(xlabel=sim_colors.mach_label, ylabel=label)
             rte_collector[field].append(mean)
 
@@ -365,7 +366,7 @@ def plot_machmean(simlist,LOS='y'):
 #        a.set_ylabel(r'$r_{XY}$')
 #        a.set_yticks([-1,-0.1,-0.01,0.01,0.1,1])
 
-    outname = '%s/mach_mean_rXY.pdf'%dl.plotdir
+    outname = '%s/mach_mean_rXY_%s.pdf'%(dl.plotdir,LOS)
     fig.tight_layout()
     fig.savefig(outname)
     print(outname)
