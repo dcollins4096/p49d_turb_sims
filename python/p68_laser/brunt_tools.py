@@ -47,6 +47,14 @@ def plot_fft(ftool, outname=None,ax=None):
     if ftool.done3:
         ax.plot(ftool.k3d, ftool.power_1d3.real,c='g', label='P3d')
 
+    if 1:
+        TheX = ftool.k3d
+        TheY = ftool.power_1d3.real
+        ok = (TheX>0)*(TheY>0)
+        pfit = np.polyfit( np.log(TheX[ok]), np.log(TheY[ok]), 1)
+        print(pfit)
+        print(pfit/2.7)
+
     if ftool.done2 and ftool.done3:
         ax.plot(ftool.k2d,ftool.k2d*ftool.power_1d2.real,c='b', label = 'k P2d')
     if savefig:
