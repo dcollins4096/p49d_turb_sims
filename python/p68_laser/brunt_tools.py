@@ -43,9 +43,11 @@ def plot_fft(ftool, outname=None,ax=None):
         savefig=True
         fig,ax=plt.subplots(1,1)
     if ftool.done2:
-        ax.plot(ftool.k2d, ftool.power_1d2.real,c='r', label='P2d')
+        q = ftool.power_1d2.real
+        ax.plot(ftool.k2d, q/q[4],c='r', label='P2d')
     if ftool.done3:
-        ax.plot(ftool.k3d, ftool.power_1d3.real,c='g', label='P3d')
+        q=ftool.power_1d3.real
+        ax.plot(ftool.k3d, q/q[4],c='g', label='P3d')
 
     if 1:
         TheX = ftool.k3d
@@ -56,7 +58,8 @@ def plot_fft(ftool, outname=None,ax=None):
         print(pfit/2.7)
 
     if ftool.done2 and ftool.done3:
-        ax.plot(ftool.k2d,ftool.k2d*ftool.power_1d2.real,c='b', label = 'k P2d')
+        q=ftool.k2d*ftool.power_1d2.real
+        ax.plot(ftool.k2d,q/q[4],c='b', label = 'k P2d')
     if savefig:
         ax.legend(loc=0)
 

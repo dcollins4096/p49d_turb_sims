@@ -8,22 +8,22 @@ reload(bt)
 import slabimg
 reload(slabimg)
 
-
-L=-0.5; R=0.5; Dx=0.01
-x,y,z = np.mgrid[L:R:Dx,L:R:Dx, L:R:Dx]
-r2=x**2+y**2+z**2
-r = np.sqrt(r2)
-thing = np.zeros_like(r)
-ok=r>0
-thing[ok] = r[ok]**(-1.5)
-thing[~ok]==1
-thing=np.roll(thing, thing.shape[0]//2, axis=0)
-thing=np.roll(thing, thing.shape[1]//2, axis=1)
-thing=np.roll(thing, thing.shape[2]//2, axis=2)
-thing[:,:,:]=0
-thing[5,:,:]=1
-
-Q = np.fft.irfftn(thing[:,:,:thing.shape[2]//2+1])
+N = 128
+L=-0.5; R=0.5; Dx=1/N
+kI = np.fft.fftfreq(N)*N
+kx,ky,kz=np.meshgrid(kI,kI,kI)
+r2 = kx**2+ky**2+kz**2
+Ahat = np.zeros_like(r2*1j)
+ok = r2>0
+Ahat[ok]=r2[ok]**-1.5
+if 0:
+    phi = np.random.random(Ahat.size)
+    phi.shape = Ahat.shape
+    Ahatmag = np.abs(Ahat)
+    Ahat = Ahatmag*np.cos(phi)+Ahatmag*np.sin(phi)*1j
+H = Ahat.shape[0]//2
+Ahat = Ahat[:,:H+1]
+Q = np.fft.irfftn(Ahat)
 #fig,axes=plt.subplots(2,2)
 #ax0=axes[0][0]
 
@@ -35,3 +35,6 @@ ftool.do3()
 ftool.do2(projax=0)
 bt.plot_fft(ftool, outname ='plots_to_sort/cone')
 slabimg.plot_fft(ftool, outname = "plots_to_sort/cone_fft")
+if 'slab' not in dir():
+    slab=slabimg.slab(ftool, projax=0)
+slabimg.number_checker(ftool, outname = "plots_to_sort/cone_number")
