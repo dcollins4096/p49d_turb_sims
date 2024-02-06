@@ -3,11 +3,13 @@ from starter1 import *
 import yt
 from downsample import volavg
 import fourier_tools_py3.fourier_filter as Filter
+import tools.davetools as dt
 
 class shell_average():
     def __init__(self,power):
         self.power=power
-        ff = Filter.FourierFilter(self.power)
+        self.ff = Filter.FourierFilter(self.power)
+        ff=self.ff
         self.power_1d = np.array([self.power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
         self.Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
         self.kd=ff.get_shell_k()
@@ -39,31 +41,36 @@ def get_cubes(sim,frame,do_rho_4=False):
 
 def plot_fft(ftool, outname=None,ax=None):
     savefig=False
+    ext=dt.extents()
     if ax is None:
         savefig=True
         fig,ax=plt.subplots(1,1)
     if ftool.done2:
-        q = ftool.power_1d2.real
-        ax.plot(ftool.k2d, q/q[4],c='r', label='P2d')
+        q = ftool.power_1d2.real[1:]
+        ax.plot(ftool.k2d[1:], q/q[4],c='r', label='P2d')
+        ext(q/q[4],positive=True)
     if ftool.done3:
-        q=ftool.power_1d3.real
-        ax.plot(ftool.k3d, q/q[4],c='g', label='P3d')
+        q=ftool.power_1d3.real[1:]
+        ax.plot(ftool.k3d[1:], q/q[4],c='g', label='P3d')
+        ext(q/q[4],positive=True)
 
     if 1:
         TheX = ftool.k3d
         TheY = ftool.power_1d3.real
         ok = (TheX>0)*(TheY>0)
         pfit = np.polyfit( np.log(TheX[ok]), np.log(TheY[ok]), 1)
-        print(pfit)
-        print(pfit/2.7)
+        print("3d fit index",pfit)
 
     if ftool.done2 and ftool.done3:
-        q=ftool.k2d*ftool.power_1d2.real
-        ax.plot(ftool.k2d,q/q[4],c='b', label = 'k P2d')
+        q=ftool.k2d[1:]*ftool.power_1d2.real[1:]
+        ax.plot(ftool.k2d[1:],q/q[4],c='b', label = 'k P2d')
+        ext(q/q[4],positive=True)
     if savefig:
         ax.legend(loc=0)
+        ax.set(ylim=ext.minmax)
 
         ax.set(yscale='log',xscale='log')
+        print("SAVE",outname)
         fig.savefig(outname)
 
 def plot_fft2(ftool, outname=None):
@@ -180,26 +187,11 @@ def sigmas_range(self, fitrange):
     #Rinv_actual = (self.power_1d3[1:].sum()/Nz)/(self.power_1d2[1:].sum()/N2d)
     self.Rinv_actual = (self.sigma_k3d/self.sigma_k2d).real
     self.sigma_Brunt = (self.sigma_x2d*self.Rinv).real
-    sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
+    self.sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
 
     R1 =self.sigma_Brunt/self.sigma_x3d
     R2 = self.sigma_Brunt_actual/self.sigma_x3d
 
-if 0:
-    N2d = ftool.rho2.size
-    mean_column = ftool.rho2.sum()/N2d
-    sigma_col = ((ftool.rho2-mean_column)**2).sum().real/N2d
-    sigma_2d_fft = ftool.power_1d2[mask].sum().real/N2d
-    #print("col %0.2e fft %0.2e ratio %0.2e"%(sigma_col, sigma_2d_fft, sigma_col/sigma_2d_fft))
-    Rinv = (( ftool.k2d*ftool.power_1d2)[mask].sum()/Nz)/((ftool.power_1d2)[mask].sum()/N2d)
-    Rinv_actual = (ftool.power_1d3[mask].sum()/Nz)/(ftool.power_1d2[mask].sum()/N2d)
-    sigma_Brunt = (sigma_col*Rinv).real
-    sigma_Brunt_actual = (sigma_col*Rinv_actual).real
-    #print("Brunt", sigma_Brunt/sigma_rho)
-    #print("One", sigma_Brunt_actual/sigma_rho)
-
-    R1 =sigma_Brunt/sigma_rho
-    R2 = sigma_Brunt_actual/sigma_rho
 
 class fft_tool():
     def __init__(self,rho):

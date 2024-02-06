@@ -51,7 +51,6 @@ if 0:
 if 1:
     for sim in ['6_2','half_half']:
         outname = "%s/proj_%s"%(plotdir,sim)
-
         slabimg.plot_fft(reg[sim].ftool,outname=outname)
 
 

@@ -7,16 +7,20 @@ import os.path
 import tarfile
 import h5py
 class extents():
-    def __init__(self, array=None):
+    def __init__(self, array=None,positive=False):
         self.minmax=[]
         self.errors=[]
         if array is not None:
             self(array)
 
-    def __call__(self,array):
+    def __call__(self,array, positive=False):
         if hasattr(array,'min'):
-            the_min=array.min()
-            the_max=array.max()
+            if not positive:
+                the_min=array.min()
+                the_max=array.max()
+            else:
+                the_min = array[array>0].min()
+                the_max = array.max()
         else:
             the_min=min(array)
             the_max=max(array)

@@ -39,8 +39,9 @@ def plot_fft(self, outname="./ploot"):
 
 
 
-        #norm = mpl.colors.LogNorm(vmin=ext.minmax[0],vmax=ext.minmax[1])
-        norm = mpl.colors.Normalize(vmin=ext.minmax[0],vmax=ext.minmax[1])
+        norm = mpl.colors.LogNorm(vmin=ext.minmax[0],vmax=ext.minmax[1])
+        #norm = mpl.colors.Normalize(vmin=ext.minmax[0],vmax=ext.minmax[1])
+        print(norm)
 
 
         axlist[0].imshow(fx[0],norm=norm, origin='lower', interpolation='nearest')
@@ -62,6 +63,7 @@ def slab(self,projax=0):
     ff = Filter.FourierFilter(self.power)
     nx,ny,nz=self.power.shape
     print(nx,ny,nz)
+    pdb.set_trace()
     self.slab_spectrum = []
     my_coord = ff._kk[projax]
 
@@ -117,26 +119,28 @@ def plot(ftool,outname="./plot"):
     fig, axes=plt.subplots(2,2)
     ax0=axes[0][0];ax1=axes[0][1];ax2=axes[1][0];ax3=axes[1][1]
         
-    q=ftool.power_1d2.real
-    ax0.plot(ftool.k2d, q/q[20],c='r', label='P2d')
-    q=ftool.slab_spectrum[0].real*128*10
-    ax0.plot(ftool.k2d, q/q[20], label='P3d(k=0)')
-    q=ftool.power_1d3.real/ftool.k3d
-    ax0.plot(ftool.k3d, q/q[20], c='g', label='p3d/k')
-    q=ftool.power_1d3.real
-    ax0.plot(ftool.k3d, q/q[20], 'g--', label='p3d')
+    sl=slice(1,None)
+    q=ftool.power_1d2.real[sl]
+    ax0.plot(ftool.k2d[sl], q/q[20],c='r', label='P2d')
+    q=(ftool.slab_spectrum[0].real*128*10)[sl]
+    ax0.plot(ftool.k2d[sl], q/q[20], label='P3d(k=0)')
+    q=(ftool.power_1d3.real/ftool.k3d)[sl]
+    ax0.plot(ftool.k3d[sl], q/q[20], c='g', label='p3d/k')
+    q=ftool.power_1d3.real[sl]
+    ax0.plot(ftool.k3d[sl], q/q[20], 'g--', label='p3d')
     ax0.legend(loc=0)
     slab = np.array(ftool.slab_spectrum)
-    ax1.plot(ftool.k3d, ftool.power_1d3.real, c='g',label='p3d')
-    ax1.plot(ftool.k3d, slab.sum(axis=0).real, label=r'$\sum P3d(k=k)$')
+    ax1.plot(ftool.k3d[sl], ftool.power_1d3.real[sl], c='g',label='p3d')
+    ax1.plot(ftool.k3d[sl], slab.sum(axis=0).real[sl], label=r'$\sum P3d(k=k)$')
     ax1.legend(loc=0)
-    ax2.plot(ftool.k3d, ftool.power_1d3.real, c='g',label='p3d')
-    ax2.plot(ftool.k3d, slab[1:,:].sum(axis=0).real, c='r',label='P3d(k>0)')
-    ax2.plot(ftool.k3d, slab[0:1,:].sum(axis=0).real, label='P3d(k==0)')
+    ax2.plot(ftool.k3d[sl],ftool.power_1d3.real[sl], c='g',label='p3d')
+    ax2.plot(ftool.k3d[sl],slab[1:,:].sum(axis=0).real[sl], c='r',label='P3d(k>0)')
+    ax2.plot(ftool.k3d[sl],slab[0:1,:].sum(axis=0).real[sl], label='P3d(k==0)')
     ax2.legend(loc=0)
-    ax3.plot(ftool.k3d, ftool.power_1d3.real, c='g',label='p3d')
+    ax3.plot(ftool.k3d[sl], ftool.power_1d3.real[sl], c='g',label='p3d')
     for kz in range(slab.shape[0]):
         ok = slab[kz,:]>0
+        ok[0]=False
         c=[0.5]*4
         if kz == 0:
             c = 'k'

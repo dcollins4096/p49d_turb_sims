@@ -34,6 +34,7 @@ if 0:
     bt.plot_brunt(ftool, outname=outname,method='norm')
 
 if 1:
+    plotdir="./plots_to_sort"
     outname="%s/fft_range_%s_n%04d"%(plotdir,sim,frame)
     bt.plot_brunt(ftool, outname=outname,method='range', fitrange=[4,25])
 
