@@ -39,6 +39,47 @@ def get_cubes(sim,frame,do_rho_4=False):
 
     return output
 
+def fake_powerlaw(N,alphaT,kslice,Amplitude=1,phase=False, rando=False):
+    kI = np.fft.fftfreq(N)
+    kx,ky,kz=np.meshgrid(kI,kI,kI)
+    rrr = np.sqrt(kx**2+ky**2+kz**2)
+    Ahat = np.zeros_like(rrr*1j)
+    k = np.unique(np.abs(kx))
+    if kslice is not None:
+        rmin = k[kslice].min()
+        rmax = k[kslice].max()
+    else:
+        rmin=0
+        rmax=rrr.max()
+    ok = (rrr>rmin)*(rrr<=rmax)
+    print(ok.sum()/ok.size)
+    ok_r=ok
+
+    #alphaT is total power. 2 makes a flat power
+    alphaV=alphaT-2 #alphaV is volume avg power.
+    alphaprime=(alphaT-2)/2
+    Ahat[ok]=Amplitude*rrr[ok]**alphaprime
+    #Ahat -= Ahat.min()-4
+    print('BACON',Ahat.min())
+    if rando:
+        rando=np.random.random(Ahat.size)
+        rando.shape=Ahat.shape
+        Ahat *= rando
+    Ahat[0,0,0] =100*Ahat.max()
+    #Ahat=np.ones([N,N,N])
+    if phase:
+        phi = (np.random.random(Ahat.size)-0.5)*np.pi*2
+        phi.shape = Ahat.shape
+        print('PHI',phi.min(),phi.max())
+        Ahatmag = np.abs(Ahat)
+        Ahat = Ahatmag*np.cos(phi)+Ahatmag*np.sin(phi)*1j
+        Ahat[0,0,0] = np.abs(Ahat[0,0,0])
+    H = Ahat.shape[0]//2
+    Atotal=Ahat
+    Ahat = Ahat[:,:,:H+1]
+    Q = np.fft.irfftn(Ahat)
+    return Q
+
 def plot_fft(ftool, outname=None,ax=None):
     savefig=False
     ext=dt.extents()
@@ -47,12 +88,18 @@ def plot_fft(ftool, outname=None,ax=None):
         fig,ax=plt.subplots(1,1)
     if ftool.done2:
         q = ftool.power_1d2.real[1:]
-        ax.plot(ftool.k2d[1:], q/q[4],c='r', label='P2d')
-        ext(q/q[4],positive=True)
+        ext(q)
+        ax.plot(ftool.k2d[1:], q,c='r', label='P2d')
+        ext(q,positive=True)
     if ftool.done3:
         q=ftool.power_1d3.real[1:]
-        ax.plot(ftool.k3d[1:], q/q[4],c='g', label='P3d')
-        ext(q/q[4],positive=True)
+        ax.plot(ftool.k3d[1:], q,c='g', label='P3d')
+        ext(q,positive=True)
+
+    if ftool.done2 and ftool.done3:
+        q=ftool.k2d[1:]*ftool.power_1d2.real[1:]
+        ax.plot(ftool.k2d[1:],q,c='b', label = 'k P2d')
+        ext(q,positive=True)
 
     if 1:
         TheX = ftool.k3d
@@ -61,10 +108,6 @@ def plot_fft(ftool, outname=None,ax=None):
         pfit = np.polyfit( np.log(TheX[ok]), np.log(TheY[ok]), 1)
         print("3d fit index",pfit)
 
-    if ftool.done2 and ftool.done3:
-        q=ftool.k2d[1:]*ftool.power_1d2.real[1:]
-        ax.plot(ftool.k2d[1:],q/q[4],c='b', label = 'k P2d')
-        ext(q/q[4],positive=True)
     if savefig:
         ax.legend(loc=0)
         ax.set(ylim=ext.minmax)
