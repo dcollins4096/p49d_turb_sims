@@ -112,6 +112,8 @@ def align(A1,A2,name_base='shot', xrange=[290,350], thresh=250, x_override=None)
     mpl.image.imsave(name1,T1,vmin=0, vmax=ext.minmax[1])
     mpl.image.imsave(name2,T2,vmin=0, vmax=ext.minmax[1])
 
+    return T1, T2
+
 
 
 
