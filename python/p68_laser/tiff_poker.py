@@ -50,15 +50,20 @@ def trimmer(arr,sigma_n=0,fname='imag', vmin=None,vmax=None):
 
 
 class viewer():
-    def __init__(self,which=0):
-        self.fname = "%s/%s"%(base_dir,fnames[which])
-        self.all_data = imread(self.fname)
+    def __init__(self,which=None,arr=None):
+        if type(which) == int:
+            self.fname = "%s/%s"%(base_dir,fnames[which])
+            self.all_data = imread(self.fname)
+        if arr is not None:
+            self.all_data=arr
         self.XX = np.arange(self.all_data.shape[1])
         self.YY = np.arange(self.all_data.shape[0])
         self.X1, self.Y1 = np.meshgrid(self.XX,self.YY)
 
         print(self.all_data.shape)
         print(self.X1.shape)
+
+
 
     def image1(self,fname='image0'):
 
@@ -90,12 +95,15 @@ class viewer():
         #ax2=axes[1][0];ax3=axes[1][1]
         for ax in axes.flatten():
             ax.set_aspect('equal')
-        norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
         S1 = slice(c,d)
         S2 = slice(a,b)
-        ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
         ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
         TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
+        if vmin is None and vmax is None:
+            vmin = TheZ.min()
+            vmax = TheZ.max()
+        norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+        ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
         ax1.pcolormesh(TheX,TheY,TheZ,norm=norm)
 
         if 0:
