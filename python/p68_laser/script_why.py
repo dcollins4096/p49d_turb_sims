@@ -5,12 +5,15 @@ from downsample import volavg
 import fourier_tools_py3.fourier_filter as Filter
 import brunt_tools as bt
 import tools.pcolormesh_helper as pch
+import tools.davetools as dt
 reload(pch)
 reload(bt)
 plt.close('all')
 
 sim='6_2'
 frame=51
+sim='half_half'
+frame=31
 
 #get cubes; rho_full is straight off disk.  rho is downsampled by 2
 if 'rho1' not in dir():
@@ -28,7 +31,7 @@ if 'rho2' not in dir() or True:
     kslice=slice(1,-2)
     kslice=slice(None)
     kslice=None
-    rho2 = bt.fake_powerlaw(N,alphaT,kslice, Amplitude=1e1, phase=True, rando=False)
+    rho2 = bt.fake_powerlaw(N,alphaT,kslice, Amplitude=1e3, phase=True, rando=True)
 
     ft2=bt.fft_tool(rho2)
     ft2.do3()
@@ -43,7 +46,7 @@ if 1:
     theta[ok] = np.arccos( kz[ok]/rrr[ok])
     phi = np.arctan2(kx,ky)
 
-if 1:
+if 0:
     #Plot: phases
     fig,axes=plt.subplots(4,2,figsize=(12,12))
     ax0=axes[0][0];ax1=axes[0][1];ax2=axes[1][0];ax3=axes[1][1]
@@ -65,6 +68,12 @@ if 1:
     ax4.hist(ft1.fft3.real.flatten(),histtype='step', bins=bins,label='real')
     ax5.hist(ft2.fft3.imag.flatten(),histtype='step', bins=bins,label='imag')
     ax5.hist(ft2.fft3.real.flatten(),histtype='step', bins=bins,label='real')
+    ax4.hist((np.abs(ft1.fft3)**2).flatten(), histtype='step',bins=bins,label='power')
+    ax5.hist((np.abs(ft2.fft3)**2).flatten(), histtype='step',bins=bins,label='power')
+    #ax4.hist(128**3*ft1.power.flatten(), histtype='step',bins=bins,label='power')
+    #qqq=(np.abs(ft1.fft3)**2).flatten()/(128**3*ft1.power.flatten())
+    #print(qqq)
+    #ax5.hist(128**3*ft2.power.flatten(), histtype='step',bins=bins,label='power')
     ax5.legend(loc=0)
     ax4.legend(loc=0)
     ax4.set(yscale='log', xlim=[-5e5,5e5])
@@ -82,9 +91,11 @@ if 1:
 
 if 1:
     #Plot: projection, power vs radius, projection of FFT real
-    fig,axes=plt.subplots(3,2,figsize=(12,12))
+    fig,axes=plt.subplots(5,2,figsize=(12,12))
     ax0=axes[0][0];ax1=axes[0][1];ax2=axes[1][0];ax3=axes[1][1]
     ax4=axes[2][0];ax5=axes[2][1]
+    ax6=axes[3][0];ax7=axes[3][1]
+    ax8=axes[4][0];ax9=axes[4][1]
 
     p=ax0.imshow(np.log10(ft1.rho.sum(axis=0)))
     fig.colorbar(p,ax=ax0)
@@ -95,10 +106,27 @@ if 1:
     fig.colorbar(p,ax=ax1)
     ok = rrr>0
     q1=np.log10(ft1.power[ok].flatten()).real
-    pch.simple_phase( np.log10(rrr[ok]).flatten(), q1, ax=ax2)
-    ok = (ft2.power > 1e-15)*(rrr>0)
     q2=np.log10(ft2.power[ok].flatten()).real
-    pch.simple_phase( np.log10(rrr[ok]).flatten(), q2, ax=ax3)
+    rr = np.log10(rrr[ok]).flatten()
+    ext=dt.extents()
+    ext(q1)
+    ext(q2)
+    binsy = np.linspace(ext.minmax[0],ext.minmax[1],64)
+    binsx = np.linspace(rr.min(),rr.max(),64)
+    bins=[binsx,binsy]
+    pch.simple_phase(rr , q1, ax=ax2, bins=bins)
+    ok = (ft2.power > 1e-15)*(rrr>0)
+    pch.simple_phase( rr, q2, ax=ax3, bins=bins)
+
+    
+    binsx = np.linspace(theta.min(),theta.max(),64)
+    pch.simple_phase(theta[ok].flatten(), q1, ax=ax6, bins=[binsx,binsy])
+    pch.simple_phase(theta[ok].flatten(), q2, ax=ax7, bins=[binsx,binsy])
+
+    binsx = np.linspace(phi.min(),theta.max(),64)
+    pch.simple_phase(phi[ok].flatten(), q1, ax=ax8, bins=[binsx,binsy])
+    pch.simple_phase(phi[ok].flatten(), q2, ax=ax9, bins=[binsx,binsy])
+
 
     q3= np.abs(ft1.power.real).sum(axis=0)
     q3=np.roll(q3,q3.shape[0]//2,axis=0)
