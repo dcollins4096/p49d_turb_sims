@@ -80,6 +80,6 @@ analysis_frames={
     '6_half':lrange(17,39)+lrange(40,46), '6_1':lrange(15,30)+lrange(31,52),'6_2':lrange(16,30)+lrange(31,52)}
 
 for sim in simlist:
-    simulation.sim(sim, data_location=dl.sim_dir_base+sim, product_location=dl.product_dir_base+sim, ms=Ms[sim], ma=Ma[sim],
+    simulation.sim(sim, data_location="%s/%s"%(dl.sim_dir_base,sim), product_location="%s/%s"%(dl.product_dir_base,sim), ms=Ms[sim], ma=Ma[sim],
                    color=color[sim],linestyle=linestyle[sim],marker=marker[sim],
                    framelist=analysis_frames[sim])
