@@ -79,6 +79,7 @@ def plot_amps(simlist, LOS='y', use_alf=False):
         field_top += LOS
         field_bottom += LOS
         mean_ratio = 0; n_ratio = 0
+        upper_collector=[]
         for sim in simlist:
             this_sim=simulation.corral[sim]
             this_sim.load()
@@ -110,10 +111,13 @@ def plot_amps(simlist, LOS='y', use_alf=False):
             
             #heres an ugly kludge.
             if sim[0] in '456':
+                upper_collector.append(this_y)
                 mean_ratio+=this_y
                 n_ratio += 1
+        print('upper_collector',np.mean(upper_collector), np.std(upper_collector))
+        error = np.std(upper_collector)
         mean_ratio = mean_ratio/n_ratio
-        print('Mean Ratio %s %s %f'%(field_top, field_bottom, mean_ratio))
+        print('Mean Ratio %s %s %.2f %.2f'%(field_top, field_bottom, mean_ratio, error))
         #if nf == 1:
             #print("EE/BB mean ", mean_ratio)
         #ax[nf][0].plot( [0.45, 2.7], [0.5]*2, c=[0.5]*4)

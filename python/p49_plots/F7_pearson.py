@@ -319,9 +319,22 @@ def plot_machmean(simlist,LOS='y'):
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
             mask = (xvals > fit_range[0])*(xvals < fit_range[1])
-            signal = this_sim.avg_spectra[field][mask]
-            mean = signal.mean()
-            std  = signal.std()
+            if 1:
+                signal_avg = this_sim.avg_spectra[field][mask]
+                mean_avg = signal_avg.mean()
+                std_avg  = signal_avg.std()
+
+            if 1:
+                all_signal=[]
+                for frame in this_sim.ann_frames:
+                    signal = this_sim.all_spectra[frame][field][mask]
+                    all_signal+=list(signal)
+                mean_all = np.mean(all_signal)
+                std_all = np.std(all_signal)
+            mean = mean_all
+            std = std_all
+
+
             if mean < 0:
                 ec=None
             else:
@@ -353,7 +366,9 @@ def plot_machmean(simlist,LOS='y'):
         #a.set_ylim([-1,1])
         #a.set_ylim([-10,10])
         if naa>0:
-            a.set(ylim=ext.minmax)
+            #a.set(ylim=ext.minmax)
+            a.set(ylim=[-0.5,0.5])
+            a.axhline(0,c=[0.5]*4)
     axlist[0].set(xscale='linear')
     #kludge
     #axlist[1].set(xscale='linear', xlim=[0,0.05])
