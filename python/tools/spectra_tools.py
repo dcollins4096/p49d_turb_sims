@@ -10,17 +10,20 @@ import yt
 import fourier_tools_py3.fourier_filter as Filter
 import queb3
 
-def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None):
+def shell_average_only(power):
     ff = Filter.FourierFilter(power)
     power_1d = np.array([power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
     if os.path.exists('nzones.h5'):
         Nzones = dt.dpy('nzones.h5',['Nzones'])
     else:
         Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
+    return power_1d, Nzones, ff
+def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None):
     if filename is None:
         filename = "%s/power_%s.h5"%(oober.product_dir(frame), field)
     if debug>0:
         print("Saved spectra %s"%filename)
+    power_1d, Nzones, ff = shell_average_only(power)
     file = h5py.File(filename,'w')
     file.create_dataset('power',power_1d.shape,data=power_1d/Nzones)
     kspace=2*np.pi*ff.get_shell_k()
@@ -74,6 +77,7 @@ class short_oober():
             frame = self.frame
         directory = self.product_dir(frame) #"%s/%s%04d.products/"%(self.directory,self.name_dir,frame)
         filename = "%s/fft_%s.%s"%(directory,field,dtype)
+
         if glob.glob(filename):
             if debug > 0:
                 print("open FFT from disk")

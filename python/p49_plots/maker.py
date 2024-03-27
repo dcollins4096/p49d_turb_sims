@@ -42,7 +42,7 @@ proj_cmap = 'plasma'
 #F4.plot_slopes(sim_list, prim_or_teb='prim')
 #F4.plot_slopes(sim_list, prim_or_teb='teb')
 #F6.plot_ratios(sim_list, LOS='y')
-F6.plot_amps(sim_list,LOS='y')
+#F6.plot_amps(sim_list,LOS='y')
 #F7.plot_spectra(sim_list,LOS='y')
 #F8.plot_summary(sim_list, LOS='y')
 #F9.fit_all(sim_list)
@@ -53,7 +53,8 @@ F6.plot_amps(sim_list,LOS='y')
 #F4.plot_slopes(sim_list, prim_or_teb='eb', axis='x', yrange=[-5.2,-1.6],title=True)
 #F4.plot_slopes(sim_list, prim_or_teb='eb', axis='y', yrange=[-5.2,-1.6],title=True)
 #F7.plot_machmean(sim_list,LOS='y')
-#F7.plot_machmean(sim_list,LOS='x')
+F7.plot_meantime(sim_list,LOS='y')
+#F7.plot_meantime(sim_list,LOS='x')
 
 if 0:
     import F13_density_pdf as F13
@@ -87,3 +88,11 @@ if 0:
 #import F14_tbtime as F14
 #reload(F14)
 #F14.plot_rtb_time(sim_list)
+
+if 0:
+    import F15_driving as F15
+    reload(F15)
+    sim_list=['half_half','1_2','6_half','6_2']
+#F15.plot_accel(sim_list)
+    F15.plot_driving(sim_list)
+

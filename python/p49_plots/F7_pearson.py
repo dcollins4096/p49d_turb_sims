@@ -319,7 +319,7 @@ def plot_machmean(simlist,LOS='y'):
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
             mask = (xvals > fit_range[0])*(xvals < fit_range[1])
-            if 1:
+            if 0:
                 signal_avg = this_sim.avg_spectra[field][mask]
                 mean_avg = signal_avg.mean()
                 std_avg  = signal_avg.std()
@@ -355,7 +355,7 @@ def plot_machmean(simlist,LOS='y'):
         print(rte.mean())
         print(rte.std())
     for nf in [0,1,2]:
-        fid_line=[0.355,0.05,None][nf]
+        fid_line=[sim_colors.planck_TE,sim_colors.planck_TB,None][nf]
         if fid_line is not None:
             axlist[nf].axhline(fid_line,c=[0.5]*4)
 
@@ -406,4 +406,90 @@ def plot_tb_eb(simlist,LOS='y', ax=None):
     colorbar.set_label(sim_colors.mach_label)
     if save_fig:
         fig.savefig('%s/TB_EB.pdf'%dl.plotdir)
+
+def plot_meantime(simlist,LOS='y'):
+    plt.close('all')
+    #fig.subplots_adjust(wspace=0, hspace=0)
+
+    field_list = ['r_TE'+LOS,'r_TB'+LOS,'r_EB'+LOS]
+    #field_list = ['r_TB'+LOS]
+    ncol = 3
+    nrow = len(simlist)//ncol
+    lim = dt.extents()
+    fig_mach, ax_mach = plt.subplots(1,3, figsize=(8,3))
+    for nf,field in enumerate(field_list):
+        fig,ax=plt.subplots(nrow,ncol)
+        values = defaultdict(list)
+        times = defaultdict(list)
+        errs = defaultdict(list)
+        counter = []
+        for nsim,sim in enumerate(simlist):
+            nr = nsim//ncol
+            nc = nsim%ncol
+            this_sim=simulation.corral[sim]
+            this_sim.load()
+            qu = field[-3:-1].upper()
+            #label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
+            label = r'$\langle r_{%s}\rangle$'%(qu)
+            #label = r'$r_{%s}$'%(qu)
+            xvals = this_sim.avg_spectra['k2d']
+            fit_range =this_sim.get_fitrange(xvals)
+            mask = (xvals > fit_range[0])*(xvals < fit_range[1])
+            all_signal=[]
+            all_time = []
+            nframes = len(this_sim.ann_frames)
+            for frame in this_sim.ann_frames[3:]:
+                signal = this_sim.all_spectra[frame][field][mask].mean()
+                std    = this_sim.all_spectra[frame][field][mask].std()
+                values[sim]+=[signal]
+                ok = np.where(this_sim.quan_time['frames']==frame)[0][0]
+                times[sim] += [this_sim.quan_time['time'][ok]]
+                errs[sim] += [std]
+                lim(signal+std)
+                lim(signal-std)
+            t = times[sim]
+            t -= t[0]
+            t /= this_sim.tdyn
+            aaa=ax[nr][nc]
+            #aaa.plot(t,values[sim],c=this_sim.color,linestyle=this_sim.linestyle)
+            aaa.errorbar(t,values[sim],yerr=errs[sim],c=this_sim.color,linestyle=this_sim.linestyle)
+            if nc > 0:
+                aaa.set(yticks=[])
+            if nr < nrow-1:
+                aaa.set(xticks=[])
+            
+
+            #ax[nr][nc].set(title=sim)
+        avg_collector=[]
+        for nsim,sim in enumerate(simlist):
+            this_sim=simulation.corral[sim]
+
+            v = nar(values[sim])
+            vbar = np.mean(v)
+            vstd = np.std(v)
+            avg_collector.append(vbar)
+
+            s=this_sim.marker_size*20
+            ax_mach[nf].scatter(this_sim.Ms_mean, vbar, c=[this_sim.color], linestyle=this_sim.linestyle,s=s)
+            ax_mach[nf].errorbar(this_sim.Ms_mean, vbar, yerr=vstd,c=this_sim.color, linestyle=this_sim.linestyle)
+            ax_mach[nf].axhline(0.0,c=[0.5]*4)
+            val = ['TE','TB','EB'][nf]
+            ax_mach[nf].set(ylabel=r'$\langle r_{%s} \rangle$'%val)
+        ac=nar(avg_collector)
+
+        over = (ac>0).sum()
+        tots = ac.size
+        print("Above Zero: %s %s %d/%d = %0.2f"%(field,LOS,over,tots,over/tots))
+        for nf, field in enumerate(field_list):
+            ax_mach[nf].axhline(0.0,c=[0.5]*4)
+        ax_mach[1].axhline(sim_colors.planck_TB, c=[0.5]*4)
+        ax_mach[0].axhline(sim_colors.planck_TE, c=[0.5]*4)
+
+        fig.subplots_adjust(wspace=0, hspace=0)
+        for aaa in ax.flatten():
+            aaa.set(ylim=lim.minmax)
+        fig.savefig('%s/%s_time'%(plotdir,field))
+    fig_mach.tight_layout()
+    fig_mach.savefig('%s/rxy_mach_%s.pdf'%(plotdir,LOS))
+
 

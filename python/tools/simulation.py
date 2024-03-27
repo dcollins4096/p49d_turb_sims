@@ -159,13 +159,13 @@ class sim():
         if self.all_spectra is not None:
             return
 
-        self.products=['density','velocity','magnetic',
+        self.products=[ 'density','velocity','magnetic',
                        'ClTTx','ClTTy','ClTTz',
                        'ClEEx','ClEEy','ClEEz',
                        'ClBBx','ClBBy','ClBBz',
                        'ClTEx','ClTEy','ClTEz',
                        'ClTBx','ClTBy','ClTBz',
-                       'ClEBx','ClEBy','ClEBz']
+                       'ClEBx','ClEBy','ClEBz']#'acceleration', 'vorticity',]
         self.products_3d = ['density','velocity','magnetic']
         self.products_positive = ['density','velocity','magnetic',
                                   'ClTTx','ClTTy','ClTTz',
@@ -182,6 +182,7 @@ class sim():
             k3d, density = dt.dpy('%s/DD%04d.products/avg_power_density.h5'%(self.product_location,frame), ['k','power'])
             k3d, magnetic  = dt.dpy('%s/DD%04d.products/avg_power_magnetic.h5'%(self.product_location,frame), ['k','power'])
             k3d, velocity = dt.dpy('%s/DD%04d.products/avg_power_velocity.h5'%(self.product_location,frame), ['k','power'])
+            #k3d, vorticity = dt.dpy('%s/DD%04d.products/avg_power_vorticity.h5'%(self.product_location,frame), ['k','power'])
             #k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
             #k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','power'])
             #k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
@@ -189,6 +190,13 @@ class sim():
             self.all_spectra[frame]['density']=density.real
             self.all_spectra[frame]['velocity']=velocity.real
             self.all_spectra[frame]['magnetic']=magnetic.real
+
+            #k3d, acceleration = dt.dpy('%s/DD%04d.products/avg_power_acceleration.h5'%(self.product_location,frame), ['k','power'])
+            #if acceleration is not None:
+            #    self.all_spectra[frame]['acceleration']=acceleration.real
+            #else:
+            #    self.all_spectra[frame]['acceleration']=0
+
             for axis in 'xyz':
                 k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
                 k2d, ClEE = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClEE'])

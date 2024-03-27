@@ -21,3 +21,4 @@ from collections import defaultdict
 all_slopes=defaultdict(list)
 import data_locations as dl
 root4pi = np.sqrt(4*np.pi)
+plotdir = "%s/PigPen"%os.environ['HOME']
