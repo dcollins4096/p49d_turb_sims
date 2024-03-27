@@ -11,7 +11,7 @@ def plot_slopes(sim_list, prim_or_teb='prim', axis='y', yrange=None, title=False
     if prim_or_teb == 'prim':
         product_list = ['density','velocity','magnetic']
         axis_label=""
-        ylabs=[r'\rho','v','H']
+        ylabs=[r'\rho\rho','VV','HH']
         do_ma=True
         do_prim=True
         do_T = True

@@ -15,7 +15,7 @@ reload(sim_colors)
 
 def nom(simlist):
     plt.close('all')
-    fig,ax = plt.subplots(1,1,sharex=True,sharey=True)
+    fig,ax = plt.subplots(1,1,figsize=(5,4))
     fig.subplots_adjust(wspace=0, hspace=0)
     for i,sim in enumerate(simlist):
         this_sim=simulation.corral[sim]

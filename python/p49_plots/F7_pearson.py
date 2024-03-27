@@ -172,8 +172,8 @@ def plot_spectra(simlist,LOS='y'):
             this_sim=simulation.corral[sim]
             this_sim.load()
             qu = field[-3:-1].upper()
-            label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
-            label = r'$r_{%s}$'%(qu)
+            label = r'$r^{%s}\ \hat{%s}$'%(qu, LOS)
+            label = r'$r^{%s}_k$'%(qu)
             axlist[nf].set_ylabel(label)
             #axlist[nf+3].text(0.1, -0.8, label)
             xvals=this_sim.avg_spectra['k2d']
@@ -430,7 +430,7 @@ def plot_meantime(simlist,LOS='y'):
             this_sim.load()
             qu = field[-3:-1].upper()
             #label = r'$r_{%s}\ \hat{%s}$'%(qu, LOS)
-            label = r'$\langle r_{%s}\rangle$'%(qu)
+            label = r'$\langle r^{%s}\rangle$'%(qu)
             #label = r'$r_{%s}$'%(qu)
             xvals = this_sim.avg_spectra['k2d']
             fit_range =this_sim.get_fitrange(xvals)
