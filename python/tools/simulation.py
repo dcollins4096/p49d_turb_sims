@@ -46,6 +46,7 @@ class sim():
         self.slopes=None
         self.slopesA=None
         self.ampsA=None
+        self.fields=None
     def get_fitrange(self,xvals):
         f0 = xvals[4]
         f1 = xvals[25]
@@ -276,6 +277,8 @@ class sim():
             self.Ms_mean = self.quan_time['vrms'][self.ann_frame_mask].mean()
         set_colors(self)
 
+
+
     def read_pdfs(self,fields, pdf_prefix='pdf_scaled'):
         if self.pdfs == None:
             print('read pdfs')
@@ -309,4 +312,46 @@ class sim():
 
 
 
+
+    def get_field(self,field=None,frame=None,ax=None):
+        if self.fields is None:
+            self.fields={'x':{},'y':{},'z':{}}
+
+        gotit=False
+        if frame in self.fields[ax]:
+            out = self.fields[ax][frame][field]
+            gotit = True
+
+        if gotit:
+            return out
+        else:
+            self.fields[ax][frame]={}
+
+            frb_dir = "%s/DD%04d.products"%(self.product_location,frame)
+            xd='DD'
+
+            Df= "%s/%s%04d_density_%s.fits"%(frb_dir,xd,frame,ax)
+            Hf= "%s/%s%04d_magnetic_field_strength_%s.fits"%(frb_dir,xd,frame,ax)
+            Qf= "%s/%s%04d_Q%s.fits"%(frb_dir,xd,frame,ax)
+            Uf= "%s/%s%04d_U%s.fits"%(frb_dir,xd,frame,ax)
+            Ef= "%s/%s%04d_E%s.fits"%(frb_dir,xd,frame,ax)
+            Bf= "%s/%s%04d_B%s.fits"%(frb_dir,xd,frame,ax)
+            def read_fits(fitname):
+                d=np.ascontiguousarray(pyfits.open(fitname)[0].data,dtype=np.double)
+                return d
+            d=read_fits(Df)
+            h=read_fits(Hf)
+            q=read_fits(Qf)
+            u=read_fits(Uf)
+            e=read_fits(Ef)
+            b=read_fits(Bf)
+            self.fields[ax][frame]['d']=d
+            self.fields[ax][frame]['h']=h
+            self.fields[ax][frame]['q']=q
+            self.fields[ax][frame]['u']=u
+            self.fields[ax][frame]['e']=e
+            self.fields[ax][frame]['b']=b
+
+            out = self.fields[ax][frame][field]
+            return out
 
