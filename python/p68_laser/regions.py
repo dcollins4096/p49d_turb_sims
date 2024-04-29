@@ -30,18 +30,45 @@ if 'preshock_region' not in dir():
     preshock_abcd['r0_t1'] = [100,400,100,400]
     preshock_abcd['r0_t2'] = [100,400,100,400]
     for shot in preshock_abcd:
-        print(shot)
         arr=TNA[shot]
         V = TP.viewer(arr=arr)
         a,b,c,d=preshock_abcd[shot]
         X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
         preshock_region[shot] = Z
 
+if 'zero_region' not in dir():
+    zero_region={}
+    zero_abcd={}
+    #abcd = left, right, bottom, top
+    zero_abcd['r60_t1'] = [100,600,100,750]
+    zero_abcd['r60_t2'] =  [100,600,100,750]
+
+    zero_abcd['r120_t1'] =  [100,600,100,750]
+    zero_abcd['r120_t2'] =  [100,600,100,750]
+
+    zero_abcd['r0_t1'] = [100,600,100,750]
+    zero_abcd['r0_t2'] = [100,600,100,750]
+    for shot in zero_abcd:
+        arr=TNA[shot]
+        V = TP.viewer(arr=arr)
+        a,b,c,d=zero_abcd[shot]
+        fname = 'plots_to_sort/zero_%s'%shot
+        X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
+        zero_region[shot] = Z
+
+def image_zero(shot_list = None):
+    if shot_list is None:
+        shot_list = list(zero_abcd.keys())
+    for shot in shot_list:
+        which = {'r0_t1':0,'r0_t2':0,'r60_t1':1,'r60_t2':1,'r120_t1':2,'r120_t2':2}[shot]
+        V = TP.viewer(which=which)
+        a,b,c,d=zero_abcd[shot]
+        fname = 'plots_to_sort/zero_%s'%shot
+        X,Y,Z = V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=None,vmax=None,fname=fname, zero=True)
 
 
 def image_preshock():
     for shot in preshock_abcd:
-        print(shot)
         arr=TNA[shot]
         V = TP.viewer(arr=arr)
         a,b,c,d=preshock_abcd[shot]
