@@ -1,5 +1,7 @@
 
 from dtools.starter1 import *
+import dtools.davetools as dt
+
 
 from tifffile import imread
 
@@ -54,8 +56,11 @@ class viewer():
         if type(which) == int:
             self.fname = "%s/%s"%(base_dir,fnames[which])
             self.all_data = imread(self.fname)
-        if arr is not None:
+        elif arr is not None:
             self.all_data=arr
+        else:
+            pdb.set_trace()
+            print("Error, not an acceptable choice")
         self.XX = np.arange(self.all_data.shape[1])
         self.YY = np.arange(self.all_data.shape[0])
         self.X1, self.Y1 = np.meshgrid(self.XX,self.YY)
@@ -93,7 +98,8 @@ class viewer():
         TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
         return TheX, TheY, TheZ
 
-    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png'):
+    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png',zero=False):
+        print(zero)
         #ax0=axes[0][0];ax1=axes[0][1]
         #ax2=axes[1][0];ax3=axes[1][1]
         S1 = slice(c,d)
@@ -102,19 +108,50 @@ class viewer():
         if vmin is None and vmax is None:
             vmin = TheZ.min()
             vmax = TheZ.max()
-        fig,axes=plt.subplots(1,2,figsize=(12,12))
-        for ax in axes.flatten():
-            ax.set_aspect('equal')
+        n_plots = 2
+        if zero: n_plots=3
+        fig,axes=plt.subplots(1,n_plots,figsize=(12,12))
+        #for ax in axes.flatten():
+        #    ax.set_aspect('equal')
         #ax0=axes
         ax0=axes[0];ax1=axes[1]
         ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
+        cmap='viridis'
+        if zero:
+            maxmax=max([np.abs(vmin),np.abs(vmax)])
+            vmax = maxmax
+            vmin = -maxmax
+            cmap = 'seismic'
+
         norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
         ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
-        ax1.pcolormesh(TheX,TheY,TheZ,norm=norm)
+        p=ax1.pcolormesh(TheX,TheY,TheZ,norm=norm, cmap=cmap)
+        fig.colorbar(p,ax=ax1)
+        if zero and 1:
+            ax2=axes[2]
+            bins = np.arange(-50,150,10)
+            print(bins)
+            ax2.hist(TheZ.flatten(), histtype='step', density=False,bins=bins)
+            ax2.set(yscale='log')
+            #dt.phist(TheZ.flatten())
+        if zero and 1:
+            print('here we are')
+            ax2=axes[2].twinx()
+            the_x = TheZ.flatten()+0
+            the_x.sort()
+            the_y = np.arange(the_x.size)/the_x.size
+            print(the_y.size)
+            ok = np.argmin(np.abs(the_x))
+            ax2.axhline(the_y[ok])
+            ax2.axvline(0)
+            ax2.plot(the_x,the_y)
+            print('there we were')
+
 
         print(fname)
+        fig.tight_layout()
         fig.savefig(fname)
-        return TheZ
+        return TheX,TheY,TheZ
 
 
 
