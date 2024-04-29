@@ -13,3 +13,4 @@ sbatch
 trash
 .*swp
 log_files
+.DS_Store

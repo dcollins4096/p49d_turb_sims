@@ -87,37 +87,30 @@ class viewer():
 
 
 
-    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png'):
-        fig,axes=plt.subplots(1,2,figsize=(12,12))
-        #ax0=axes
-        ax0=axes[0];ax1=axes[1]
-        #ax0=axes[0][0];ax1=axes[0][1]
-        #ax2=axes[1][0];ax3=axes[1][1]
-        for ax in axes.flatten():
-            ax.set_aspect('equal')
+    def xtract(self,a=None,b=None,c=None,d=None):
         S1 = slice(c,d)
         S2 = slice(a,b)
-        ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
+        TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
+        return TheX, TheY, TheZ
+
+    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png'):
+        #ax0=axes[0][0];ax1=axes[0][1]
+        #ax2=axes[1][0];ax3=axes[1][1]
+        S1 = slice(c,d)
+        S2 = slice(a,b)
         TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
         if vmin is None and vmax is None:
             vmin = TheZ.min()
             vmax = TheZ.max()
+        fig,axes=plt.subplots(1,2,figsize=(12,12))
+        for ax in axes.flatten():
+            ax.set_aspect('equal')
+        #ax0=axes
+        ax0=axes[0];ax1=axes[1]
+        ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
         norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
         ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
         ax1.pcolormesh(TheX,TheY,TheZ,norm=norm)
-
-        if 0:
-            col=[]
-            xlist=np.arange(a,a+200)
-            for X in xlist:
-                ax0.axvline(X)
-                ax1.axvline(X)
-                TheX_s,TheY_s= TheY[:,X-a], TheZ[:,X-a]
-                col.append(TheY_s.std())
-                ax2.plot(TheX_s,TheY_s)
-            ax3.plot(xlist, col, marker='*')
-
-
 
         print(fname)
         fig.savefig(fname)

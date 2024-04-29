@@ -23,9 +23,9 @@ def compute_I0(I_pixel):
     I_0 = I_pixel * np.exp(tau_B+tau_U+tau_D)
     return I_0
 def compute_rho(I_pixel, I_0):
-    rho =  (np.log(I_0/I_pixel)-tau_B)*t1
+    #rho =  -(np.log(I_0/I_pixel)+tau_B)*t1
+    rho = I_pixel#/I_0
     return rho
-
 
 
 
