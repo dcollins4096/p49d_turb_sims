@@ -65,11 +65,6 @@ class viewer():
         self.YY = np.arange(self.all_data.shape[0])
         self.X1, self.Y1 = np.meshgrid(self.XX,self.YY)
 
-        print(self.all_data.shape)
-        print(self.X1.shape)
-
-
-
     def image1(self,fname='image0'):
 
         self.guess_scale()
@@ -99,7 +94,6 @@ class viewer():
         return TheX, TheY, TheZ
 
     def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png',zero=False):
-        print(zero)
         #ax0=axes[0][0];ax1=axes[0][1]
         #ax2=axes[1][0];ax3=axes[1][1]
         S1 = slice(c,d)
@@ -130,25 +124,20 @@ class viewer():
         if zero and 1:
             ax2=axes[2]
             bins = np.arange(-50,150,10)
-            print(bins)
             ax2.hist(TheZ.flatten(), histtype='step', density=False,bins=bins)
             ax2.set(yscale='log')
             #dt.phist(TheZ.flatten())
         if zero and 1:
-            print('here we are')
             ax2=axes[2].twinx()
             the_x = TheZ.flatten()+0
             the_x.sort()
             the_y = np.arange(the_x.size)/the_x.size
-            print(the_y.size)
             ok = np.argmin(np.abs(the_x))
             ax2.axhline(the_y[ok])
             ax2.axvline(0)
             ax2.plot(the_x,the_y)
-            print('there we were')
 
 
-        print(fname)
         fig.tight_layout()
         fig.savefig(fname)
         return TheX,TheY,TheZ

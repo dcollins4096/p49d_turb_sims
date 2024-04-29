@@ -71,7 +71,7 @@ for DO in [0,1,2,3,4,5]:
         x,y,rough=V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=V.minmax[0],vmax=V.minmax[1], fname='plots_to_sort/%s_rough'%section,zero=False)
         trim[section] = TP.trimmer(rough, sigma_n=2*sigma_n,fname='plots_to_sort/%s_trim'%section, vmin=V.minmax[0],vmax=V.minmax[1])
 
-if 0:
+if 1:
     fptr=h5py.File('p68_laser/ALL_TRIM1.h5','w')
     for section in trim:
         fptr[section]=trim[section]

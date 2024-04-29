@@ -1,5 +1,7 @@
 from dtools.starter1 import *
 import unyt
+import regions
+reload(regions)
 unit_kappa = unyt.cm**2/unyt.g
 unit_density = unyt.g/unyt.cm**3
 alpha_B = 0.777*unit_kappa #cm^2/g
@@ -19,6 +21,12 @@ tau_D = rho_D*L_D*alpha_D
 t1 = 1/(alpha_D*L_D*r+alpha_U*L_U)
 t2 = np.exp(alpha_B*L_B*rho_B)
 
+dx_pixel=2.5e-6*unyt.m #micron
+t2 = 40e-9*unyt.s #ns
+t1 = 38e-9*unyt.s #ns
+
+def pixel_to_velocity(dx,dt=(t2-t1),pixel=dx_pixel):
+    return (dx*pixel/dt).in_units('km/s')
 def compute_I0(I_pixel):
     I_0 = I_pixel * np.exp(tau_B+tau_U+tau_D)
     return I_0
@@ -29,5 +37,42 @@ def compute_rho(I_pixel, I_0, zero=0):
     rho = (-np.log(fix1) -tau_B)*t1
     return rho
 
+def get_x(shot):
+    image = regions.TNA[shot]
+    x = np.arange(image.shape[1])*dx_pixel
+    return x
+
+
+def useful_values_take1(shot):
+    image = regions.TNA[shot]
+    ps = regions.preshock_region[shot]
+    I0 = compute_I0(ps).mean()
+    #zero from region.  Strangely works bad.
+    #zero_region = regions.zero_region[shot]
+    #zero_value = 2*zero_region.min()
+    #zero from image.  ugly.
+    image_sort = copy.copy(image.flatten())
+    image_sort.sort()
+    delta = image_sort[1]-image_sort[0] 
+    zero_value = image_sort[0]-delta
+    Q = compute_rho(image, I0, zero=zero_value)
+    return Q
+
+def useful_values_take2(shot):
+    from scipy.ndimage import gaussian_filter
+    image = regions.TNA[shot]
+    image  = gaussian_filter(image,3)
+    ps = regions.preshock_region[shot]
+    I0 = compute_I0(ps).mean()
+    #zero from region.  Strangely works bad.
+    #zero_region = regions.zero_region[shot]
+    #zero_value = 2*zero_region.min()
+    #zero from image.  ugly.
+    image_sort = copy.copy(image.flatten())
+    image_sort.sort()
+    delta = image_sort[1]-image_sort[0] 
+    zero_value = image_sort[0]-delta
+    Q = compute_rho(image, I0, zero=zero_value)
+    return Q
 
 
