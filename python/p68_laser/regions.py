@@ -3,6 +3,7 @@ from dtools.starter1 import *
 import power_spectrum as ps
 
 import scipy.stats
+import equal_probability_binner as ep
 
 from tifffile import imread
 import tiff_poker as TP
@@ -49,11 +50,12 @@ if 'zero_region' not in dir():
     zero_abcd['r0_t1'] = [100,600,100,750]
     zero_abcd['r0_t2'] = [100,600,100,750]
     for shot in zero_abcd:
-        arr=TNA[shot]
-        V = TP.viewer(arr=arr)
+        which = {'r0_t1':0,'r0_t2':0,'r60_t1':1,'r60_t2':1,'r120_t1':2,'r120_t2':2}[shot]
+        V = TP.viewer(which=which)
         a,b,c,d=zero_abcd[shot]
         fname = 'plots_to_sort/zero_%s'%shot
-        X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
+        #X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
+        X,Y,Z = V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=None,vmax=None,fname=fname, zero=True)
         zero_region[shot] = Z
 
 def image_zero(shot_list = None):
@@ -65,6 +67,19 @@ def image_zero(shot_list = None):
         a,b,c,d=zero_abcd[shot]
         fname = 'plots_to_sort/zero_%s'%shot
         X,Y,Z = V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=None,vmax=None,fname=fname, zero=True)
+        print(zero_region[shot]-Z)
+
+def get_zero(shot):
+    fig,ax=plt.subplots(1,1)
+    zero = zero_region[shot]
+    hist, cen = ep.equal_prob(zero.flatten(), 16,ax=ax)
+    fig.savefig('plots_to_sort/fu')
+    zero_val = cen[np.argmax(hist)]
+    print("ZERO",zero_val)
+    
+
+    return zero_val
+
 
 
 def image_preshock():
