@@ -18,12 +18,13 @@ r = rho_D/rho_U
 tau_B = rho_B*L_B*alpha_B
 tau_U = rho_U*L_U*alpha_U
 tau_D = rho_D*L_D*alpha_D
-t1 = 1/(alpha_D*L_D*r+alpha_U*L_U)
+kappa_bar = 1/(alpha_D*L_D*r+alpha_U*L_U)
 t2 = np.exp(alpha_B*L_B*rho_B)
 
 dx_pixel=2.5e-6*unyt.m #micron
 t2 = 40e-9*unyt.s #ns
 t1 = 38e-9*unyt.s #ns
+delta_t = t2-t1
 
 def pixel_to_velocity(dx,dt=(t2-t1),pixel=dx_pixel):
     return (dx*pixel/dt).in_units('km/s')
@@ -34,7 +35,7 @@ def compute_rho(I_pixel, I_0, zero=0):
     #rho =  -(np.log(I_0/I_pixel)+tau_B)*t1
     fix1 = (I_pixel-zero)/I_0
 
-    rho = (-np.log(fix1) -tau_B)*t1
+    rho = (-np.log(fix1) -tau_B)*kappa_bar
     return rho
 
 def get_x(shot):
