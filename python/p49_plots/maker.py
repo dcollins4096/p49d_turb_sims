@@ -51,9 +51,15 @@ proj_cmap = 'plasma'
 #F1.proj(field='B',LOS='xy',group=2, no_mean=True, cmap=proj_cmap)
 #F4.plot_slopes(sim_list, prim_or_teb='eb', axis='x', yrange=[-5.2,-1.6],title=True)
 #F4.plot_slopes(sim_list, prim_or_teb='eb', axis='y', yrange=[-5.2,-1.6],title=True)
-F7.plot_spectra(sim_list,LOS='y')
-F7.plot_meantime(sim_list,LOS='y')
-F7.plot_meantime(sim_list,LOS='x')
+#F7.plot_spectra(sim_list,LOS='y')
+#F7.plot_meantime(sim_list,LOS='y')
+#F7.plot_meantime(sim_list,LOS='x')
+
+
+
+#F1.proj(field='density_',LOS='y', cmap=proj_cmap, group=3)
+F1.proj(field='E',LOS='y', cmap=proj_cmap, group=3)
+F1.proj(field='B',LOS='y', cmap=proj_cmap, group=3)
 
 if 0:
     import F13_density_pdf as F13

@@ -461,6 +461,7 @@ def plot_meantime(simlist,LOS='y'):
 
             #ax[nr][nc].set(title=sim)
         avg_collector=[]
+        std_collector=[]
         for nsim,sim in enumerate(simlist):
             this_sim=simulation.corral[sim]
 
@@ -468,18 +469,21 @@ def plot_meantime(simlist,LOS='y'):
             vbar = np.mean(v)
             vstd = np.std(v)
             avg_collector.append(vbar)
+            std_collector.append(vstd)
 
             s=this_sim.marker_size*20
             ax_mach[nf].scatter(this_sim.Ms_mean, vbar, c=[this_sim.color], linestyle=this_sim.linestyle,s=s)
             ax_mach[nf].errorbar(this_sim.Ms_mean, vbar, yerr=vstd,c=this_sim.color, linestyle=this_sim.linestyle)
             ax_mach[nf].axhline(0.0,c=[0.5]*4)
             val = ['TE','TB','EB'][nf]
-            ax_mach[nf].set(ylabel=r'$\langle r_{%s} \rangle$'%val)
+            ax_mach[nf].set(ylabel=r'$\langle r_{%s} \rangle$'%val, xlabel=sim_colors.mach_label)
+
         ac=nar(avg_collector)
 
         over = (ac>0).sum()
         tots = ac.size
         print("Above Zero: %s %s %d/%d = %0.2f"%(field,LOS,over,tots,over/tots))
+        print("mean std %0.3f \pm %0.3f"%(np.mean(avg_collector),np.mean(std_collector)))
         for nf, field in enumerate(field_list):
             ax_mach[nf].axhline(0.0,c=[0.5]*4)
         ax_mach[1].axhline(sim_colors.planck_TB, c=[0.5]*4)

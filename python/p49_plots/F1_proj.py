@@ -11,18 +11,31 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True, group=1):
     if field=='density_':
         is_density=True
 
+    sideways=False
+    figwidth=4
     if group==1:
         MACHS = ['half','3','6']
         ALF   = ['half','1','2']
         suffix=""
-    else:
+    elif group == 2:
         MACHS = ['4', '4']
         ALF   = ['half','1','2']
         suffix="_Mach4"
+    elif group == 3:
+        MACHS = ['half','1','2','3','4','5','6']
+        ALF   = ['half','1','2']
+        suffix='TwentyOne'
+        sideways=True
+        figwidth=12
 
+    if sideways:
+        nY = len(ALF)
+        nX = len(MACHS)
+    else:
+        nX = len(ALF)
+        nY = len(MACHS)
 
-
-    fig,axes,ccc = tight_plots.fig_squares(len(ALF),len(MACHS))
+    fig,axes,ccc = tight_plots.fig_squares(nX, nY,figwidth=figwidth)
 
     array_array=[]
     ext=dt.extents()
@@ -63,9 +76,16 @@ def proj(field='density_',LOS='y', cmap="winter",no_mean=True, group=1):
 
             this_sim = simulation.corral[name]
             norm = mpl.colors.SymLogNorm(linthresh = 0.1, vmin=-1.1,vmax=1.1, base=np.e)
-            thax=axes[nm][na]
+            if sideways:
+                plot_x = na
+                plot_y = nm
+            else:
+                plot_x = nm
+                plot_y = na
+            thax=axes[plot_x][plot_y]
             arr=array_array[nplot]
             nplot+=1
+            print(norm.vmin)
             plot=thax.imshow(arr, origin='lower',interpolation='nearest',norm=norm, cmap=cmap)
             cmap_tool=mpl.cm.get_cmap(cmap)
             if 0:
