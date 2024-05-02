@@ -7,13 +7,18 @@ import equal_probability_binner as ep
 from tifffile import imread
 
 #base_dir="/Users/dcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
-base_dir="/Users/davidcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+#base_dir="/Users/davidcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+base_dir = 'p68_laser/raw_data'
 i1="TD_TC090-124_HGXD_IMAGE_N220712-002-999_DROOP_CORR_422421128478532_20220907115837893.tif"
 i2="TD_TC090-124_HGXD_IMAGE_N220713-001-999_DROOP_CORR_745405306609760_20220907115905225.tif"
 i3="TD_TC090-124_HGXD_IMAGE_N220714-001-999_DROOP_CORR_766909572834217_20220907115956892.tif"
 fnames=[i1,i2,i3]
 
 plotdir="plots_to_sort"
+
+if not os.path.exists(base_dir):
+    print("Error: directory not found.  Please soft link.")
+    print("% ln -s <path_to_raw_radiographs> p68_laser/raw_data")
 
 def trimmer(arr,sigma_n=0,fname='imag', vmin=None,vmax=None):
     y = arr.mean(axis=1)

@@ -3,6 +3,8 @@ from dtools.starter1 import *
 import shot
 reload(shot)
 import equal_probability_binner as ep
+import physical_values as phys
+reload(phys)
 
 
 def plot_shock_front_2(device, axes):
@@ -21,29 +23,30 @@ def plot_shock_front_2(device, axes):
 
     axes[1].text(0.5,0.75,r'$v_s=%0.2f$'%(vshock), transform=axes[1].transAxes)
 
-names = ['r60']#,'r120', 'r0']
+names = ['r60','r120', 'r0']
 if 'devices' not in dir() or True:
     devices={}
 if 'r0' in  devices:
     del devices['r0']
-vel_cut = {'r120':[325,450], 'r60':[325,450], 'r0':[325,450]}
+vel_cut = {'r120':[325,450], 'r60':[325,450], 'r0':[410,550]}
 means = {'r60':[325,375, 650]}
+shock_cut = {'r0':[475,710], 'r60':[475,710], 'r120':[475,710]}
 for name in names:
     if name not in devices:
-        tmp=shot.device(name)
-        #tmp.image(fname = 'image_shot_%s'%name)
+        tmp=shot.device(name, lines=[200,400], model=1,smooth=3)
+        #tmp.image_density(fname = 'image_shot_%s'%name)
         x_off=None
         if name == 'r0':
             shift_60 = devices['r60'].shift_x
             shift_120 = devices['r120'].shift_x
             x_off = 0.5*(shift_60+shift_120)
-        tmp.bumper([175,300],fix_shift_x=x_off,fname='bumper_%s.pdf'%name, do_plot=True )
-        tmp.compute_velocity( vel_cut[name],fname = 'get_horiz_%s'%name)
-        tmp.atwood( mean_density=means[name], fname = 'atwood_%s'%name)
-        print('dx',tmp.shift_x)
+        tmp.bumper([175,300],fix_shift_x=x_off)#,fname='bumper_%s.pdf'%name)
+        tmp.compute_velocity( vel_cut[name])#,fname = 'velocity_%s'%name)
+        tmp.sigma_rho(shock_cut[name], fname = 'sigma_rho_%s'%name)
+        #tmp.atwood( mean_density=means[name], fname = 'atwood_%s'%name)
         devices[name]=tmp
 
-if 1:
+if 0:
     fig,axes=plt.subplots(3,5,figsize=(15,12))
     ax0=axes[0][0];ax1=axes[0][1];ax2=axes[0][2]; ax3=axes[0][3]; ax4=axes[0][4]
     ax5=axes[1][0];ax6=axes[1][1];ax7=axes[1][2]; ax8=axes[1][3]; ax9=axes[1][4]

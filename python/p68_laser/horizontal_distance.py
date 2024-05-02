@@ -1,4 +1,5 @@
 from dtools.starter1 import *
+import equal_probability_binner as epb
 
 #stolen from here https://stackoverflow.com/questions/68695541/how-to-calculate-horizontal-distance-between-two-lines
 
@@ -149,7 +150,7 @@ def try2(a,b,method=1,fname='hor_test_2'):
         ys = [a[i], y]
         ax0.plot(xs, ys, "r--")
         #plt.plot(x, y, "r+")
-    ax1.hist(dx)
+    epb.equal_prob(nar(dx), 16, ax=ax1)
     fig.savefig('plots_to_sort/%s'%fname)
     return intersections
 def try1(method=1, fname='hor_test_1'):

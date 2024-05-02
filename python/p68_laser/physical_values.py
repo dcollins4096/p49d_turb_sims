@@ -43,36 +43,20 @@ def get_x(shot):
     x = np.arange(image.shape[1])*dx_pixel
     return x
 
+def image_to_density(shot, model=0):
 
-def image_to_density_take1(shot):
     image = regions.TNA[shot]
     ps = regions.preshock_region[shot]
-    I0 = compute_I0(ps).mean()
-    #zero from region.  Strangely works bad.
-    #zero_region = regions.zero_region[shot]
-    #zero_value = 2*zero_region.min()
-    #zero from image.  ugly.
-    image_sort = copy.copy(image.flatten())
-    image_sort.sort()
-    delta = image_sort[1]-image_sort[0] 
-    zero_value = image_sort[0]-delta
+    if model == 0:
+        I0 = compute_I0(ps).mean()
+        image_sort = copy.copy(image.flatten())
+        image_sort.sort()
+        delta = image_sort[1]-image_sort[0] 
+        zero_value = image_sort[0]-delta
+    elif model == 1:
+        I0 = compute_I0(ps).max()
+        zero_value = regions.get_zero(shot)
+
     Q = compute_rho(image, I0, zero=zero_value)
     return Q
-
-def image_to_density_take2(shot):
-    from scipy.ndimage import gaussian_filter
-    image = regions.TNA[shot]
-    image  = gaussian_filter(image,3)
-    ps = regions.preshock_region[shot]
-    I0 = compute_I0(ps).max()
-    #zero from region.  Strangely works bad.
-    #zero_region = regions.zero_region[shot]
-    #zero_value = 2*zero_region.min()
-    #zero from image.  ugly.
-    zero_value = regions.get_zero(shot)
-
-    print(zero_value)
-    Q = compute_rho(image, I0, zero=zero_value)
-    return Q
-
 

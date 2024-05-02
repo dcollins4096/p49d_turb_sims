@@ -1,4 +1,5 @@
 from dtools.starter1 import *
+from scipy.ndimage import gaussian_filter
 import regions
 reload(regions)
 import physical_values as phys
@@ -6,48 +7,51 @@ reload(phys)
 
 import horizontal_distance as horz
 reload(horz)
-import equal_probability_binner as ep
+import equal_probability_binner as epb
 
 class shot():
-    def __init__(self,name, lines=[200,400]):
+    def __init__(self,name, lines=[200,400], model=0, smooth=0):
         self.name=name
-        self.rho = phys.image_to_density_take2(name)
+        self.rho = phys.image_to_density(name, model=0)
+        if smooth>0:
+            units=self.rho.units
+            self.rho = gaussian_filter(self.rho,smooth)
+            self.rho =self.rho*units
+
         sl = slice(*lines)
-        self.std = self.rho[sl,:].std(axis=0)
-        self.rhobar = self.rho[sl,:].mean(axis=0)
+        self.rho_cut = self.rho[sl,:]
+        self.std =    self.rho_cut.std(axis=0)
+        self.rhobar = self.rho_cut.mean(axis=0)
         self.x = phys.get_x(name)
+        self.lines=lines
 
 class device():
-    def __init__(self,base, lines=[200,400]):
+    def __init__(self,base,model=0, lines=[200,400],smooth=0):
+        self.base = base
         self.name1='%s_t1'%base
         self.name2='%s_t2'%base
-        self.shot1 = shot(self.name1,lines)
-        self.shot2 = shot(self.name2,lines)
+        self.shot1 = shot(self.name1,lines,model,smooth)
+        self.shot2 = shot(self.name2,lines,model,smooth)
+        self.lines = lines
 
-    def image_device(fname):
-        fig,ax=plt.subplots()
+    def image_density(self,fname):
+        fig,axes=plt.subplots(3,1, figsize=(6,12))
+        ax0=axes[0];ax1=axes[1];ax2=axes[2]
 
-    def compute_velocity(self,rng, fname=None, nbins=16):
-        print('do shock velocity')
+        ax0.plot( self.shot1.rho_cut.transpose(), c=[0.5,0.5,0.5,0.1], linewidth=0.1)
+        ax0.plot( self.shot2.rho_cut.transpose(), c=[0.5,0.5,0.5,0.1], linewidth=0.1)
+        ax0.plot( self.shot1.rhobar,c='r')
+        ax0.plot( self.shot2.rhobar,c='b')
+        ax1.imshow( self.shot1.rho)
+        ax2.imshow( self.shot2.rho)
+        ax1.axhline( self.shot1.lines[0],c='r')
+        ax1.axhline( self.shot1.lines[1],c='r')
+        ax2.axhline( self.shot1.lines[0],c='r')
+        ax2.axhline( self.shot1.lines[1],c='r')
+        fig.tight_layout()
+        fig.savefig('plots_to_sort/density_%s.pdf'%self.base)
 
-        ok = slice(rng[0],rng[1])
-        xa = self.x_1[ok]
-        ya = self.rhobar_1[ok]
-        xb = self.x_2[ok]
-        yb = self.rhobar_2[ok]
-        #horz.try2(ya,yb,method=1,fname='t1')
-        if fname is not None:
-            horz.try2(yb,ya,method=2,fname=fname)
-        #I1 = nar(horz.ho(yb,ya))
-        #dx1 = I1[:,1]-I1[:,0]
-        #vel1 = phys.pixel_to_velocity(dx1)
-        I2 = horz.ho2(ya=yb,yb=ya)
-        dx2 = I2[:,1]-I2[:,0]
-        self.vel_dist = phys.pixel_to_velocity(dx2)
-        hist, cen = ep.equal_prob( self.vel_dist, nbins)
-        self.vel = cen[ np.argmax(hist)]
-
-    def bumper(self, rng,fix_shift_x=None,do_plot=False, fname='bumper.pdf'):
+    def bumper(self, rng,fix_shift_x=None, fname=None):
         from scipy.interpolate import CubicSpline
         from scipy.optimize import curve_fit
         sl = slice(*rng)
@@ -75,23 +79,82 @@ class device():
         self.rhobar_1 = self.shot1.rhobar
         self.x_1 = self.shot1.x
 
-        if do_plot:
+        if fname is not None:
             fig,axes=plt.subplots(1,2)
             ax0=axes[0];ax1=axes[1]
-            ax0.plot(x_hold,y_hold)
-            ax0.plot(x_move,y_move)
+            ax0.plot(x_hold,y_hold, c='r')
+            off_blue = [0.5,0.5,1,0.5]
+            ax0.plot(x_move,y_move, c=off_blue)
             one_zone = x_hold[1]-x_hold[2]
             print('one zone', one_zone, 'shift',popt[0],'shift in zones', popt[0]/one_zone)
-            ax0.plot( x_hold, test_func(x_hold,popt[0],popt[1]))
+            ax0.plot( x_hold, test_func(x_hold,popt[0],popt[1]), c='b')
 
-            ax1.plot(self.shot1.x,self.shot1.rhobar)
-            ax1.plot(self.shot2.x,self.shot2.rhobar)
-            ax1.plot(self.shot2.x.v, self.rhobar_2)
-
-
+            ax1.plot(self.shot1.x,self.shot1.rhobar, c='r')
+            ax1.plot(self.shot2.x,self.shot2.rhobar, c=off_blue)
+            ax1.plot(self.shot2.x.v, self.rhobar_2, c='b')
 
             fig.tight_layout()
             fig.savefig('plots_to_sort/%s'%fname)
+
+    def compute_velocity(self,rng, fname=None, nbins=16):
+
+        ok = slice(rng[0],rng[1])
+        xa = self.x_1[ok]
+        ya = self.rhobar_1[ok]
+        xb = self.x_2[ok]
+        yb = self.rhobar_2[ok]
+        #horz.try2(ya,yb,method=1,fname='t1')
+        #I1 = nar(horz.ho(yb,ya))
+        #dx1 = I1[:,1]-I1[:,0]
+        #vel1 = phys.pixel_to_velocity(dx1)
+        I2 = horz.ho2(ya=yb,yb=ya)
+        dx2 = I2[:,1]-I2[:,0]
+        self.vel_dist = phys.pixel_to_velocity(dx2)
+        hist, cen = epb.equal_prob( self.vel_dist, nbins)
+        max_ind= np.argmax(hist)
+        self.vel = cen[ max_ind]
+        a = yb; b=ya
+        if fname is not None:
+            #horz.try2(yb,ya,method=2,fname=fname)
+            fig,axes=plt.subplots(1,2)
+            ax0=axes[0];ax1=axes[1]
+            ax0.plot(range(len(a)), a, color="blue")
+            ax0.plot(range(len(b)), b, color="orange")
+            dx=[]
+            for ii, x, y in I2:
+                i=int(ii)
+                xs = [i, x]
+                dx.append(x-i)
+                ys = [a[i], y]
+                ax0.plot(xs, ys, "r--")
+                #plt.plot(x, y, "r+")
+            epb.equal_prob(nar(self.vel_dist), 16, ax=ax1)
+            ax1.scatter( self.vel, hist[max_ind], marker='*',color='orange')
+            ax1.text( 0.5,0.75, r'$v = %0.1f km/s$'%self.vel,transform=ax1.transAxes)
+            fig.savefig('plots_to_sort/%s'%fname)
+
+
+    def sigma_rho(self,rng=[550,720], fname = None):
+        sl = slice(rng[0],rng[1])
+        post_shock = self.shot2.rho_cut[sl]
+        print('fname',fname)
+
+        if fname is not None:
+            fig,axes=plt.subplots(3,1, figsize=(6,12))
+            ax0=axes[0];ax1=axes[1];ax2=axes[2]
+
+            ax0.plot( self.shot1.rhobar,c='r')
+            ax0.plot( self.shot2.rhobar,c='b')
+            ax0.axvline(rng[0],c='r')
+            ax0.axvline(rng[1],c='r')
+            ax1.imshow( self.shot2.rho)
+
+            y1,y2 = self.shot2.lines
+            x1,x2 = rng
+            ax1.plot( [x1,x2,x2,x1,x1], [y1,y1,y2,y2,y1],c='r')
+            fig.tight_layout()
+            fig.savefig('plots_to_sort/density_variance_%s.pdf'%self.base)
+
 
     def atwood(self, mean_density, fname=None, gamma=5./3):
 
@@ -120,3 +183,4 @@ class device():
             ax2.plot( self.rhobar_1[sl2])
             fig.tight_layout()
             fig.savefig('plots_to_sort/%s'%fname)
+
