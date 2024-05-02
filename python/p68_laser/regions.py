@@ -54,8 +54,8 @@ if 'zero_region' not in dir():
         V = TP.viewer(which=which)
         a,b,c,d=zero_abcd[shot]
         fname = 'plots_to_sort/zero_%s'%shot
-        #X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
-        X,Y,Z = V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=None,vmax=None,fname=fname, zero=True)
+        X,Y,Z = V.xtract(a=a,b=b,c=c,d=d)
+        #X,Y,Z = V.xtract_and_image(a=a,b=b,c=c,d=d,vmin=None,vmax=None,fname=fname, zero=True)
         zero_region[shot] = Z
 
 def image_zero(shot_list = None):
@@ -70,14 +70,9 @@ def image_zero(shot_list = None):
         print(zero_region[shot]-Z)
 
 def get_zero(shot):
-    fig,ax=plt.subplots(1,1)
     zero = zero_region[shot]
-    hist, cen = ep.equal_prob(zero.flatten(), 16,ax=ax)
-    fig.savefig('plots_to_sort/fu')
+    hist, cen = ep.equal_prob(zero.flatten(), 16)
     zero_val = cen[np.argmax(hist)]
-    print("ZERO",zero_val)
-    
-
     return zero_val
 
 

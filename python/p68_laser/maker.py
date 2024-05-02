@@ -16,14 +16,15 @@ if 0:
     ftool=p1.brunt_spectra(sim_list)
     #p1.drill(['half_1'])
 
-if 0:
+if 1:
     import regions
     reload(regions)
-    shot=['r120_t1']#, 'r60_t1','r120_t1']
+    shot=['r60_t1']#, 'r60_t1','r120_t1']
     regions.image_zero(shot)
+    print(regions.get_zero(shot[0]))
     #zero = regions.zero_region[shot[0]]
 
-if 1:
+if 0:
     import horizontal_distance as horiz
     reload(horiz)
     horiz.try1(method=1,fname='test1')

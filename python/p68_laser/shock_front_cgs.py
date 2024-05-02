@@ -108,7 +108,7 @@ if 1:
         ax.bar(cen,hist,width=wid)
         max_bin = np.argmax(hist)
         sigma_v = cen[max_bin]
-        ax.text(0.75,0.75,r'$\sigma_v=%0.2f\rm{km/s}$'%(sigma_v), transform=ax.transAxes)
+        ax.text(0.5,0.5,r'$\sigma_v=%0.2f\rm{km/s}$'%(sigma_v), transform=ax.transAxes)
 
 
         ax=axes[1][n]

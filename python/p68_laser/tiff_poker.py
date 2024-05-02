@@ -2,11 +2,12 @@
 from dtools.starter1 import *
 import dtools.davetools as dt
 
+import equal_probability_binner as ep
 
 from tifffile import imread
 
-base_dir="/Users/dcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
-#base_dir="/Users/davidcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+#base_dir="/Users/dcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+base_dir="/Users/davidcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
 i1="TD_TC090-124_HGXD_IMAGE_N220712-002-999_DROOP_CORR_422421128478532_20220907115837893.tif"
 i2="TD_TC090-124_HGXD_IMAGE_N220713-001-999_DROOP_CORR_745405306609760_20220907115905225.tif"
 i3="TD_TC090-124_HGXD_IMAGE_N220714-001-999_DROOP_CORR_766909572834217_20220907115956892.tif"
@@ -117,15 +118,24 @@ class viewer():
             vmin = -maxmax
             cmap = 'seismic'
 
-        norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+        #norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+        norm=mpl.colors.Normalize(vmin=vmin,vmax=0)
         ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
         p=ax1.pcolormesh(TheX,TheY,TheZ,norm=norm, cmap=cmap)
         fig.colorbar(p,ax=ax1)
         if zero and 1:
             ax2=axes[2]
-            bins = np.arange(-50,150,10)
-            ax2.hist(TheZ.flatten(), histtype='step', density=False,bins=bins)
-            ax2.set(yscale='log')
+            if 0:
+                bins = np.arange(-50,150,10)
+                ax2.hist(TheZ.flatten(), histtype='step', density=False,bins=bins)
+                ax2.set(yscale='log')
+            if 1:
+                import shot
+                #hist,cen=ep.equal_prob(TheZ.flatten(), 16,ax=ax2)
+                hist,cen=ep.equal_prob(self.all_data.flatten(), 16,ax=ax2)
+                zero = cen[np.argmax(hist)]
+                ax2.text(0.5,0.75,zero, transform=ax2.transAxes)
+
             #dt.phist(TheZ.flatten())
         if zero and 1:
             ax2=axes[2].twinx()

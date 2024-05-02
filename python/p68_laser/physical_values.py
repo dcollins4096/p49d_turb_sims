@@ -44,7 +44,7 @@ def get_x(shot):
     return x
 
 
-def useful_values_take1(shot):
+def image_to_density_take1(shot):
     image = regions.TNA[shot]
     ps = regions.preshock_region[shot]
     I0 = compute_I0(ps).mean()
@@ -59,20 +59,19 @@ def useful_values_take1(shot):
     Q = compute_rho(image, I0, zero=zero_value)
     return Q
 
-def useful_values_take2(shot):
+def image_to_density_take2(shot):
     from scipy.ndimage import gaussian_filter
     image = regions.TNA[shot]
     image  = gaussian_filter(image,3)
     ps = regions.preshock_region[shot]
-    I0 = compute_I0(ps).mean()
+    I0 = compute_I0(ps).max()
     #zero from region.  Strangely works bad.
     #zero_region = regions.zero_region[shot]
     #zero_value = 2*zero_region.min()
     #zero from image.  ugly.
-    image_sort = copy.copy(image.flatten())
-    image_sort.sort()
-    delta = image_sort[1]-image_sort[0] 
-    zero_value = image_sort[0]-delta
+    zero_value = regions.get_zero(shot)
+
+    print(zero_value)
     Q = compute_rho(image, I0, zero=zero_value)
     return Q
 

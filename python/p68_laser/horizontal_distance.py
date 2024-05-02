@@ -137,16 +137,20 @@ def try2(a,b,method=1,fname='hor_test_2'):
         intersections = ho(a,b)
     if method==2:
         intersections = ho2(ya=a,yb=b)
-    plt.clf()
-    plt.plot(range(len(a)), a, color="blue")
-    plt.plot(range(len(b)), b, color="orange")
+    fig,axes=plt.subplots(1,2)
+    ax0=axes[0];ax1=axes[1]
+    ax0.plot(range(len(a)), a, color="blue")
+    ax0.plot(range(len(b)), b, color="orange")
+    dx=[]
     for ii, x, y in intersections:
         i=int(ii)
         xs = [i, x]
+        dx.append(x-i)
         ys = [a[i], y]
-        plt.plot(xs, ys, "r--")
+        ax0.plot(xs, ys, "r--")
         #plt.plot(x, y, "r+")
-    plt.savefig('plots_to_sort/%s'%fname)
+    ax1.hist(dx)
+    fig.savefig('plots_to_sort/%s'%fname)
     return intersections
 def try1(method=1, fname='hor_test_1'):
     a = [4, 1, 2, 7, 8, 8, 6, 11, 7, 10, 11, 15, 14, 14, 13, 17, 17, 21, 22, 20]
