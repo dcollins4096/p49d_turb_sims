@@ -44,8 +44,14 @@ class device():
         ax0.plot( self.shot2.rho_cut.transpose(), c=[0.5,0.5,0.5,0.1], linewidth=0.1)
         ax0.plot( self.shot1.rhobar,c='r')
         ax0.plot( self.shot2.rhobar,c='b')
-        ax1.imshow( self.shot1.rho)
-        ax2.imshow( self.shot2.rho)
+        if 1:#
+            cmap = copy.copy(mpl.cm.get_cmap('viridis'))
+            cmap.set_under('w')
+            mmax = self.shot1.rho.max()
+            mmin = max([0,self.shot1.rho.min()])
+            norm = mpl.colors.Normalize(vmin=mmin,vmax=mmax)
+        ax1.imshow( self.shot1.rho,cmap=cmap,norm=norm)
+        ax2.imshow( self.shot2.rho,cmap=cmap,norm=norm)
         ax1.axhline( self.shot1.lines[0],c='r')
         ax1.axhline( self.shot1.lines[1],c='r')
         ax2.axhline( self.shot1.lines[0],c='r')
@@ -152,8 +158,8 @@ class device():
             ax0=axes[0][0];ax2=axes[0][1]#;ax2=axes[0][2]
             ax1=axes[1][0];ax3=axes[1][1]#;ax5=axes[0][2]
 
-            ax0.plot( self.shot1.rhobar,c='r')
-            ax0.plot( self.shot2.rhobar,c='b')
+            ax0.plot( self.rhobar_1,c='r')
+            ax0.plot( self.rhobar_2,c='b')
             ax0.axvline(rng[0],c='r')
             ax0.axvline(rng[1],c='r')
             ax1.imshow( self.shot2.rho)
@@ -174,7 +180,7 @@ class device():
             fig.savefig('plots_to_sort/density_variance_%s.pdf'%self.base)
 
 
-    def atwood(self, mean_density, fname=None, gamma=5./3):
+    def csound(self, mean_density, fname=None, gamma=5./3):
 
         sl = slice(mean_density[0],mean_density[1])
         rhosl = self.rhobar_1[sl]
@@ -183,10 +189,9 @@ class device():
         sl2 = slice( mean_density[0]+index, mean_density[2])
         peak_rho = np.max( self.rhobar_1[sl2])
 
-        print(self.vel)
         R = peak_rho/mean_rho
+        print(R)
         self.cs = np.sqrt( gamma*self.vel**2*(1/R)*(1-1/R))
-        print("cs = ",self.cs)
 
         if fname is not None:
             fig,axes=plt.subplots(1,3)

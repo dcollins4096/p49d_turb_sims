@@ -26,6 +26,11 @@ t2 = 40e-9*unyt.s #ns
 t1 = 38e-9*unyt.s #ns
 delta_t = t2-t1
 
+
+def get_x(shot):
+    image = regions.TNA[shot]
+    x = np.arange(image.shape[1])*dx_pixel
+    return x
 def pixel_to_velocity(dx,dt=(t2-t1),pixel=dx_pixel):
     return (dx*pixel/dt).in_units('km/s')
 def compute_I0(I_pixel):
@@ -37,11 +42,6 @@ def compute_rho(I_pixel, I_0, zero=0):
 
     rho = (-np.log(fix1) -tau_B)*kappa_bar
     return rho
-
-def get_x(shot):
-    image = regions.TNA[shot]
-    x = np.arange(image.shape[1])*dx_pixel
-    return x
 
 def image_to_density(shot, model=0):
 
@@ -56,6 +56,11 @@ def image_to_density(shot, model=0):
     elif model == 1:
         I0 = compute_I0(ps).max()
         zero_value = regions.get_zero(shot)
+    elif model == 2:
+        #I0 = compute_I0(ps).max()
+        I0 = image.max()
+        zero_value = 0
+
 
     Q = compute_rho(image, I0, zero=zero_value)
     return Q
