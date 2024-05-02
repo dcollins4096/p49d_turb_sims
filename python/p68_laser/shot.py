@@ -8,6 +8,8 @@ reload(phys)
 import horizontal_distance as horz
 reload(horz)
 import equal_probability_binner as epb
+import brunt_tools as bt
+reload(bt)
 
 class shot():
     def __init__(self,name, lines=[200,400], model=0, smooth=0):
@@ -136,12 +138,19 @@ class device():
 
     def sigma_rho(self,rng=[550,720], fname = None):
         sl = slice(rng[0],rng[1])
-        post_shock = self.shot2.rho_cut[sl]
+        post_shock = self.shot2.rho_cut[:,sl]
+        ftool = bt.fft_tool(post_shock)
+        ftool.rho2 = post_shock
+        ftool.do2()
+        bt.sigmas_2donly(ftool)
+        self.sigma_B = ftool.sigma_Brunt
+
         print('fname',fname)
 
         if fname is not None:
-            fig,axes=plt.subplots(3,1, figsize=(6,12))
-            ax0=axes[0];ax1=axes[1];ax2=axes[2]
+            fig,axes=plt.subplots(2,2, figsize=(12,12))
+            ax0=axes[0][0];ax2=axes[0][1]#;ax2=axes[0][2]
+            ax1=axes[1][0];ax3=axes[1][1]#;ax5=axes[0][2]
 
             ax0.plot( self.shot1.rhobar,c='r')
             ax0.plot( self.shot2.rhobar,c='b')
@@ -152,6 +161,15 @@ class device():
             y1,y2 = self.shot2.lines
             x1,x2 = rng
             ax1.plot( [x1,x2,x2,x1,x1], [y1,y1,y2,y2,y1],c='r')
+
+            ax2.imshow(post_shock)
+            ax3.plot(ftool.ps2.kcen,ftool.ps2.power)
+            ax3.set(xscale='log',yscale='log')
+            ax3.text(0.5,0.75,r'$\sigma_B = %0.2e$'%self.sigma_B, transform=ax3.transAxes)
+
+
+
+
             fig.tight_layout()
             fig.savefig('plots_to_sort/density_variance_%s.pdf'%self.base)
 
