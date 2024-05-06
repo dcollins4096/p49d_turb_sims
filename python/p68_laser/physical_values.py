@@ -37,18 +37,16 @@ def compute_I0(I_pixel):
     I_0 = I_pixel * np.exp(tau_B+tau_U+tau_D)
     return I_0
 def compute_rho(I_pixel, I_0, zero=0):
-    #rho =  -(np.log(I_0/I_pixel)+tau_B)*t1
     fix1 = (I_pixel-zero)/I_0
 
     rho = (-np.log(fix1) -tau_B)*kappa_bar
     return rho
 
 def image_to_density(shot, model=0):
-
     image = regions.TNA[shot]
     ps = regions.preshock_region[shot]
     if model == 0:
-        I0 = compute_I0(ps).mean()
+        I0 = compute_I0(ps).max()
         image_sort = copy.copy(image.flatten())
         image_sort.sort()
         delta = image_sort[1]-image_sort[0] 
@@ -57,11 +55,12 @@ def image_to_density(shot, model=0):
         I0 = compute_I0(ps).max()
         zero_value = regions.get_zero(shot)
     elif model == 2:
-        #I0 = compute_I0(ps).max()
-        I0 = image.max()
-        zero_value = 0
-
-
+        I0 = compute_I0(ps).max()
+        image_sort = copy.copy(image.flatten())
+        image_sort.sort()
+        delta = image_sort[1]-image_sort[0] 
+        zero_value = image_sort[0]-delta
+        #zero_value = 2*regions.get_zero(shot)
     Q = compute_rho(image, I0, zero=zero_value)
-    return Q
+    return image, Q
 

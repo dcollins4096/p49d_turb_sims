@@ -14,6 +14,8 @@ if 'trim' not in dir():
     trim = {}
 
 
+#not the most elegant of code.
+#a,b,c,d are left, right, bottom, and top in pixels.
 for DO in [0,1,2,3,4,5]:
     if DO==0:
         which=0

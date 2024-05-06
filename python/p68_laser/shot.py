@@ -11,10 +11,12 @@ import equal_probability_binner as epb
 import brunt_tools as bt
 reload(bt)
 
+
 class shot():
     def __init__(self,name, lines=[200,400], model=0, smooth=0):
+        print('model, shot',model)
         self.name=name
-        self.rho = phys.image_to_density(name, model=0)
+        self.image, self.rho = phys.image_to_density(name, model)
         if smooth>0:
             units=self.rho.units
             self.rho = gaussian_filter(self.rho,smooth)
@@ -28,17 +30,19 @@ class shot():
         self.lines=lines
 
 class device():
-    def __init__(self,base,model=0, lines=[200,400],smooth=0):
-        self.base = base
-        self.name1='%s_t1'%base
-        self.name2='%s_t2'%base
+    def __init__(self,name,model=0, lines=[200,400],smooth=0):
+        self.model=model
+        self.name = name
+        self.name1='%s_t1'%name
+        self.name2='%s_t2'%name
         self.shot1 = shot(self.name1,lines,model,smooth)
         self.shot2 = shot(self.name2,lines,model,smooth)
         self.lines = lines
 
     def image_density(self,fname):
-        fig,axes=plt.subplots(3,1, figsize=(6,12))
-        ax0=axes[0];ax1=axes[1];ax2=axes[2]
+        fig,axes=plt.subplots(3,2, figsize=(12,12))
+        ax0=axes[0][0];ax1=axes[1][0];ax2=axes[2][0]
+        ax3=axes[0][1];ax4=axes[1][1];ax5=axes[2][1]
 
         ax0.plot( self.shot1.rho_cut.transpose(), c=[0.5,0.5,0.5,0.1], linewidth=0.1)
         ax0.plot( self.shot2.rho_cut.transpose(), c=[0.5,0.5,0.5,0.1], linewidth=0.1)
@@ -52,12 +56,14 @@ class device():
             norm = mpl.colors.Normalize(vmin=mmin,vmax=mmax)
         ax1.imshow( self.shot1.rho,cmap=cmap,norm=norm)
         ax2.imshow( self.shot2.rho,cmap=cmap,norm=norm)
+        ax4.imshow( self.shot1.image)#,cmap=cmap,norm=norm)
+        ax5.imshow( self.shot2.image)#,cmap=cmap,norm=norm)
         ax1.axhline( self.shot1.lines[0],c='r')
         ax1.axhline( self.shot1.lines[1],c='r')
         ax2.axhline( self.shot1.lines[0],c='r')
         ax2.axhline( self.shot1.lines[1],c='r')
         fig.tight_layout()
-        fig.savefig('plots_to_sort/density_%s.pdf'%self.base)
+        fig.savefig('plots_to_sort/density_%s.pdf'%self.name)
 
     def bumper(self, rng,fix_shift_x=None, fname=None):
         from scipy.interpolate import CubicSpline
@@ -177,7 +183,7 @@ class device():
 
 
             fig.tight_layout()
-            fig.savefig('plots_to_sort/density_variance_%s.pdf'%self.base)
+            fig.savefig('plots_to_sort/density_variance_%s.pdf'%self.name)
 
 
     def csound(self, mean_density, fname=None, gamma=5./3):
@@ -192,18 +198,31 @@ class device():
         R = peak_rho/mean_rho
         print(R)
         self.cs = np.sqrt( gamma*self.vel**2*(1/R)*(1-1/R))
+        self.mean_rho = mean_rho
+        self.peak_rho = peak_rho
+        self.R = R
 
         if fname is not None:
             fig,axes=plt.subplots(1,3)
             ax0=axes[0]; ax1=axes[1]; ax2=axes[2]
-            ax0.plot(self.rhobar_1)
+            ax0.plot(self.rhobar_1,c='k')
             ax0.axvline(mean_density[0])
             ax0.axvline(mean_density[1])
             ax0.axvline(mean_density[2])
-            ax1.plot( self.x_1[sl], self.rhobar_1[sl])
+            ax1.plot(  self.rhobar_1[sl])
             ax1.axvline(self.x_1[sl][index])
             ax1.axhline(mean_rho)
             ax2.plot( self.rhobar_1[sl2])
+            ax2.text(0.1,0.8,  r'$\frac{\rho_{min}}{\rho_{max}}=%0.2e$'%R)
+            ax2.text(0.1,0.75,  r'$c_s=%0.2f km/s$'%self.cs, transform=ax2.transAxes)
             fig.tight_layout()
             fig.savefig('plots_to_sort/%s'%fname)
+    def atwood(self):
+        self.atwood = self.sigma_B/(self.mean_rho+self.sigma_B)
+    def sigma_v(self):
+        if self.name == 'r60' or self.name == 'r120':
+            size = {'r60':60, 'r120':120}[self.name]
+            self.sigma_v = 0.6*(size/45)**(1./3)*self.atwood*self.vel
+        else:
+            self.sigma_v = 0.6*self.atwood*self.vel
 
