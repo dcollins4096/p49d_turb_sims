@@ -66,6 +66,10 @@ class sim():
         ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
         ds=yt.load(ds_name)
         return ds
+    def load_cg(self,frame,field):
+        ds = self.load_ds(frame)
+        cg = ds.covering_grid(0,[0.0]*3,[512]*3)
+        return cg
     def load(self):
         self.read_avg_quan()
         self.read_all_spectra()
