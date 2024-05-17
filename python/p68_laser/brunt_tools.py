@@ -4,25 +4,9 @@ import yt
 from downsample import volavg
 import fourier_tools_py3.fourier_filter as Filter
 import tools.davetools as dt
+import power_spectrum as ps
+reload(ps)
 
-class shell_average():
-    def __init__(self,power):
-        self.power=power
-        self.ff = Filter.FourierFilter(self.power)
-        ff=self.ff
-        self.power_1d = np.array([self.power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
-        self.Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
-        self.kd=ff.get_shell_k()
-class ft_only():
-    def __init__(self,array):
-        self.array=array
-        self.fft = np.fft.fftn( self.array )
-        self.power=self.fft*np.conjugate(self.fft)
-        self.power/=self.power.size
-        ff = Filter.FourierFilter(self.power)
-        self.power_1d = np.array([self.power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
-        self.Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
-        self.kd=ff.get_shell_k()
 
 def get_cubes(sim,frame,do_rho_4=False):
     ds = yt.load("/data/cb1/Projects/P49_EE_BB/%s/DD%04d/data%04d"%(sim, frame, frame))
@@ -80,62 +64,6 @@ def fake_powerlaw(N,alphaT,kslice,Amplitude=1,phase=False, rando=False):
     Q = np.fft.irfftn(Ahat)
     return Q
 
-def plot_fft(ftool, outname=None,ax=None):
-    savefig=False
-    ext=dt.extents()
-    if ax is None:
-        savefig=True
-        fig,ax=plt.subplots(1,1)
-    if ftool.done2:
-        q = ftool.power_1d2.real[1:]
-        ext(q)
-        ax.plot(ftool.k2d[1:], q,c='r', label='P2d')
-        ext(q,positive=True)
-    if ftool.done3:
-        q=ftool.power_1d3.real[1:]
-        ax.plot(ftool.k3d[1:], q,c='g', label='P3d')
-        ext(q,positive=True)
-
-    if ftool.done2 and ftool.done3:
-        q=ftool.k2d[1:]*ftool.power_1d2.real[1:]
-        ax.plot(ftool.k2d[1:],q,c='b', label = 'k P2d')
-        ext(q,positive=True)
-
-    if 1:
-        TheX = ftool.k3d
-        TheY = ftool.power_1d3.real
-        ok = (TheX>0)*(TheY>0)
-        pfit = np.polyfit( np.log(TheX[ok]), np.log(TheY[ok]), 1)
-        print("3d fit index",pfit)
-
-    if savefig:
-        ax.legend(loc=0)
-        ax.set(ylim=ext.minmax)
-
-        ax.set(yscale='log',xscale='log')
-        print("SAVE",outname)
-        fig.savefig(outname)
-
-def plot_fft2(ftool, outname=None):
-    fig,ax=plt.subplots(1,3,figsize=(8,4))
-    ax[0].imshow( ftool.rho2)
-    ax[1].imshow(ftool.rho2p)
-    ax[2].plot( ftool.k2d, ftool.power_1d2.real, c='k', label='2d')
-    ax[2].plot( ftool.k2dp, ftool.power_1d2p.real, c='r',label='2dp')
-    ax[2].set(xscale='log',yscale='log')
-    ax[2].legend(loc=0)
-    fig.savefig(outname)
-def plot_fft3(ftool,apod=None, outname=None):
-    fig,ax=plt.subplots(2,2,figsize=(8,4))
-    ax[0][0].imshow( ftool.rho2)
-    ax[1][0].imshow(ftool.rho2p)
-    ax[0][1].imshow( apod.rho2)
-    ax[1][1].plot( ftool.k2d, ftool.power_1d2.real, c='k', label='2d')
-    ax[1][1].plot( ftool.k2dp, ftool.power_1d2p.real, c='r',label='2dp')
-    ax[1][1].plot( apod.k2d, apod.power_1d2.real, c='g', label='apod')
-    ax[1][1].set(xscale='log',yscale='log')
-    ax[1][1].legend(loc=0)
-    fig.savefig(outname)
 
 def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
 
@@ -154,63 +82,49 @@ def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
         mask = slice(None)
     else:
         mask = slice(fitrange[0],fitrange[1])
-    ax.plot(ftool.k2d,          ftool.power_1d2.real,c=[0.5]*3, label='P2d')
-    ax.plot(ftool.k2d[mask],          ftool.power_1d2.real[mask],c='r', label='P2d')
-    ax.plot(ftool.k3d[mask],          ftool.power_1d3.real[mask],c='g', label='P3d')
-    ax.plot(ftool.k2d[mask],ftool.k2d[mask]*ftool.power_1d2.real[mask],c='b', label = 'k P2d')
+    ax.plot(ftool.ps2.kcen,      ftool.ps2.power,c=[0.5]*3, label='P2d')
+    ax.plot(ftool.ps2.kcen[mask],ftool.ps2.power[mask],c='r', label='P2d')
+    ax.plot(ftool.ps3.kcen[mask],ftool.ps3.power[mask],c='g', label='P3d')
+    ax.plot(ftool.ps2.kcen[mask],ftool.ps2.kcen[mask]*ftool.ps2.power[mask],c='b', label = 'k P2d')
     ax.set(xscale='log',yscale='log')
     ax.legend(loc=1)
     error = 1-ftool.sigma_Brunt/ftool.sigma_x3d
     text_x=0.05
-    text_y=0.3
+    text_y=0.35
     dy=0.05
     ax.text(text_x, text_y-1*dy,"%0.2e sigma_x3d"%ftool.sigma_x3d, transform=ax.transAxes)
     ax.text(text_x, text_y-2*dy,"%0.2e sigma_x2d"%ftool.sigma_x2d, transform=ax.transAxes)
     ax.text(text_x, text_y-3*dy,"%0.2e R "%(1./ftool.Rinv), transform=ax.transAxes)
     ax.text(text_x, text_y-4*dy,"%0.2e sigma_B "%ftool.sigma_Brunt,  transform=ax.transAxes)
     ax.text(text_x, text_y-5*dy,"%0.2e  error  "%error,  transform=ax.transAxes)
-    ax.text(text_x, text_y-6*dy,"%0.2e  rat  "%(ftool.sigma_Brunt/ftool.sigma_x3d),  transform=ax.transAxes)
+    ax.text(text_x, text_y-6*dy,"%0.2e  ratio  "%(ftool.sigma_Brunt/ftool.sigma_x3d),  transform=ax.transAxes)
 
     if savefig:
         fig.savefig(outname)
 
+def sigmas_2donly(self):
+    #this works.  Not normalized, though.
+    self.sigma_x2d = np.sqrt(((self.rho2)**2).sum().real)
+    self.sigma_k2d = np.sqrt(self.ps2.power[1:].sum().real)
+    self.sigma_k2dk= np.sqrt(( self.ps2.kcen*self.ps2.power)[1:].sum())
+    self.Rinv = self.sigma_k2dk.real/self.sigma_k2d.real
+    self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
+
 def sigmas_full(self):
     #this works.  Not normalized, though.
     self.sigma_x3d = np.sqrt((self.rho**2).sum().real)
-    self.sigma_k3d = np.sqrt((self.power_1d3).sum().real)
+    self.sigma_k3d = np.sqrt((self.ps3.power).sum().real)
     self.sigma_x2d = np.sqrt(((self.rho2)**2).sum().real)
-    self.sigma_k2d = np.sqrt(self.power_1d2[1:].sum().real)
-    self.sigma_k2dk= np.sqrt(( self.k2d*self.power_1d2)[1:].sum())
+    self.sigma_k2d = np.sqrt(self.ps2.power[1:].sum().real)
+    self.sigma_k2dk= np.sqrt(( self.ps2.kcen*self.ps2.power)[1:].sum())
     self.Rinv = self.sigma_k2dk.real/self.sigma_k2d.real
     self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
     self.R1 =self.sigma_Brunt/self.sigma_x3d
     #just to check that everything works right, do it with the actual 3d power spectrum.
     #R2 should be 1
-    self.Rinv_actual = self.power_1d3.sum()/self.power_1d2.sum()
+    self.Rinv_actual = self.ps3.power.sum()/self.ps2.power.sum()
     self.sigma_Brunt_actual = self.sigma_x2d*self.Rinv_actual
     self.R2 = self.sigma_Brunt_actual/self.sigma_x3d
-def sigmas_norm(self):
-    #works, normalized, only using the fit range
-    Nz = self.rho.size
-    N2d = self.rho2.size
-    self.mean_rho=(self.rho).sum()/Nz
-    self.mean_column= self.rho2.sum()/N2d
-    self.sigma_x3d  =np.sqrt(((self.rho-self.mean_rho)**2).sum().real/Nz)
-    self.sigma_k3d  =np.sqrt((self.power_1d3[1:]).sum().real/Nz)
-    self.sigma_k2dk =np.sqrt(( self.k2d*self.power_1d2)[1:].sum()/Nz)
-    self.sigma_x2d  =np.sqrt(((self.rho2-self.mean_column)**2).sum().real/N2d)
-    self.sigma_k2d  =np.sqrt(self.power_1d2[1:].sum().real/N2d)
-
-    #self.Rinv = ()/((self.power_1d2)[1:].sum()/N2d)
-    self.Rinv = (self.sigma_k2dk/self.sigma_k2d).real
-    #this should give us the right answer.
-    #Rinv_actual = (self.power_1d3[1:].sum()/Nz)/(self.power_1d2[1:].sum()/N2d)
-    self.Rinv_actual = (self.sigma_k3d/self.sigma_k2d).real
-    self.sigma_Brunt = (self.sigma_k2d*self.Rinv).real
-    sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
-
-    R1 =self.sigma_Brunt/self.sigma_x3d
-    R2 = self.sigma_Brunt_actual/self.sigma_x3d
 
 def sigmas_range(self, fitrange):
     mask = slice(fitrange[0],fitrange[1])
@@ -219,10 +133,10 @@ def sigmas_range(self, fitrange):
     self.mean_rho=(self.rho).sum()/Nz
     self.mean_column= self.rho2.sum()/N2d
     self.sigma_x3d  =np.sqrt(((self.rho-self.mean_rho)**2).sum().real/Nz)
-    self.sigma_k3d  =np.sqrt((self.power_1d3[mask]).sum().real/Nz)
-    self.sigma_k2dk =np.sqrt(( self.k2d*self.power_1d2)[mask].sum()/Nz)
+    self.sigma_k3d  =np.sqrt((self.ps3.power[mask]).sum().real/Nz)
+    self.sigma_k2dk =np.sqrt(( self.ps2.kcen*self.ps2.power)[mask].sum()/Nz)
     self.sigma_x2d  =np.sqrt(((self.rho2-self.mean_column)**2).sum().real/N2d)
-    self.sigma_k2d  =np.sqrt(self.power_1d2[mask].sum().real/N2d)
+    self.sigma_k2d  =np.sqrt(self.ps2.power[mask].sum().real/N2d)
 
     #self.Rinv = ()/((self.power_1d2)[1:].sum()/N2d)
     self.Rinv = (self.sigma_k2dk/self.sigma_k2d).real
@@ -244,65 +158,13 @@ class fft_tool():
         self.done2=False
         self.done3=False
 
-
-
     def do3(self):
-        print('3d fourier transform')
-        self.fft3 = np.fft.fftn( self.rho )
-        self.power=self.fft3*np.conjugate(self.fft3)
-        self.power/=self.power.size
-        ff = Filter.FourierFilter(self.power)
-        self.power_1d3 = np.array([self.power[ff.get_shell(bin)].sum() for bin in range(ff.nx)])
-        #self.power_1d3 /= self.rho.size
-        self.Nzones = np.array([ff.get_shell(bin).sum() for bin in range(ff.nx)])
-        self.k3d=ff.get_shell_k()
-        self.done3=True
-
-
+        self.ps3 = ps.powerspectrum(self.rho)
 
     def do2(self,projax=0):
-        print('2d fourier transform')
         if self.rho2 is None:
-            print('MAKE NEW PROJECTION')
             self.rho2=self.rho.sum(axis=projax)
-            Nz = self.rho.shape[projax]
-            #self.rho2/=Nz
-        self.fft2 = np.fft.fftn( self.rho2 )
-        self.power2=self.fft2*np.conjugate(self.fft2)
-        self.power2/=self.power2.size
-        ff2 = Filter.FourierFilter(self.power2)
-        self.power_1d2 = np.array([self.power2[ff2.get_shell(bin)].sum() for bin in range(ff2.nx)])
-        #self.power_1d2 /= self.rho2.size
-        self.Nzones2 = np.array([ff2.get_shell(bin).sum() for bin in range(ff2.nx)])
-        self.k2d=ff2.get_shell_k()
-        self.done2=True
-    def do2_periodic(self,projax=0):
-        print('2d fourier transform')
-        if self.rho2p is None:
-            print('MAKE NEW PROJECTION')
-            self.rho2=self.rho.sum(axis=projax)
-            Nz = self.rho.shape[projax]
-            self.rho2/=Nz
-            #self.rho2p = np.concatenate([self.rho2, self.rho2[::-1]], axis=0)
-            #self.rho2p = np.concatenate([self.rho2p, self.rho2p[:,::-1]],axis=1)
-            s_elf.rho2p = np.concatenate([self.rho2, self.rho2[::-1]], axis=0)
-            self.rho2p = np.concatenate([self.rho2p, self.rho2p[:,::-1]],axis=1)
-
-            fig,ax=plt.subplots(1,1)
-            ax.imshow(self.rho2p)
-            fig.savefig('/home/dccollins/PigPen/derp')
-
-
-
-        self.fft2p = np.fft.fftn( self.rho2p )
-        self.power2p=self.fft2p*np.conjugate(self.fft2p)
-        #self.power2/=self.power2.size
-        ff2p = Filter.FourierFilter(self.power2p)
-        self.power_1d2p = np.array([self.power2p[ff2p.get_shell(bin)].sum() for bin in range(ff2p.nx)])
-        self.power_1d2p /= self.rho2p.size
-        self.Nzones2p = np.array([ff2p.get_shell(bin).sum() for bin in range(ff2p.nx)])
-        self.k2dp=ff2p.get_shell_k()
-        self.done2=True
+        self.ps2 = ps.powerspectrum(self.rho2)
 
     def apodize1(self,projax=0):
         self.rho2=self.rho.sum(axis=projax)

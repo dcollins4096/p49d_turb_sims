@@ -1,5 +1,9 @@
 
 
+#
+# Align the fiducial marks between pairs of images
+#
+
 from dtools.starter1 import *
 
 

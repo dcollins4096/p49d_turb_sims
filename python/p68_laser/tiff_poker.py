@@ -1,16 +1,24 @@
 
 from dtools.starter1 import *
+import dtools.davetools as dt
+
+import equal_probability_binner as ep
 
 from tifffile import imread
 
-base_dir="/Users/dcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+#base_dir="/Users/dcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
 #base_dir="/Users/davidcollins/Dropbox/RESEARCH5/Paper68/Data_analysis/Raw_radiographs/play"
+base_dir = 'p68_laser/raw_data'
 i1="TD_TC090-124_HGXD_IMAGE_N220712-002-999_DROOP_CORR_422421128478532_20220907115837893.tif"
 i2="TD_TC090-124_HGXD_IMAGE_N220713-001-999_DROOP_CORR_745405306609760_20220907115905225.tif"
 i3="TD_TC090-124_HGXD_IMAGE_N220714-001-999_DROOP_CORR_766909572834217_20220907115956892.tif"
 fnames=[i1,i2,i3]
 
 plotdir="plots_to_sort"
+
+if not os.path.exists(base_dir):
+    print("Error: directory not found.  Please soft link.")
+    print("% ln -s <path_to_raw_radiographs> p68_laser/raw_data")
 
 def trimmer(arr,sigma_n=0,fname='imag', vmin=None,vmax=None):
     y = arr.mean(axis=1)
@@ -50,15 +58,18 @@ def trimmer(arr,sigma_n=0,fname='imag', vmin=None,vmax=None):
 
 
 class viewer():
-    def __init__(self,which=0):
-        self.fname = "%s/%s"%(base_dir,fnames[which])
-        self.all_data = imread(self.fname)
+    def __init__(self,which=None,arr=None):
+        if type(which) == int:
+            self.fname = "%s/%s"%(base_dir,fnames[which])
+            self.all_data = imread(self.fname)
+        elif arr is not None:
+            self.all_data=arr
+        else:
+            pdb.set_trace()
+            print("Error, not an acceptable choice")
         self.XX = np.arange(self.all_data.shape[1])
         self.YY = np.arange(self.all_data.shape[0])
         self.X1, self.Y1 = np.meshgrid(self.XX,self.YY)
-
-        print(self.all_data.shape)
-        print(self.X1.shape)
 
     def image1(self,fname='image0'):
 
@@ -82,38 +93,69 @@ class viewer():
 
 
 
-    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png'):
-        fig,axes=plt.subplots(1,2,figsize=(12,12))
-        #ax0=axes
-        ax0=axes[0];ax1=axes[1]
-        #ax0=axes[0][0];ax1=axes[0][1]
-        #ax2=axes[1][0];ax3=axes[1][1]
-        for ax in axes.flatten():
-            ax.set_aspect('equal')
-        norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+    def xtract(self,a=None,b=None,c=None,d=None):
         S1 = slice(c,d)
         S2 = slice(a,b)
-        ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
-        ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
         TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
-        ax1.pcolormesh(TheX,TheY,TheZ,norm=norm)
+        return TheX, TheY, TheZ
 
-        if 0:
-            col=[]
-            xlist=np.arange(a,a+200)
-            for X in xlist:
-                ax0.axvline(X)
-                ax1.axvline(X)
-                TheX_s,TheY_s= TheY[:,X-a], TheZ[:,X-a]
-                col.append(TheY_s.std())
-                ax2.plot(TheX_s,TheY_s)
-            ax3.plot(xlist, col, marker='*')
+    def xtract_and_image(self,a=None,b=None,c=None,d=None,vmin=None,vmax=None, fname='image.png',zero=False):
+        #ax0=axes[0][0];ax1=axes[0][1]
+        #ax2=axes[1][0];ax3=axes[1][1]
+        S1 = slice(c,d)
+        S2 = slice(a,b)
+        TheX,TheY,TheZ=self.X1[S1,S2],self.Y1[S1,S2],self.all_data[S1,S2]
+        if vmin is None and vmax is None:
+            vmin = TheZ.min()
+            vmax = TheZ.max()
+        n_plots = 2
+        if zero: n_plots=3
+        fig,axes=plt.subplots(1,n_plots,figsize=(12,12))
+        #for ax in axes.flatten():
+        #    ax.set_aspect('equal')
+        #ax0=axes
+        ax0=axes[0];ax1=axes[1]
+        ax0.plot([a,b,b,a,a],[c,c,d,d,c],c='r')
+        cmap='viridis'
+        if zero:
+            maxmax=max([np.abs(vmin),np.abs(vmax)])
+            vmax = maxmax
+            vmin = -maxmax
+            cmap = 'seismic'
+
+        #norm=mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+        norm=mpl.colors.Normalize(vmin=vmin,vmax=0)
+        ax0.pcolormesh(self.X1,self.Y1,self.all_data,norm=norm)
+        p=ax1.pcolormesh(TheX,TheY,TheZ,norm=norm, cmap=cmap)
+        fig.colorbar(p,ax=ax1)
+        if zero and 1:
+            ax2=axes[2]
+            if 0:
+                bins = np.arange(-50,150,10)
+                ax2.hist(TheZ.flatten(), histtype='step', density=False,bins=bins)
+                ax2.set(yscale='log')
+            if 1:
+                import shot
+                #hist,cen=ep.equal_prob(TheZ.flatten(), 16,ax=ax2)
+                hist,cen=ep.equal_prob(self.all_data.flatten(), 16,ax=ax2)
+                zero = cen[np.argmax(hist)]
+                ax2.text(0.5,0.75,zero, transform=ax2.transAxes)
+
+            #dt.phist(TheZ.flatten())
+        if zero and 1:
+            ax2=axes[2].twinx()
+            the_x = TheZ.flatten()+0
+            the_x.sort()
+            the_y = np.arange(the_x.size)/the_x.size
+            ok = np.argmin(np.abs(the_x))
+            ax2.axhline(the_y[ok])
+            ax2.axvline(0)
+            ax2.plot(the_x,the_y)
 
 
-
-        print(fname)
+        fig.tight_layout()
         fig.savefig(fname)
-        return TheZ
+        return TheX,TheY,TheZ
 
 
 
