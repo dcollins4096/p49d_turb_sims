@@ -1,5 +1,6 @@
 from GL import *
 from queb3 import powerlaw_fit as plfit
+from downsample import volavg
 
 if 'corral' not in dir():
     corral={}
@@ -66,6 +67,22 @@ class sim():
         ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
         ds=yt.load(ds_name)
         return ds
+    def load_small_rho(self,frame):
+        small_fname = "%s/DD%04d.products/small_rho.h5"%(self.product_location,frame)
+        if os.path.exists(small_fname):
+            small_rho = dt.dpy(small_fname,'rho')[0]
+        else:
+            ds = self.load_ds(frame)
+            cg = ds.covering_grid(0, [0.0]*3, [512]*3)
+            rho_full = cg["density"].v
+            small_rho = volavg.volavg(rho_full,rank=3,refine_by=4)
+            fptr = h5py.File(small_fname,'w')
+            fptr['rho']=small_rho
+            fptr.close()
+            print("wrote",small_fname)
+        return small_rho
+
+
     def load_cg(self,frame,field):
         ds = self.load_ds(frame)
         cg = ds.covering_grid(0,[0.0]*3,[512]*3)
