@@ -23,28 +23,25 @@ def get_cubes(sim,frame,do_rho_4=False):
 
     return output
 
-def fake_powerlaw(N,alphaT,kslice,Amplitude=1,phase=False, rando=False):
+def fake_powerlaw(N,alphaT,kmin,kmax,Amplitude=1,phase=False, rando=False):
     kI = np.fft.fftfreq(N)
     kx,ky,kz=np.meshgrid(kI,kI,kI)
     rrr = np.sqrt(kx**2+ky**2+kz**2)
     Ahat = np.zeros_like(rrr*1j)
     k = np.unique(np.abs(kx))
-    if kslice is not None:
-        rmin = k[kslice].min()
-        rmax = k[kslice].max()
-    else:
-        rmin=0
-        rmax=rrr.max()
+
+    rmin = k[kmin]
+    rmax = k[kmax]
+
     ok = (rrr>rmin)*(rrr<=rmax)
-    print(ok.sum()/ok.size)
     ok_r=ok
 
     #alphaT is total power. 2 makes a flat power
     alphaV=alphaT-2 #alphaV is volume avg power.
     alphaprime=(alphaT-2)/2
     Ahat[ok]=Amplitude*rrr[ok]**alphaprime
+    print("Alpha prime",alphaprime)
     #Ahat -= Ahat.min()-4
-    print('BACON',Ahat.min())
     if rando:
         rando=np.random.random(Ahat.size)
         rando.shape=Ahat.shape
@@ -65,6 +62,13 @@ def fake_powerlaw(N,alphaT,kslice,Amplitude=1,phase=False, rando=False):
     return Q
 
 
+def plot_set(ftool,outname,axis=0):
+    fig,ax=plt.subplots(2,2)
+    ax0=ax[0][0];ax1=ax[0][1];ax2=ax[1][0];ax3=ax[1][1]
+    ax0.imshow(ftool.rho.sum(axis=axis),interpolation='nearest',origin='lower')
+    ax1.plot(ftool.ps2.kcen,ftool.ps2.power,c='r',label='p2d')
+    ax1.set(xscale='log',yscale='log')
+    fig.savefig(outname)
 def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
 
     if method=='full':
@@ -115,8 +119,9 @@ def sigmas_full(self):
     self.sigma_x3d = np.sqrt((self.rho**2).sum().real)
     self.sigma_k3d = np.sqrt((self.ps3.power).sum().real)
     self.sigma_x2d = np.sqrt(((self.rho2)**2).sum().real)
-    self.sigma_k2d = np.sqrt(self.ps2.power[1:].sum().real)
-    self.sigma_k2dk= np.sqrt(( self.ps2.kcen*self.ps2.power)[1:].sum())
+    #self.sigma_k2d = np.sqrt(self.ps2.power[1:].sum().real)
+    self.sigma_k2d = np.sqrt(self.ps2.power.sum().real)
+    self.sigma_k2dk= np.sqrt(( self.ps2.kcen*self.ps2.power).sum())
     self.Rinv = self.sigma_k2dk.real/self.sigma_k2d.real
     self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
     self.R1 =self.sigma_Brunt/self.sigma_x3d

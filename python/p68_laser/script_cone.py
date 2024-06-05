@@ -11,11 +11,11 @@ import slabimg
 reload(slabimg)
 
 N = 128
-alphaT=-1.5
+alphaT=-1.8
 alphaV=alphaT-2
 kmin=2
 kmax=-2
-Q = bt.fake_powerlaw(N,alphaT,kmin,kmax)
+Q = bt.fake_powerlaw(N,alphaT,kmin,kmax, phase=True, rando=True)
 #fig,axes=plt.subplots(2,2)
 #ax0=axes[0][0]
 
@@ -24,7 +24,7 @@ Q = bt.fake_powerlaw(N,alphaT,kmin,kmax)
 
 
 
-if 'ftool' not in dir():
+if 'ftool' not in dir() or True:
     ftool=bt.fft_tool(Q)
     ftool.do3()
     ftool.do2(projax=0)
@@ -33,11 +33,11 @@ if 'ftool' not in dir():
     #    slab=slabimg.slab(ftool, projax=0)
 
 if 1:
-    bt.plot_fft(ftool, outname ='plots_to_sort/cone')
-    slabimg.plot_fft(ftool, outname = "plots_to_sort/cone_fft")
-    slabimg.number_checker(ftool, outname = "plots_to_sort/cone_number")
+    bt.plot_set(ftool, outname ='%s/cone'%plotdir)
+    #slabimg.plot_fft(ftool, outname = "plots_to_sort/cone_fft")
+    #slabimg.number_checker(ftool, outname = "plots_to_sort/cone_number")
 
-if 1:
+if 0:
     FFT = np.fft.fftn(Q)
     power = (FFT*np.conj(FFT)).real
     #power = (Ahat*Ahat.conj()).real
@@ -48,20 +48,30 @@ if 1:
     kbins = np.sqrt( np.unique(kI**2))
     rmin=kbins[kmin]
     rmax=kbins[kmax]
+    ok = (rrr>rmin)*(rrr<rmax)
     
     kbins.sort()
 
     kcen = 0.5*(kbins[1:]+kbins[:-1])
 
     kvals = rrr[:,:,:]
-    TheY, bin_edge, count = scipy.stats.binned_statistic(kvals.flatten(), power.flatten(), bins=kbins, statistic='sum')
+    TheY, bin_edge, count = scipy.stats.binned_statistic(kvals[ok].flatten(), power[ok].flatten(), bins=kbins, statistic='sum')
 
     TheX = kcen
     ok = (TheX>0)*(TheY>0)
-    pfit = np.polyfit( np.log(TheX[ok]), np.log(TheY[ok]), 1)
+    A = np.log10(TheX[ok])
+    B = np.log10(TheY[ok])
+    pfit = np.polyfit( A,B,1)
+    fig,ax=plt.subplots(1,1)
+    ax.plot(A,B)
+    C=A*pfit[0]+pfit[1]
+    ax.plot(A, C)
+    #ax.plot( TheX[ok], 10**(pfit[0]*np.log(TheX[ok])+pfit[1]))
+    #ax.set(xscale='log',yscale='log')
+    fig.savefig('%s/derp'%plotdir)
     print('I get',pfit)
 
-if 1:
+if 0:
     Nzones = ftool.power.size
     dk = bin_edge[1:]-bin_edge[:-1]
     I = (ftool.power_1d3).sum()

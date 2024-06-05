@@ -61,6 +61,7 @@ def plot_slopes(sim_list, prim_or_teb='prim', axis='y', yrange=None, title=False
 
                 print('yes velocity line')
                 axes[nf].axhline(-11./3, c=[0.5]*4)
+                axes[nf].axhline(-7/2, c=[0.5]*4)
             if do_log and y<0:
                 pdb.set_trace()
             ext(y)
@@ -140,6 +141,8 @@ def plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps', axis='y
 
                 print('yes line')
                 axes[nf][0].axhline(-11./3, c=[0.5]*4)
+                axes[nf][0].axhline(-3/2-2, c=[0.5]*4)
+                raise
             if do_log and y<0:
                 pdb.set_trace()
             ext(y)

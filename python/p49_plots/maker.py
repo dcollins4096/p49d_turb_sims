@@ -33,7 +33,7 @@ proj_cmap = 'plasma'
 #F1.proj(field='E',LOS='y', no_mean=True, cmap=proj_cmap)
 #F1.proj(field='B',LOS='y', cmap=proj_cmap)
 #F2.nom(sim_list)
-#F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
+F3.plot_avg_spectra(sim_list, prim_or_teb='teb', axis='y')
 #F3.plot_avg_spectra(sim_list, prim_or_teb='prim')
 ##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='slopes')
 ##F4.plot_amps_slopes(sim_list, prim_or_teb='prim',amps_or_slopes='amps')
@@ -58,8 +58,8 @@ proj_cmap = 'plasma'
 
 
 #F1.proj(field='density_',LOS='y', cmap=proj_cmap, group=3)
-F1.proj(field='E',LOS='y', cmap=proj_cmap, group=3)
-F1.proj(field='B',LOS='y', cmap=proj_cmap, group=3)
+#F1.proj(field='E',LOS='y', cmap=proj_cmap, group=3)
+#F1.proj(field='B',LOS='y', cmap=proj_cmap, group=3)
 
 if 0:
     import F13_density_pdf as F13

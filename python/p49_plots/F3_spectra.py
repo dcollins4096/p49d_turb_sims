@@ -33,7 +33,7 @@ def plot_avg_spectra(simlist,prim_or_teb='teb',axis='y'):
 
             else:
                 xvals = this_sim.avg_spectra['k2d']
-                comp_label="5/2"
+                comp_label="2.5"
 
             short_prod=prod[:4]
             comp_exp=compensate[short_prod]
