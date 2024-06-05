@@ -1,6 +1,6 @@
 from GL import *
 import yt
-from volavg import *
+from downsample.volavg import *
 
 def downsample_and_write(pf,outname, refine_by=4, write_hdf5=False,write_fits=True):
     print("RUN ", pf)
