@@ -2,7 +2,7 @@
 from GL import *
 from downsample import volavg
 
-plot_dir = dl.plotdir
+
 
 import simulation
 reload(simulation)
@@ -11,7 +11,7 @@ import brunt_tools as bt
 reload(bt)
 
 import p68_laser.saver as saver
-def plot_all_brunt(sim_list):
+def plot_all_brunt(sim_list, projax=0):
 
     ncol = 3
     nrow = np.ceil(len(sim_list)/3).astype('int')
@@ -27,7 +27,7 @@ def plot_all_brunt(sim_list):
             rho = this_sim.load_small_rho(frame)
             ftool = bt.fft_tool(rho)
             ftool.do3()
-            ftool.do2(projax=0)
+            ftool.do2(projax=projax)
             saver.bucket[sim]=ftool
         else:
             ftool=saver.bucket[sim]
@@ -39,10 +39,10 @@ def plot_all_brunt(sim_list):
         ax.set(xticks=[],yticks=[])
     fig.subplots_adjust(wspace=0,hspace=0,left=0,right=1,top=1,bottom=0)
     #fig.tight_layout()
-    fig.savefig('%s/all_brunt'%(plot_dir))
+    fig.savefig('%s/all_brunt'%(plotdir))
 
 
-def plot_sigmas(sim_list):
+def plot_sigmas(sim_list, projax=0):
 
     fig,axes = plt.subplots(2,2)
 
@@ -54,20 +54,21 @@ def plot_sigmas(sim_list):
             rho = this_sim.load_small_rho(frame)
             ftool = bt.fft_tool(rho)
             ftool.do3()
-            ftool.do2(projax=0)
+            ftool.do2(projax=projax)
             saver.bucket[sim]=ftool
         else:
             ftool=saver.bucket[sim]
         axes[0][0].scatter(this_sim.Ms_mean,1-ftool.sigma_x3d/ftool.sigma_k3d, c=[this_sim.color], marker=this_sim.marker,s=this_sim.marker_size*100)
-        axes[0][0].set(xlabel='Ms',ylabel=r'$1-\sigma_{3x}/\sigma_{3k}$')
+        axes[0][0].set(xlabel='Ms',ylabel=r'$1-\sigma_{3x}/\sigma_{3k}$', title='3x vs 3k')
         axes[0][1].scatter(this_sim.Ms_mean,1-ftool.sigma_x2d/ftool.sigma_k2d, c=[this_sim.color], marker=this_sim.marker,s=this_sim.marker_size*100)
-        axes[0][1].set(xlabel='Ms',ylabel=r'$1-\sigma_{2x}/\sigma_{2k}$')
-        axes[1][0].scatter(ftool.sigma_k3d, ftool.sigma_k2dk, c=[this_sim.color], marker=this_sim.marker,s=this_sim.marker_size*100)
-        axes[1][0].set(xlabel=r'$\sigma_{k3}$',ylabel=r'$\sigma_{k2k}$')
-        axes[1][0].plot([1500,3000],[1500,3000])
-        axes[1][1].
+        axes[0][1].set(xlabel='Ms',ylabel=r'$1-\sigma_{2x}/\sigma_{2k}$', title='2x vs 2k')
+        axes[1][0].scatter(this_sim.Ma_mean, 1-ftool.sigma_k3d/ftool.sigma_k2dk, c=[this_sim.color], marker=this_sim.marker,s=this_sim.marker_size*100)
+        axes[1][0].set(xlabel=r'$M_a$',ylabel=r'$1-\sigma_{3k}/\sigma_{k2k}$', title='3k vs k2k')
+        axes[1][1].scatter( this_sim.Ma_mean, ftool.ratio_1,c=[this_sim.color], marker=this_sim.marker,s=this_sim.marker_size*100)
+        axes[1][1].set(xlabel=r'$M_a$',ylabel='ratio',title='goal')
+
 
     fig.tight_layout()
-    fig.savefig('%s/all_sigmas'%(plot_dir))
+    fig.savefig('%s/all_sigmas'%(plotdir))
 
 

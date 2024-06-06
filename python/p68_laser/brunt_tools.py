@@ -4,7 +4,7 @@ import yt
 from downsample import volavg
 import fourier_tools_py3.fourier_filter as Filter
 import tools.davetools as dt
-import power_spectrum as ps
+import dtools.math.power_spectrum as ps
 reload(ps)
 
 
@@ -69,7 +69,7 @@ def plot_set(ftool,outname,axis=0):
     ax1.plot(ftool.ps2.kcen,ftool.ps2.power,c='r',label='p2d')
     ax1.set(xscale='log',yscale='log')
     fig.savefig(outname)
-def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
+def plot_brunt(ftool,outname=None, fitrange=None, method='full', ax=None):
 
     if method=='full':
         #ftool.sigmas_full()
@@ -82,26 +82,49 @@ def plot_brunt(ftool,outname, fitrange=None, method='full', ax=None):
     if ax is None:
         savefig=True
         fig,ax=plt.subplots(1,1)
+
     if fitrange is None:
         mask = slice(None)
     else:
         mask = slice(fitrange[0],fitrange[1])
-    ax.plot(ftool.ps2.kcen,      ftool.ps2.power,c=[0.5]*3, label='P2d')
-    ax.plot(ftool.ps2.kcen[mask],ftool.ps2.power[mask],c='r', label='P2d')
-    ax.plot(ftool.ps3.kcen[mask],ftool.ps3.power[mask],c='g', label='P3d')
-    ax.plot(ftool.ps2.kcen[mask],ftool.ps2.kcen[mask]*ftool.ps2.power[mask],c='b', label = 'k P2d')
+
+    
+    M1 = ftool.ps2.power>1e-16
+    M2 = M1
+    M3 = ftool.ps3.power>1e-16
+
+    if fitrange is not None:
+        mask_2d_fitrange = (ftool.ps2.kcen > ftool.ps2.kcen[fitrange[0]])*(ftool.ps2.kcen<ftool.ps2.kcen[fitrange[1]])
+        mask_3d_fitrange = (ftool.ps3.kcen > ftool.ps3.kcen[fitrange[0]])*(ftool.ps3.kcen<ftool.ps3.kcen[fitrange[1]])
+        M1 = mask_2d_positive
+        M2 = mask_2d_positive*mask_2d_fitrange
+        M3 = mask_3d_positive*mask_3d_fitrange
+
+
+    #kp2d=(ftool.ps2.kcen*ftool.ps2.power)
+    ##ax.plot( ftool.ps2.kcen[M1], ftool.ps2.power[M1], c='r', linestyle='--')
+    #ax.plot( ftool.ps3.kcen[M3], ftool.ps3.power[M1], c='g')
+    #ax.plot( ftool.ps2.kcen[M1], 2*kp2d[M1],c='b')
+    #ax.plot( ftool.ps2.kcen[M1], ftool.ps2.kpower[M1],c='c')
+    ax.plot( ftool.ps2.kcen[M1], ftool.ps2.avgpower[M1],c='m',label='P2d/V2d')
+    ax.plot( ftool.ps3.kcen[M1], ftool.ps3.avgpower[M1],c='r',label='P3d/V3d')
+    #ax.plot(ftool.ps2.kcen[M1],ftool.ps2.power[M1],c=[0.5]*3, label='P2d')
+    #ax.plot(ftool.ps2.kcen[M2],ftool.ps2.power[M2],c='r', label='P2d')
+    #ax.plot(ftool.ps3.kcen[M3],ftool.ps3.power[M3],c='g', label='P3d')
+    #ax.plot(ftool.ps2.kcen[M1],ftool.ps2.avgpower[M1],c='k', label = 'k P2d')
+    #ax.plot(ftool.ps3.kcen[M2],ftool.ps3.avgpower[M2],c='r', label = 'k P2d')
     ax.set(xscale='log',yscale='log')
     ax.legend(loc=1)
-    error = 1-ftool.sigma_Brunt/ftool.sigma_x3d
+    error = 1-ftool.ratio_1
     text_x=0.05
-    text_y=0.35
-    dy=0.05
+    text_y=0.45
+    dy=0.07
     ax.text(text_x, text_y-1*dy,"%0.2e sigma_x3d"%ftool.sigma_x3d, transform=ax.transAxes)
     ax.text(text_x, text_y-2*dy,"%0.2e sigma_x2d"%ftool.sigma_x2d, transform=ax.transAxes)
     ax.text(text_x, text_y-3*dy,"%0.2e R "%(1./ftool.Rinv), transform=ax.transAxes)
     ax.text(text_x, text_y-4*dy,"%0.2e sigma_B "%ftool.sigma_Brunt,  transform=ax.transAxes)
     ax.text(text_x, text_y-5*dy,"%0.2e  error  "%error,  transform=ax.transAxes)
-    ax.text(text_x, text_y-6*dy,"%0.2e  ratio  "%(ftool.sigma_Brunt/ftool.sigma_x3d),  transform=ax.transAxes)
+    ax.text(text_x, text_y-6*dy,"%0.2e  ratio  "%(ftool.ratio_1),  transform=ax.transAxes)
 
     if savefig:
         fig.savefig(outname)
@@ -115,44 +138,21 @@ def sigmas_2donly(self):
     self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
 
 def sigmas_full(self):
-    #this works.  Not normalized, though.
+    #this works.  Probably.
     self.sigma_x3d = np.sqrt((self.rho**2).sum().real)
     self.sigma_k3d = np.sqrt((self.ps3.power).sum().real)
     self.sigma_x2d = np.sqrt(((self.rho2)**2).sum().real)
-    #self.sigma_k2d = np.sqrt(self.ps2.power[1:].sum().real)
     self.sigma_k2d = np.sqrt(self.ps2.power.sum().real)
-    self.sigma_k2dk= np.sqrt(( self.ps2.kcen*self.ps2.power).sum())
+    self.sigma_k2dk= np.sqrt((2* self.ps2.kcen*self.ps2.power).sum())
     self.Rinv = self.sigma_k2dk.real/self.sigma_k2d.real
     self.sigma_Brunt = self.sigma_x2d.real*self.Rinv
-    self.R1 =self.sigma_Brunt/self.sigma_x3d
+    self.ratio_1 =self.sigma_Brunt/self.sigma_x3d
     #just to check that everything works right, do it with the actual 3d power spectrum.
     #R2 should be 1
-    self.Rinv_actual = self.ps3.power.sum()/self.ps2.power.sum()
+    self.Rinv_actual = np.sqrt(self.ps3.power.sum()/self.ps2.power.sum())
     self.sigma_Brunt_actual = self.sigma_x2d*self.Rinv_actual
-    self.R2 = self.sigma_Brunt_actual/self.sigma_x3d
+    self.ratio_2 = self.sigma_Brunt_actual/self.sigma_x3d
 
-def sigmas_range(self, fitrange):
-    mask = slice(fitrange[0],fitrange[1])
-    Nz = self.rho.size
-    N2d = self.rho2.size
-    self.mean_rho=(self.rho).sum()/Nz
-    self.mean_column= self.rho2.sum()/N2d
-    self.sigma_x3d  =np.sqrt(((self.rho-self.mean_rho)**2).sum().real/Nz)
-    self.sigma_k3d  =np.sqrt((self.ps3.power[mask]).sum().real/Nz)
-    self.sigma_k2dk =np.sqrt(( self.ps2.kcen*self.ps2.power)[mask].sum()/Nz)
-    self.sigma_x2d  =np.sqrt(((self.rho2-self.mean_column)**2).sum().real/N2d)
-    self.sigma_k2d  =np.sqrt(self.ps2.power[mask].sum().real/N2d)
-
-    #self.Rinv = ()/((self.power_1d2)[1:].sum()/N2d)
-    self.Rinv = (self.sigma_k2dk/self.sigma_k2d).real
-    #this should give us the right answer.
-    #Rinv_actual = (self.power_1d3[1:].sum()/Nz)/(self.power_1d2[1:].sum()/N2d)
-    self.Rinv_actual = (self.sigma_k3d/self.sigma_k2d).real
-    self.sigma_Brunt = (self.sigma_x2d*self.Rinv).real
-    self.sigma_Brunt_actual = (self.sigma_k2d*self.Rinv_actual).real
-
-    R1 =self.sigma_Brunt/self.sigma_x3d
-    R2 = self.sigma_Brunt_actual/self.sigma_x3d
 
 
 class fft_tool():

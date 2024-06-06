@@ -3,6 +3,8 @@ from GL import *
 import simulation
 reload(simulation)
 import simulation_info.all_sims as all_sims
+import brunt_tools as bt
+reload(bt)
 
 
 if 0:
@@ -41,12 +43,12 @@ if 0:
     reload(msr)
     msr.make(sim_list)
 
-if 0:
+if 1:
     sim_list = all_sims.lists['suite1']
     import all_brunt
     reload(all_brunt)
-    #all_brunt.plot(sim_list)
-    all_brunt.plot_sigmas(sim_list)
+    all_brunt.plot_all_brunt(sim_list,projax=1)
+    all_brunt.plot_sigmas(sim_list,projax=1)
 
 if 0:
     N = 128
@@ -55,4 +57,30 @@ if 0:
     kmin=2
     kmax=-2
     Q = bt.fake_powerlaw(N,alphaT,kmin,kmax)
+    ftool=bt.fft_tool(Q)
+    ftool.do3()
+    ftool.do2(projax=0)
+    bt.plot_brunt(ftool,method='full',outname='%s/fake_powerlaw'%plotdir)
+
+    plt.close('all')
+    fig,axes=plt.subplots(1,2)
+    ax0=axes[0];ax1=axes[1]
+    M1 = ftool.ps2.power>1e-16
+    M2 = M1
+    M3 = ftool.ps3.power>1e-16
+    kp2d=(ftool.ps2.kcen*ftool.ps2.power)
+    ax0.plot( ftool.ps2.kcen[M1], ftool.ps2.power[M1], c='r')
+    ax0.plot( ftool.ps3.kcen[M3], ftool.ps3.power[M1], c='g')
+    ax0.plot( ftool.ps2.kcen[M1], 2*kp2d[M1],c='b')
+    ax0.set(xscale='log',yscale='log')
+    import dtools.math.equal_probability_binner as epb
+    RRR=kp2d/ftool.ps3.power
+    hist, cen, wid=epb.equal_prob( RRR[M1], 16, ax=ax1)
+    print( cen[ np.argmax(hist)])
+    #TheX, TheY = ftool.ps2.kcen[M1], RRR[M1]
+    #pfit = np.polyfit( np.log10(TheX), np.log10(TheY),1)
+    #print(pfit)
+    #ax1.plot( TheX, TheY)
+    #ax1.set(xscale='log', yscale='log')
+    fig.savefig('%s/play'%plotdir)
 
