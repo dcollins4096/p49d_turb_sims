@@ -1,0 +1,3 @@
+[submodule "python/dtools"]
+	path = python/dtools
+	url = git@github.com:dcollins4096/dtools.git
