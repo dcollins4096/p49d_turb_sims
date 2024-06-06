@@ -1,5 +1,7 @@
 from dtools.starter1 import *
 import fourier_tools_py3.fourier_filter as Filter
+import scipy.stats
+
 
 class powerspectrum():
     def __init__(self,arr):
