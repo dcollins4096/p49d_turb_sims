@@ -8,10 +8,11 @@ import data_locations as dl
 reload(DOON)
 
 import simulation_info.all_sims as all_sims
-sim_list = all_sims.lists['suite1']
+#sim_list = all_sims.lists['suite1']
+sim_list = all_sims.lists['p83']
 for sim in sim_list:
     this_sim=simulation.corral[sim]
-    this_sim.load()
+    #this_sim.load()
     for frame in this_sim.ann_frames[-1:]:
         print('Load',sim,frame)
         source_fname = "%s/DD%04d/data%04d"%(this_sim.data_location, frame, frame)
