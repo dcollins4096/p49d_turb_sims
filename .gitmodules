@@ -1,3 +1,6 @@
 [submodule "python/dtools"]
 	path = python/dtools
 	url = git@github.com:dcollins4096/dtools.git
+[submodule "python/p77_windtunnel"]
+	path = python/p77_windtunnel
+	url = git@github.com:dcollins4096/p77_windtunnel.git
