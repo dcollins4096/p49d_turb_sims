@@ -45,7 +45,7 @@ if 0:
     msr.make(sim_list)
 
 if 1:
-    sim_list = all_sims.lists['suite1'][0:6]
+    sim_list = all_sims.lists['suite1']
 
     import all_brunt
     reload(all_brunt)
