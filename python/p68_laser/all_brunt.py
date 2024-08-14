@@ -7,7 +7,8 @@ from downsample import volavg
 import simulation
 reload(simulation)
 import simulation_info.all_sims
-import brunt_tools as bt
+#import old_brunt_tools as bt
+import dtools.math.brunt_tools as bt
 reload(bt)
 
 import p68_laser.saver as saver

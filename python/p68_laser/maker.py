@@ -3,7 +3,8 @@ from GL import *
 import simulation
 reload(simulation)
 import simulation_info.all_sims as all_sims
-import brunt_tools as bt
+#import old_brunt_tools as bt
+import dtools.math.brunt_tools as bt
 reload(bt)
 
 
@@ -44,7 +45,8 @@ if 0:
     msr.make(sim_list)
 
 if 1:
-    sim_list = all_sims.lists['suite1']
+    sim_list = all_sims.lists['suite1'][0:6]
+
     import all_brunt
     reload(all_brunt)
     all_brunt.plot_all_brunt(sim_list,projax=1)
