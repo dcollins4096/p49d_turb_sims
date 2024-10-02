@@ -5,6 +5,10 @@ import simulation_info.suite_liltest
 reload(simulation_info.suite_liltest)
 import simulation_info.suite_1
 reload(simulation_info.suite_1)
+import simulation_info.suite_2
+reload(simulation_info.suite_2)
+import simulation_info.suite_2_256
+reload(simulation_info.suite_2_256)
 import simulation_info.suite_p83
 
 lists={}
@@ -18,3 +22,4 @@ lists['suite1b'] = ['4_half', '4_1', '4_2',
                     '6_half', '6_1', '6_2']
 lists['p83'] = ['4.7_3','4.7_4']
 
+lists['suite2'] = ['aa_2_0.5']

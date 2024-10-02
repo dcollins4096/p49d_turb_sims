@@ -20,10 +20,24 @@ reload(p7)
 
 
 sim_list = all_sims.lists['suite1b']
-sim_list = all_sims.lists['suite1']
+sim_list = ['aa_Ms2.0_Ma0.5_512']
 #sim_list = ['4_1']#,'1_1']
 
-if 1:
+if 0:
+    #all plots in one pannel
+    p1.plot_quan(sim_list)
+
+if 0:
+    #frames can be "all" or "ann"
+    p3.plot_all_spectra(sim_list, all_or_ann='ann', compensate=False)
+
+if 0:
+    #12 panel image for each frame
+    #Plotting all at once puts them all on one 8 
+    for sim in sim_list:
+        p2.image(sim)
+
+if 0:
     p7.plot_dt(sim_list)
 
 if 0:
@@ -32,20 +46,10 @@ if 0:
         print(this_sim.ann_frames)
 
 if 0:
-    #all plots in one pannel
-    p1.plot_quan(sim_list)
-if 0:
     #quan plot, each sim
     for sim in sim_list:
         p1.plot_quan([sim])
-if 0:
-    #12 panel image for each frame
-    for sim in sim_list:
-        p2.image(sim)
 
-if 0:
-    #frames can be "all" or "ann"
-    p3.plot_all_spectra(sim_list, all_or_ann='ann')
 
 if 0:
     p4.slope_time(sim_list)

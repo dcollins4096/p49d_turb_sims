@@ -2,7 +2,8 @@
 from GL import *
 
 import simulation
-def plot_all_spectra(simlist, all_or_ann='all'):
+
+def plot_all_spectra(simlist, all_or_ann='all',compensate=True):
     """ all frames or ann (analysis) frames"""
     plt.close('all')
     for this_simname in simlist:
@@ -51,7 +52,7 @@ def plot_all_spectra(simlist, all_or_ann='all'):
                 spec=aaa[field]
                 #ok = (aaa[field]>0)*(xvals>0)
                 ok = (xvals>0)
-                if field in this_sim.products_positive:
+                if field in this_sim.products_positive and compensate:
                     slope = avg_slope[field]
                     spec[ok] = spec[ok]*xvals[ok]**np.abs(slope)
                 #comp=1
@@ -73,7 +74,7 @@ def plot_all_spectra(simlist, all_or_ann='all'):
                 thax.set_yscale('symlog',linthresh=1e-2)
 
         fig.tight_layout()
-        fig.savefig('%s/all_spectra_%s'%(dl.plotdir,this_sim.name))
+        fig.savefig('%s/all_spectra_%s.pdf'%(dl.plotdir,this_sim.name))
 
 
 

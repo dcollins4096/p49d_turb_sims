@@ -79,8 +79,8 @@ def add_epsilon(n0,p, this_thing=yt):
 def add_stokes(axis, n0, p, this_thing=yt):
     """makes a stokes field for yt.
     axis should be x,y,z."""
-    field_horizontal = {'x':'By','y':'Bz','z':'Bx'}[axis]
-    field_vertical   = {'x':'Bz','y':'Bx','z':'By'}[axis]
+    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
     add_epsilon(n0,p)
     
 
@@ -90,7 +90,7 @@ def add_stokes(axis, n0, p, this_thing=yt):
         """
         
         n = data['density']
-        B_sq = data['Bx']**2.0 + data['By']**2.0 + data['Bz']**2.0
+        B_sq = data['magnetic_field_x']**2.0 + data['magnetic_field_y']**2.0 + data['magnetic_field_z']**2.0
 
         #epsilon = np.ones(data['density'].shape)
         #epsilon[ n <= n0 ] = (n.v)[ n <= n0 ]  
@@ -110,7 +110,7 @@ def add_stokes(axis, n0, p, this_thing=yt):
         """Makes stokes U."""
         
         n = data['density']
-        B_sq = data['Bx']**2.0 + data['By']**2.0 + data['Bz']**2.0    
+        B_sq = data['magnetic_field_x']**2.0 + data['magnetic_field_y']**2.0 + data['magnetic_field_z']**2.0    
 
         #epsilon = np.ones(data['density'].shape)
         #epsilon[ n <= n0 ] = (n.v)[ n <= n0 ]  
@@ -122,7 +122,7 @@ def add_stokes(axis, n0, p, this_thing=yt):
         return out 
 
     #U_fname = 'U%s_n0-%04d_p-%d'%(axis,n0,p)
-    U_fname = 'enzo','U%s'%(axis)
+    U_fname = 'gas','U%s'%(axis)
     if verbose: print( 'adding yt field %s'%U_fname)
     this_thing.add_field(U_fname, units='g/cm**3', function=_U_local, force_override=True,sampling_type='cell')
     return Q_fname, U_fname
@@ -133,12 +133,12 @@ def add_unweighted_stokes(axis, this_thing=yt):
     axis should be x,y,z.
     These should test the projection and the rest of the pipeline.
     Second it's an interesting demonstration of what Stokes traces."""
-    field_horizontal = {'x':'By','y':'Bz','z':'Bx'}[axis]
-    field_vertical   = {'x':'Bz','y':'Bx','z':'By'}[axis]
+    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
 
     def _unweighted_Q_local(field,data):
         """This function calculates the Stokes Parameter "Q"."""
-        B_sq = data['Bx']**2.0 + data['By']**2.0 + data['Bz']**2.0
+        B_sq = data['magnetic_field_x']**2.0 + data['magnetic_field_y']**2.0 + data['magnetic_field_z']**2.0
 
         return (data[field_horizontal]**2.0 - data[field_vertical]**2.0)/B_sq
 
@@ -148,7 +148,7 @@ def add_unweighted_stokes(axis, this_thing=yt):
 
     def _unweighted_U_local(field,data):
         """Makes stokes U."""
-        B_sq = data['Bx']**2.0 + data['By']**2.0 + data['Bz']**2.0
+        B_sq = data['magnetic_field_x']**2.0 + data['magnetic_field_y']**2.0 + data['magnetic_field_z']**2.0
 
         return 2*(data[field_horizontal]) * (data[field_vertical])/B_sq 
 
@@ -159,8 +159,8 @@ def add_unweighted_stokes(axis, this_thing=yt):
 def add_N2(axis, n0, p, this_thing=yt):
     """ Makes a field that when projected is a correction to the column density used
     in calculating the polarization fraction. """
-    field_horizontal = {'x':'By','y':'Bz','z':'Bx'}[axis]
-    field_vertical   = {'x':'Bz','y':'Bx','z':'By'}[axis]
+    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
 
     def _N2_local(field,data):
         """ Calculate n2 = n * (cos^2(gamma)/2 - 1/3) where gamma is the 
@@ -172,7 +172,7 @@ def add_N2(axis, n0, p, this_thing=yt):
 
         This function returns n2 as a dimensionless value since epsilon was calculated as dimensionless"""
 
-        B_sq = data['Bx']**2.0 + data['By']**2.0 + data['Bz']**2.0
+        B_sq = data['magnetic_field_x']**2.0 + data['magnetic_field_y']**2.0 + data['magnetic_field_z']**2.0
         cos_gamma_sq = (data[field_horizontal]**2.0 + data[field_vertical]**2.0)/B_sq
 
         n = data['density'].in_units('code_density')

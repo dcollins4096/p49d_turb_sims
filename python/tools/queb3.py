@@ -418,10 +418,11 @@ class simulation_package():
     Keeps track of the data location
     Produces FRBs from simulation data."""
     def __init__(self,directory=".",frames=[], prefix="RUN", product_directory="./Products",simname='SIM',
-                  plot_format='png', clobber=False,dataset_name='DD',frbname="./frbs",plotdir="."):
+                  plot_format='png', clobber=False,dataset_name='DD',frbname="./frbs",plotdir=".", code='Enzo'):
 
         
         self.directory=directory
+        self.code = code
         self.product_directory=product_directory
         self.frames=frames
         self.prefix=prefix
@@ -439,38 +440,47 @@ class simulation_package():
                 this_proj=self.read_queb(frame,axis) 
                 this_proj.compute_harmonic_products()
                 this_proj.write()
-    def EBall(self):
+    def EBall(self, do_magnetic=True):
+        print(self.frames)
+        print('srsly wtf')
         """compute all EB products and save them into the frb directory"""
         for frame in self.frames:
+            print('try',frame)
             #ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
             #p49_fields.add_QU(ds)
-            self.make_frbs(frame)#,ds=ds)
-            for axis in 'xyz':
-                #read and/or compute E,B, and other harmon
-                this_proj=self.read_queb(frame,axis) 
-                this_proj.compute_harmonic_products()
-                this_proj.write()
+            self.make_frbs(frame, do_magnetic=do_magnetic)#,ds=ds)
+            if do_magnetic:
+                for axis in 'xyz':
+                    #read and/or compute E,B, and other harmon
+                    this_proj=self.read_queb(frame,axis) 
+                    this_proj.compute_harmonic_products()
+                    this_proj.write()
 
-    def make_frbs(self,frame, axes=['x','y','z'], ds=None):
+    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True):
         fields=[]
         for axis in axes:
-          fields.append( (axis,'Q%s'%(axis))   )
-          fields.append( (axis,'U%s'%(axis))   )
           fields.append( (axis,'density') )
-          fields.append( (axis,'magnetic_field_strength'))
+          if do_magnetic:
+              fields.append( (axis,'Q%s'%(axis))   )
+              fields.append( (axis,'U%s'%(axis))   )
+              fields.append( (axis,'magnetic_field_strength'))
 
         for axis, field in fields :
             outputdir = self.product_directory
             if not os.access(outputdir, os.F_OK):
-                os.mkdir(outputdir)
+                os.makedirs(outputdir)
             #fix names; Q and U have the name in the field, but others don't.
             if field[0] in 'QU' and field[1] in 'xyz':
                 field_name = field
             else:
                 field_name = field + "_"+axis
             output_frame_dir=outputdir+"/DD%0.4d.products/" %(frame)
-            if not os.access(output_frame_dir, os.F_OK):
-                os.mkdir(output_frame_dir)
+            if not os.path.exists(output_frame_dir):
+                if len(glob.glob(output_frame_dir)) == 0:
+                    try:
+                        os.makedirs(output_frame_dir)
+                    except:
+                        pass
 
             product_name = "./%s/DD%0.4d.products/DD%.4d_%s.fits" %(self.simname,frame,frame,field_name)
 
@@ -482,14 +492,19 @@ class simulation_package():
             else:
                 print("FRB being produced: %s"%outfile)
                 if ds is None:
-                    ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
-                    p49_fields.add_QU(ds)
-                res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
+                    if self.code == 'Enzo':
+                        ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
+                    elif self.code == 'Athena':
+                        ds = yt.load("%s/parthenon.prim.%05d.phdf"%(self.directory,frame))
+                    if do_magnetic:
+                        p49_fields.add_QU(ds)
+                #res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
+                res = ds.domain_dimensions[0]
                 proj = ds.proj(field,axis)
                 frb = proj.to_frb(1,res)
                 hdu = pyfits.PrimaryHDU(frb[field])
                 hdulist = pyfits.HDUList([hdu])
-                hdulist.writeto(outfile,clobber=True)
+                hdulist.writeto(outfile,overwrite=True)
                 print("wrote", outfile)
 
     def make_spectra(self,frame):

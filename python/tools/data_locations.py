@@ -15,6 +15,10 @@ elif os.environ['machine']=='teahupoo':
     sim_dir_base = "/data/cb1/Projects/P49_EE_BB/"
     product_dir_base = "%s/Products/"%sim_dir_base
     plotdir = os.environ['HOME']+"/PigPen/"
+elif os.environ['machine']=='anvil':
+    sim_dir_base = "/anvil/scratch/x-ux454321/p83_turbulence"
+    product_dir_base = sim_dir_base
+    plotdir = os.environ['HOME']+"/plots/"
 
 
     

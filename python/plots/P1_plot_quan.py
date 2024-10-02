@@ -37,11 +37,11 @@ vz_std                   Dataset {1}
 import simulation as sim
 def plot_quan(sim_list):
     plt.close('all')
-    fig,ax=plt.subplots(3,4,figsize=(12,8))
+    fig,ax=plt.subplots(2,4,figsize=(12,8))
     if len(sim_list)>1:
-        outname = '%s/avg_quan_multi'%(dl.plotdir)
+        outname = '%s/avg_quan_multi.pdf'%(dl.plotdir)
     else:
-        outname = '%s/avg_quan_%s'%(dl.plotdir,sim_list[0])
+        outname = '%s/avg_quan_%s.pdf'%(dl.plotdir,sim_list[0])
     for ns,sim_name in enumerate(sim_list):
         this_sim=sim.corral[sim_name]
         this_sim.read_avg_quan()
@@ -59,34 +59,38 @@ def plot_quan(sim_list):
         ax[0][0].plot( time, QQQ['vx_avg'], c=this_sim.color)
         ax[0][1].plot( time, QQQ['vy_avg'], c=this_sim.color)
         ax[0][2].plot( time, QQQ['vz_avg'], c=this_sim.color)
-        ax[0][3].plot( time, vmag, c=this_sim.color)
+        #ax[0][3].plot( time, vmag, c=this_sim.color)
         ax[0][0].set(xlabel='t/tdyn',ylabel=r'$\langle v_x \rangle$')
         ax[0][1].set(xlabel='t/tdyn',ylabel=r'$\langle v_y \rangle$')
         ax[0][2].set(xlabel='t/tdyn',ylabel=r'$\langle v_z \rangle$')
         ax[0][3].set(xlabel='t/tdyn',ylabel=r'||$\langle v_i \rangle$||')
 
-        bx_avg = QQQ['bx_avg']
-        by_avg = QQQ['by_avg']
-        bz_avg = QQQ['bz_avg']
-        bmag = (bx_avg**2+by_avg**2+bz_avg**2)
-        ax[1][0].plot( time, QQQ['bx_avg'], c=this_sim.color)
-        ax[1][1].plot( time, QQQ['by_avg'], c=this_sim.color)
-        ax[1][2].plot( time, QQQ['bz_avg'], c=this_sim.color)
-        ax[1][3].plot( time, bmag, c=this_sim.color)
-        ax[1][0].set(xlabel='t/tdyn',ylabel=r'$\langle b_x \rangle$')
-        ax[1][1].set(xlabel='t/tdyn',ylabel=r'$\langle b_y \rangle$')
-        ax[1][2].set(xlabel='t/tdyn',ylabel=r'$\langle b_z \rangle$')
-        ax[1][3].set(xlabel='t/tdyn',ylabel=r'||$\langle b_i \rangle$||')
+        ax[0][3].plot(time,QQQ['vrms'], c=this_sim.color)
+        ms = this_sim.quan_mean['msavg']
+        ax[0][3].axhline(ms, label="avg = %0.1f"%ms)
+        ax[0][3].axhline(this_sim.Ms_nom, label='Nominal = %0.1f'%this_sim.Ms_nom, c='r')
+        ax[0][3].set(ylabel='vrms')
+        ax[0][3].legend(loc=0)
 
-        ax[2][0].plot(time,QQQ['vrms'], c=this_sim.color)
-        ax[2][1].plot(time,QQQ['ma'], c=this_sim.color)
-        ms = this_sim.quan3['msavg']
-        ax[2][0].axhline(ms, label="%0.1f"%ms)
-        ax[2][0].set(ylabel='vrms')
-        ax[2][0].legend(loc=0)
-        ax[2][1].set(ylabel=r'$v_{rms}/\langle B \rangle/"\sqrt{4\pi}"')
-        ax[2][1].axhline(this_sim.quan3['maavg'], label="%0.1f"%this_sim.quan3['maavg'])
-        ax[2][1].legend(loc=0)
+        if this_sim.do_magnetic:
+            bx_avg = QQQ['bx_avg']
+            by_avg = QQQ['by_avg']
+            bz_avg = QQQ['bz_avg']
+            #bmag = (bx_avg**2+by_avg**2+bz_avg**2)
+            ax[1][0].plot( time, QQQ['bx_avg'], c=this_sim.color)
+            ax[1][0].axhline( this_sim.B_nom, label='Nominal = %0.2f'%this_sim.B_nom, c='r')
+            ax[1][1].plot( time, QQQ['by_avg'], c=this_sim.color)
+            ax[1][2].plot( time, QQQ['bz_avg'], c=this_sim.color)
+            #ax[1][3].plot( time, bmag, c=this_sim.color)
+            ax[1][0].set(xlabel='t/tdyn',ylabel=r'$\langle b_x \rangle$')
+            ax[1][1].set(xlabel='t/tdyn',ylabel=r'$\langle b_y \rangle$')
+            ax[1][2].set(xlabel='t/tdyn',ylabel=r'$\langle b_z \rangle$')
+
+            ax[1][3].plot(time,QQQ['ma'], c=this_sim.color)
+            ax[1][3].set(ylabel=r'$v_{rms}/\langle B \rangle/\sqrt{4\pi}$')
+            ax[1][3].axhline(this_sim.quan_mean['maavg'], label="avg=%0.1f"%this_sim.quan_mean['maavg'])
+            ax[1][3].axhline(this_sim.Ma_nom, label = "Nominal = %0.1f"%this_sim.Ma_nom, c='r')
+            ax[1][3].legend(loc=0)
 
     fig.tight_layout()
     fig.savefig(outname)

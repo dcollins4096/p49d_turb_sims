@@ -18,15 +18,22 @@ def set_colors(the_sim,cmap_name='jet'):
 
 
 class sim():
-    def __init__(self,name=None,data_location=None,product_location=None, ms=None,ma=None,color='k',linestyle=':',marker="*",framelist=None, tdyn=None):
+    def __init__(self,name=None,data_location=None,product_location=None, ms=None,ma=None,
+                 color='k',linestyle=':',marker="*",framelist=None, all_frames=None,tdyn=None, code='Enzo'):
         self.name=name
+        self.code=code
         self.data_location=data_location
         self.product_location=product_location
         #self.ms=ms
         #self.ma=ma
         self.Ms_nom=ms
         self.Ma_nom=ma
-        self.B_nom = ms*root4pi/ma
+        if ma > 0:
+            self.B_nom = ms*root4pi/ma
+            self.do_magnetic = True
+        else:
+            self.B_nom = 0
+            self.do_magnetic = False
         self.color=color
         self.linestyle=linestyle
         self.marker=marker
@@ -37,11 +44,14 @@ class sim():
             self.tdyn = 0.5/self.Ms_nom
         corral[self.name]=self
 
-        self.all_frames = self.get_all_frames()
+        if all_frames is not None:
+            self.all_frames = all_frames
+        else:
+            self.all_frames = self.get_all_frames()
         self.ann_frame_mask = nar([frame in self.ann_frames for frame in self.all_frames])
 
         self.quan_time = None
-        self.all_spectra=None
+        self.all_spectra={}
         self.avg_spectra=None
         self.pdfs=None
         self.slopes=None
@@ -64,7 +74,11 @@ class sim():
                 dir_nums.pop(0)
         return dir_nums
     def load_ds(self,frame):
-        ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
+        if self.code=='Enzo':
+            ds_name = "%s/DD%04d/data%04d"%(self.data_location,frame,frame)
+        elif self.code == 'Athena':
+            ds_name = "%s/parthenon.prim.%05d.phdf"%(self.data_location,frame)
+
         ds=yt.load(ds_name)
         return ds
     def load_small_rho(self,frame):
@@ -125,13 +139,11 @@ class sim():
             self.slopes[frame]={}
             self.amps[frame]={}
             #3d fields first.
-            k3d = self.all_spectra[frame]['k3d']
-            k2d = self.all_spectra[frame]['k2d']
             for field in self.products_positive:
                 if field in self.products_3d:
-                    xvals = k3d
+                    xvals = self.all_spectra[frame]['k3d']
                 else:
-                    xvals = k2d
+                    xvals =self.all_spectra[frame]['k2d']
 
                 spec = self.all_spectra[frame][field]
                 fitrange = self.get_fitrange(xvals)
@@ -146,9 +158,9 @@ class sim():
             self.slopesA={}
             for field in self.products_positive:
                 if field in self.products_3d:
-                    xvals = k3d
+                    xvals = self.all_spectra[frame]['k3d']
                 else:
-                    xvals = k2d
+                    xvals = self.all_spectra[frame]['k2d']
                 spec = self.avg_spectra[field]
                 fitrange = self.get_fitrange(xvals)
                 #fitrange = [xvals[4],xvals[25]]
@@ -178,9 +190,35 @@ class sim():
             self.avg_spectra[field]/=nframes
 
     def read_all_spectra(self):
-        if self.all_spectra is not None:
-            return
+        self.read_3d_spectra()
+        self.read_2d_spectra()
 
+    def read_3d_spectra(self):
+
+
+        if self.do_magnetic:
+            sl = slice(None)
+        else:
+            sl = slice(0,2)
+        self.products_3d = ['density','velocity','magnetic'][sl]
+        self.products = ['density','velocity','magnetic'][sl]
+        self.products_positive = ['density','velocity','magnetic'][sl]
+        for frame in self.all_frames:
+            if frame not in self.all_spectra:
+                self.all_spectra[frame]={}
+
+            k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','avgpower'])
+            k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','avgpower'])
+            self.all_spectra[frame]['k3d']=k3d.real
+            self.all_spectra[frame]['density']=density.real
+            self.all_spectra[frame]['velocity']=velocity.real
+            if self.do_magnetic:
+                k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','avgpower'])
+                self.all_spectra[frame]['magnetic']=magnetic.real
+
+    def read_2d_spectra(self):
+        if not self.do_magnetic:
+            return
         self.products=[ 'density','velocity','magnetic',
                        'ClTTx','ClTTy','ClTTz',
                        'ClEEx','ClEEy','ClEEz',
@@ -188,7 +226,6 @@ class sim():
                        'ClTEx','ClTEy','ClTEz',
                        'ClTBx','ClTBy','ClTBz',
                        'ClEBx','ClEBy','ClEBz']#'acceleration', 'vorticity',]
-        self.products_3d = ['density','velocity','magnetic']
         self.products_positive = ['density','velocity','magnetic',
                                   'ClTTx','ClTTy','ClTTz',
                                   'ClEEx','ClEEy','ClEEz',
@@ -196,28 +233,9 @@ class sim():
         self.pearson=['r_TEx','r_TBx','r_EBx',
                       'r_TEy','r_TBy','r_EBy',
                       'r_TEz','r_TBz','r_EBz']
-
-        self.all_spectra={}
         for frame in self.all_frames:
-            self.all_spectra[frame]={}
-
-            k3d, density = dt.dpy('%s/DD%04d.products/avg_power_density.h5'%(self.product_location,frame), ['k','power'])
-            k3d, magnetic  = dt.dpy('%s/DD%04d.products/avg_power_magnetic.h5'%(self.product_location,frame), ['k','power'])
-            k3d, velocity = dt.dpy('%s/DD%04d.products/avg_power_velocity.h5'%(self.product_location,frame), ['k','power'])
-            #k3d, vorticity = dt.dpy('%s/DD%04d.products/avg_power_vorticity.h5'%(self.product_location,frame), ['k','power'])
-            #k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
-            #k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','power'])
-            #k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
-            self.all_spectra[frame]['k3d']=k3d.real
-            self.all_spectra[frame]['density']=density.real
-            self.all_spectra[frame]['velocity']=velocity.real
-            self.all_spectra[frame]['magnetic']=magnetic.real
-
-            #k3d, acceleration = dt.dpy('%s/DD%04d.products/avg_power_acceleration.h5'%(self.product_location,frame), ['k','power'])
-            #if acceleration is not None:
-            #    self.all_spectra[frame]['acceleration']=acceleration.real
-            #else:
-            #    self.all_spectra[frame]['acceleration']=0
+            if frame not in self.all_spectra:
+                self.all_spectra[frame]={}
 
             for axis in 'xyz':
                 k2d, ClTT = dt.dpy('%s/DD%04d.products/DD%04d_power2d%s.h5'%(self.product_location,frame,frame, axis), ['k','ClTT'])
@@ -269,8 +287,12 @@ class sim():
                     else:
                         self.quan_time[field] = U*h5ptr[field][()]
                 v2 = np.sqrt(h5ptr['vx_std'][:]**2+h5ptr['vy_std'][:]**2+h5ptr['vz_std'][:]**2)
-                b_mean = UNITS*np.sqrt(h5ptr['bx_avg'][:]**2+h5ptr['by_avg'][:]**2+h5ptr['bz_avg'][:]**2)
-                b2  = UNITS*np.sqrt(h5ptr['bx_std'][:]**2+h5ptr['by_std'][:]**2+h5ptr['bz_std'][:]**2)
+                if self.do_magnetic:
+                    b_mean = UNITS*np.sqrt(h5ptr['bx_avg'][:]**2+h5ptr['by_avg'][:]**2+h5ptr['bz_avg'][:]**2)
+                    b2  = UNITS*np.sqrt(h5ptr['bx_std'][:]**2+h5ptr['by_std'][:]**2+h5ptr['bz_std'][:]**2)
+                else:
+                    b_mean=0
+                    b2=0
                 #NO 4 pi, this came straight off disk.
                 ma=v2/b_mean
                 vrms=np.append(vrms,v2)

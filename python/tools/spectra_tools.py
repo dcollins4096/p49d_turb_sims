@@ -25,14 +25,16 @@ def shell_average(power,oober,frame,field,debug=-1,mark_time=None, filename=None
         print("Saved spectra %s"%filename)
     power_1d, Nzones, ff = shell_average_only(power)
     file = h5py.File(filename,'w')
-    file.create_dataset('power',power_1d.shape,data=power_1d/Nzones)
+    file.create_dataset('power',power_1d.shape,data=power_1d)
+    file.create_dataset('avgpower',power_1d.shape,data=power_1d/Nzones)
     kspace=2*np.pi*ff.get_shell_k()
     file.create_dataset('k',kspace.shape,data=kspace)
     file.close()
     return filename
 
 class short_oober():
-    def __init__(self, directory="./STUFF/", frame=0, product_directory=None, simname='SIM'):
+    def __init__(self, directory="./STUFF/", frame=0, product_directory=None, simname='SIM', code='Enzo'):
+        self.code=code
         self.frame=frame
         self.directory=directory
         self.ds_dict={}
@@ -43,7 +45,10 @@ class short_oober():
     def product_dir(self,frame):
         return "%s/DD%04d.products"%(self.product_directory,frame)
     def get_ds_name(self,frame):
-        return "%s/DD%04d/data%04d"%(self.directory,frame,frame)
+        if self.code == 'Enzo':
+            return "%s/DD%04d/data%04d"%(self.directory,frame,frame)
+        elif self.code == 'Athena':
+            return "%s/parthenon.prim.%05d.phdf"%(self.directory,frame)
     def check_fname(self,frame,field):
         fname = "./%s/DD%04d.products/power_%s.h5"%(self.simname,frame,field)
         return queb3.check_finished(fname)
@@ -60,7 +65,10 @@ class short_oober():
             self.region=self.region_dict[frame]
         else:
             ds = self.load(frame)
-            resolution = ds['TopGridDimensions']
+            if self.code == 'Enzo':
+                resolution = ds['TopGridDimensions']
+            elif self.code == 'Athena':
+                resolution = ds.domain_dimensions   
             left = [0.0]*3
             self.region=self.ds.covering_grid(0,left,resolution)
         return self.region
@@ -87,7 +95,7 @@ class short_oober():
         else:
             if glob.glob(directory) == []:
                 print(("making directory",directory))
-                os.mkdir(directory)
+                os.makedirs(directory)
             if debug > 0:
                 print("Create FFT")
             if data == None:
@@ -119,7 +127,7 @@ def MakeDensitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     power=0
     setlist = ['density']
-    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'density')
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'density')
     if os.path.exists(filename):
         return
     rhohat = oober.fft(frame,'density',num_ghost_zones=ngz,debug=debug)
@@ -153,7 +161,7 @@ def MakeColumnDensitySpectra(oober,frame,density=0,debug=1, axis='x'):
 def MakeMagneticSpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     power=0
-    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'magnetic')
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'magnetic')
     if os.path.exists(filename):
         return
     setlist = ['magnetic_field_%s'%s for s in 'xyz']
@@ -191,7 +199,7 @@ mark_time = None
 def MakeVelocitySpectra(oober,frame,density=0,debug=1):
     """density = 0,1,2 for V, \rho^1/2 V, \rho^1/3 V"""
     mark_time = None
-    filename = "%s/avg_power_%s.h5"%(oober.product_dir(frame),'velocity')
+    filename = "%s/power_%s.h5"%(oober.product_dir(frame),'velocity')
     if oober.check_fname(frame, 'velocity'):
         return
 
