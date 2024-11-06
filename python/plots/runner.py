@@ -19,9 +19,47 @@ reload(p6)
 reload(p7)
 
 
-sim_list = all_sims.lists['suite1b']
-sim_list = ['aa_Ms2.0_Ma0.5_512']
+sim_list = all_sims.lists['suite3']
+#sim_list = ['aa_Ms2.0_Ma0.5_512']
 #sim_list = ['4_1']#,'1_1']
+
+if 1:
+    p1.plot_all_mach(sim_list)
+
+if 1:
+    import simulation as sim
+    def mach_arrays(sim_list):
+        ms_nom=[]
+        ma_nom=[]
+        ms_act=[]
+        for ns, sim_name in enumerate(sim_list):
+            this_sim=sim.corral[sim_name]
+            this_sim.read_avg_quan()
+            ms_nom.append(this_sim.Ms_nom)
+            ma_nom.append(this_sim.Ma_nom)
+            QQQ = this_sim.quan_time
+            ms_act.append(QQQ['vrms'].mean()/np.sqrt(3))
+        fptr = open('%s/mach.txt'%plot_dir,'w')
+        for i in range(len(ms_nom)):
+            fptr.write('%0.12f %0.12f %0.12f\n'%(ms_nom[i],ma_nom[i],ms_act[i]))
+        fptr.close()
+        #print("Ms",ms_nom)
+        #print("Ma",ma_nom)
+        #print("Mr",ms_act)
+        return nar(ms_nom),nar(ma_nom),nar(ms_act)
+    ms_nom,ma_nom,ms_act=mach_arrays(sim_list)
+
+if 0:
+    ok = (ma_nom == 0.0)
+    #print(ms_act[ok])
+    #interpo = np.interp( ms_nom[ok], ms_act[ok], ms_nom[ok])
+    #print(interpo)
+    interpo = np.interp( ms_nom[ok], ms_act[ok], ms_nom[ok]/ms_act[ok])*ms_nom[ok]
+    print(interpo)
+
+
+
+
 
 if 0:
     #all plots in one pannel

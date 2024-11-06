@@ -130,6 +130,11 @@ def MakeDensitySpectra(oober,frame,density=0,debug=1):
     filename = "%s/power_%s.h5"%(oober.product_dir(frame),'density')
     if os.path.exists(filename):
         return
+    filename_flag = "%s.flag"%filename
+    if os.path.exists(filename_flag):
+        return
+    fptr=open(filename_flag,"w")#temp file so nobody else starts working on this.
+    fptr.close()
     rhohat = oober.fft(frame,'density',num_ghost_zones=ngz,debug=debug)
     power += (rhohat.conjugate()*rhohat)
     field_out='density'
@@ -164,6 +169,11 @@ def MakeMagneticSpectra(oober,frame,density=0,debug=1):
     filename = "%s/power_%s.h5"%(oober.product_dir(frame),'magnetic')
     if os.path.exists(filename):
         return
+    filename_flag = "%s.flag"%filename
+    if os.path.exists(filename_flag):
+        return
+    fptr=open(filename_flag,"w")#temp file so nobody else starts working on this.
+    fptr.close()
     setlist = ['magnetic_field_%s'%s for s in 'xyz']
     for i,x in enumerate('xyz'):
         Bhat = oober.fft(frame,setlist[i],num_ghost_zones=ngz,debug=debug)
@@ -205,6 +215,11 @@ def MakeVelocitySpectra(oober,frame,density=0,debug=1):
 
     if os.path.exists(filename):
         return
+    filename_flag = "%s.flag"%filename
+    if os.path.exists(filename_flag):
+        return
+    fptr=open(filename_flag,"w")#temp file so nobody else starts working on this.
+    fptr.close()
     if mark_time is not None:
         mark_time = time_marker()
     print("derp", density)

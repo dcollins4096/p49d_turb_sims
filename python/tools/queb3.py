@@ -489,8 +489,19 @@ class simulation_package():
             #outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
             if (os.access(outfile, os.F_OK) or check_finished(product_name)) and not self.clobber:
                 print("FRB exists: %s"%outfile)
-            else:
+                continue
+            outfile_flag = outfile + ".flag"
+            if  os.path.exists(outfile_flag):
+                continue
+            fptr = open(outfile_flag,'w')
+            fptr.close()
+
+            if 1:
                 print("FRB being produced: %s"%outfile)
+                #create a dummy empty file so no other process starts working on this projection
+
+                fptr = open(outfile,'w')
+                fptr.close()
                 if ds is None:
                     if self.code == 'Enzo':
                         ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))

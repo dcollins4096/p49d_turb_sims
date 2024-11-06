@@ -2,20 +2,21 @@ from GL import *
 import yt
 from downsample.volavg import *
 
-def downsample_and_write(pf,outname, refine_by=4, write_hdf5=False,write_fits=True):
+def downsample_and_write(pf,outname, refine_by=4, write_hdf5=False,write_fits=True, code='Enzo', do_magnetic=True):
     print("RUN ", pf)
 
     cg = pf.covering_grid(0,[0.0]*3,pf.domain_dimensions)
     extra_dims = {'BxF':nar([1,0,0]),'ByF':nar([0,1,0]),'BzF':nar([0,0,1])}
     print("get fine")
-    fine_density = cg['Density']
+    fine_density = cg['density']
     print("    down density")
     coarse_density = volavg(fine_density, rank=3, refine_by = refine_by)
     if write_hdf5:
         fptr = h5py.File(outname,"w")
-    for in_field_name in ['Density',
-                          'x-velocity','y-velocity','z-velocity',
-                          'Bx','By','Bz']: #['Density','x-velocity','y-velocity','z-velocity','BxF','ByF','BzF']:
+    fields = ['density', 'velocity_x','velocity_y','velocity_z']
+    if do_magnetic:
+        fields += ['magnetic_field_x','magnetic_field_y','magnetic_field_z']
+    for in_field_name in fields:
         print("   down ",in_field_name)
         infield = cg[in_field_name]
         dims = infield.shape

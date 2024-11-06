@@ -20,3 +20,12 @@ ma = 4
 color = 'g'; line='--';marker='*'
 framelist = [100]
 simulation.sim(sim,data_location=data,product_location=product,ms=ms,ma=ma,color=color,linestyle=line,marker=marker,framelist=framelist)
+
+sim='x27_Ms8.0_Ma0.0_256'
+data = '/anvil/scratch/x-ux454321/p83_turbulence/Athena/maker/x27_Ms8.0_Ma0.0_256'
+product = '/anvil/scratch/x-ux454321/p83_turbulence/Athena/Products/%s'%sim
+ms = 8
+ma = 0
+color = 'g'; line='--';marker='*'
+framelist = list(range(1,99))
+simulation.sim(sim,data_location=data,product_location=product,ms=ms,ma=ma,color=color,linestyle=line,marker=marker,framelist=framelist, all_frames=framelist, code='Athena')
