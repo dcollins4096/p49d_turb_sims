@@ -1,0 +1,53 @@
+#!/bin/tcsh
+#set echo
+set tmpfile = tmp90210
+showq -u > $tmpfile
+foreach directory ( $argv ) 
+    cd $directory
+    set CWD = `pwd`
+    set simname = `basename $CWD | cut -c -3`
+    set fname_list = `find . -name "$simname.o*" `
+    set run_string = "broke something"
+    if ( $#fname_list > 0 ) then
+        set fname = `ls $simname.o* | sort  | tail -1`
+        set jobid = `echo $fname | sed -e 's/\(.*\).o\([0-9]\+\)/\2/'`
+        #set running = `showq | grep $jobid |grep -w R |wc -l`
+        set running = `grep $jobid ../$tmpfile |grep -w R |wc -l`
+        if ( $running >0 ) then
+            set run_string = "RUNNING"
+        else
+            set run_string = "NOT RUNNING"
+            set pending = `grep $simname ../$tmpfile |grep -w PD |wc -l`
+            if ( $pending > 0 ) then
+                set run_string = "PENDING"
+            endif
+        endif
+    else
+        set jobid = None
+        set run_string = "NOT STARTED"
+    endif
+
+    set last_dump_string = "NO OUTPUT"
+    set output_list = `find -name "DD????"`
+    if ( $#output_list > 0 ) then
+        set last_dump = `find -name "DD????" | sort |  tail -1 | sed -e 's,DD\([0-9]\+\),\1,'`
+        set last_dump_string = $last_dump
+    endif
+
+    set nogo_string = ""
+    if ( -e NOGO ) then
+        set nogo_string = "NOGO"
+    endif
+
+    set output = "$simname $last_dump_string $run_string $nogo_string"
+
+
+    echo $output
+    cd -
+end
+rm $tmpfile
+
+
+
+
+#end

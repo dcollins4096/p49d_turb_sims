@@ -1,0 +1,18 @@
+#!/bin/tcsh
+#foreach i (a[012]*)
+foreach i (d??_*)
+
+    cd $i
+    echo $i
+   #if ( ! -e NOGO ) then
+   #    sbatch Job.sbatch
+   #else
+   #    echo "looks done enough"
+   #endif
+    #sbatch Job.sbatch
+    #~/repos/slaunch/slaunch Job.sbatch 1 --autodep  -s $HOME/repos/slaunch/AnalysisAthena.sbatch
+    #sbatch ~/repos/slaunch/AnalysisAthena.sbatch
+    sbatch ~/repos/slaunch/Cubes.sbatch
+    cd -
+end
+#end

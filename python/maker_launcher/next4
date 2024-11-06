@@ -1,0 +1,8 @@
+#!/bin/tcsh
+
+turb_maker.py --ms 3 --ma 3 -d 512 -n h03
+turb_maker.py --ms 3 --ma 4 -d 512 -n i03
+turb_maker.py --ms 5 --ma 3 -d 512 -n j03
+turb_maker.py --ms 5 --ma 4 -d 512 -n k03
+
+#end

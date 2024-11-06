@@ -1,0 +1,36 @@
+#!/bin/tcsh
+
+turb_maker.py -n d00 -s 1.0 -a 0.5 -d 512
+turb_maker.py -n d01 -s 1.0 -a 1.5 -d 512
+turb_maker.py -n d02 -s 1.0 -a 3.0 -d 512
+turb_maker.py -n d03 -s 1.0 -a 0.0 -d 512
+turb_maker.py -n d04 -s 2.0 -a 0.5 -d 512
+turb_maker.py -n d05 -s 2.0 -a 1.5 -d 512
+turb_maker.py -n d06 -s 2.0 -a 3.0 -d 512
+turb_maker.py -n d07 -s 2.0 -a 0.0 -d 512
+turb_maker.py -n d08 -s 3.0 -a 0.5 -d 512
+turb_maker.py -n d09 -s 3.0 -a 1.5 -d 512
+turb_maker.py -n d10 -s 3.0 -a 3.0 -d 512
+turb_maker.py -n d11 -s 3.0 -a 0.0 -d 512
+turb_maker.py -n d12 -s 4.0 -a 0.5 -d 512
+turb_maker.py -n d13 -s 4.0 -a 1.5 -d 512
+turb_maker.py -n d14 -s 4.0 -a 3.0 -d 512
+turb_maker.py -n d15 -s 4.0 -a 0.0 -d 512
+turb_maker.py -n d16 -s 5.0 -a 0.5 -d 512
+turb_maker.py -n d17 -s 5.0 -a 1.5 -d 512
+turb_maker.py -n d18 -s 5.0 -a 3.0 -d 512
+turb_maker.py -n d19 -s 5.0 -a 0.0 -d 512
+turb_maker.py -n d20 -s 6.0 -a 0.5 -d 512
+turb_maker.py -n d21 -s 6.0 -a 1.5 -d 512
+turb_maker.py -n d22 -s 6.0 -a 3.0 -d 512
+turb_maker.py -n d23 -s 6.0 -a 0.0 -d 512
+turb_maker.py -n d24 -s 7.0 -a 0.5 -d 512
+turb_maker.py -n d25 -s 7.0 -a 1.5 -d 512
+turb_maker.py -n d26 -s 7.0 -a 3.0 -d 512
+turb_maker.py -n d27 -s 7.0 -a 0.0 -d 512
+turb_maker.py -n d28 -s 8.0 -a 0.5 -d 512
+turb_maker.py -n d29 -s 8.0 -a 1.5 -d 512
+turb_maker.py -n d30 -s 8.0 -a 3.0 -d 512
+turb_maker.py -n d31 -s 8.0 -a 0.0 -d 512
+
+#end
