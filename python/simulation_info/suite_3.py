@@ -4,14 +4,14 @@ reload(simulation)
 import sim_colors
 
 if 1:
-    sim_ms = nar(['2','3','4','5','6','7','8'])
+    sim_ms = nar(['1','2','3','4','5','6','7','8'])
     sim_ms_f = sim_ms.astype('float')
     sim_ma = nar(['0.5','1.5','3','0'])
     sim_ma_f = sim_ma.astype('float')
 
 
 #color_by_mach = {'half':'c','1':'m','2':'b','3':'g','5':'r'}
-color_by_mach = {'2':'red','3':'orange','4':'g','5':'b','6':'violet','7':'brown','8':'black'}
+color_by_mach = {'1':'cyan','2':'red','3':'orange','4':'g','5':'b','6':'violet','7':'brown','8':'black'}
 line_by_alf_mach  = {'0.5':':','1.5':'--','3':'-', '0':':-'}
 marker_by_alf_mach = {'0.5':'.','1.5':'^','3':'s', '0':'*'}
 
@@ -53,7 +53,7 @@ long_simlist = []
 sim_from_key={}
 for counter,sim in enumerate(simlist):
     ms,ma = vals_from_sim(sim)
-    key = 'a%02d'%counter
+    key = 'c%02d'%counter
     ms_list.append( ms)
     ma_list.append(ma)
     longname[sim] = '%s_Ms%0.1f_Ma%0.1f_512'%(key, ms, ma)
@@ -72,12 +72,11 @@ def launch_script():
 
 analysis_frames={}
 for sim in simlist:
-    analysis_frames[sim] = range(1,100)
+    analysis_frames[sim] = range(1,22)
     #analysis_frames[sim] = [1,30]
-analysis_frames[ sim_from_key['a22']] = range(1,28)
-analysis_frames[ sim_from_key['a26']] = range(1,77)
+analysis_frames[sim_from_key['c28']] = range(1,19)
 
 for sim in simlist:
-    simulation.sim(longname[sim], data_location="%s/Athena/maker/%s"%(dl.sim_dir_base,longname[sim]), product_location="%s/Athena/Products/%s"%(dl.product_dir_base,longname[sim]), ms=Ms[sim], ma=Ma[sim],
+    simulation.sim(longname[sim], data_location="%s/Enzo/maker/%s"%(dl.sim_dir_base,longname[sim]), product_location="%s/Enzo/Products/%s"%(dl.product_dir_base,longname[sim]), ms=Ms[sim], ma=Ma[sim],
                    color=color[sim],linestyle=linestyle[sim],marker=marker[sim],
-                   all_frames=analysis_frames[sim],framelist=analysis_frames[sim], code='Athena')
+                   all_frames=analysis_frames[sim],framelist=analysis_frames[sim], code='Enzo')

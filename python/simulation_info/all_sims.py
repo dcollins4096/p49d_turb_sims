@@ -10,6 +10,8 @@ reload(simulation_info.suite_2)
 import simulation_info.suite_2_256
 reload(simulation_info.suite_2_256)
 import simulation_info.suite_p83
+import simulation_info.suite_3
+reload(simulation_info.suite_3)
 
 lists={}
 lists['suite1']=simulation_info.suite_1.simlist
@@ -20,6 +22,7 @@ lists['suite1a'] = ['half_half', 'half_1', 'half_2',
 lists['suite1b'] = ['4_half', '4_1', '4_2', 
                     '5_half', '5_1', '5_2', 
                     '6_half', '6_1', '6_2']
-lists['p83'] = ['4.7_3','4.7_4']
+lists['p83'] = ['4.7_3','4.7_4','x27_Ms8.0_Ma0.0_256']
 
-lists['suite2'] = ['aa_2_0.5']
+lists['suite2'] = simulation_info.suite_2.long_simlist
+lists['suite3'] = simulation_info.suite_3.long_simlist

@@ -13,7 +13,8 @@ if len(sys.argv) == 1:
     print("Please select 4, 5, 6")
     sys.exit(0)
 
-this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+#this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+this_list = [sys.argv[1]]
 #this_simname="1_1"
 #this_simname="4s_dev"
 #this_simname="4s_dave"

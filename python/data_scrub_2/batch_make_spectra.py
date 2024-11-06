@@ -15,11 +15,12 @@ import data_scrub_2.make_all_frb as maf
 #this_simname="1_1"
 #this_simname="4s_dev"
 #this_simname="4s_dave"
-this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+#this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+this_list = [sys.argv[1]]
 
 if 1:
     m3d.make_spec(this_list)
-if 1:
+if 0:
     m2d.make_all(this_list)
 
 import plots.P3_all_spectra as p3

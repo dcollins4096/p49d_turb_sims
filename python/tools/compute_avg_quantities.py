@@ -74,9 +74,13 @@ def make_quan_athena(directory,frame, out_directory=None, clobber=False, sim='SI
     input_file = "%s/parthenon.prim.%05d.phdf"%(directory, frame)
     input_xml = "%s/parthenon.prim.%05d.phdf.xdmf"%(directory, frame)
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    outname_flag = "%s/DD%04d.products/data%04d.AverageQuantities.h5.flag"%(out_directory,frame,frame)
     #print(outname)
     if os.path.exists(outname) and clobber==False:
         print("File exists, skipping", outname)
+        return 0
+    if os.path.exists(outname_flag):
+        #being worked on.
         return 0
 
     time = nar([parse_athena_meta(input_xml)])
@@ -128,12 +132,21 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM', do_
     #for enzo.
 
     outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    outname_flag = "%s/DD%04d.products/data%04d.AverageQuantities.h5.flag"%(out_directory,frame,frame)
     outname_short = "./%s/DD%04d.products/data%04d.AverageQuantities.h5"%(sim,frame,frame)
+    parent_dir = os.path.dirname(outname)
+    if not os.path.exists(parent_dir):
+        grandparent_dir = os.path.dirname(parent_dir)
+        if not os.path.exists(grandparent_dir):
+            os.mkdir(grandparent_dir)
+        os.mkdir(parent_dir)
     #print(outname)
-    if (queb3.check_finished(outname_short) or os.path.exists(outname)) and clobber==False:
+    if (queb3.check_finished(outname_short) or os.path.exists(outname) or os.path.exists(outname_flag)) and clobber==False:
         print("File exists, skipping", outname)
         return 0
     print("Quan on frame",frame)
+    fptr = open(outname_flag,'w')
+    fptr.close()
     submarine={}
     submarine['density']=meanie('density','Density')
     submarine['vx']=meanie('vx','x-velocity')
@@ -154,7 +167,7 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM', do_
     #do all averages
     total=len(file_list)
     for n,fname in enumerate(file_list):
-        print("     ",fname, "%d/%d"%(n,total))
+        #print("     ",fname, "%d/%d"%(n,total))
         fptr = h5py.File(fname,'r')
         try:
             for grid in fptr:
@@ -184,12 +197,6 @@ def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM', do_
 
 
 
-    parent_dir = os.path.dirname(outname)
-    if not os.path.exists(parent_dir):
-        grandparent_dir = os.path.dirname(parent_dir)
-        if not os.path.exists(grandparent_dir):
-            os.mkdir(grandparent_dir)
-        os.mkdir(parent_dir)
 
     optr = h5py.File(outname,'w')
     try:

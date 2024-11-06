@@ -9,7 +9,9 @@ import data_scrub_2.make_2d_spectra as m2d
 import data_scrub_2.make_3d_spectra as m3d
 import data_scrub_2.make_all_frb as maf
 
-this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+#this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
+this_list = [sys.argv[1]]
+print("CLOWN",this_list)
 if 1:
     caq.comp_all(this_list)
 if 0:

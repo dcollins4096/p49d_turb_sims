@@ -35,6 +35,49 @@ vz_std                   Dataset {1}
 #sim_list=sim_colors.simlist
 #sim_list=['6_1']
 import simulation as sim
+def plot_all_mach(sim_list, ncol=4):
+    plt.close('all')
+    nrow = max( len(sim_list)//ncol, 1)
+    fig,ax=plt.subplots(nrow,ncol,figsize=(12,8))
+    fig.subplots_adjust(wspace=0, hspace=0)
+    if len(sim_list)>1:
+        outname = '%s/avg_quan_multi.pdf'%(dl.plotdir)
+    else:
+        outname = '%s/avg_quan_%s.pdf'%(dl.plotdir,sim_list[0])
+    for ns,sim_name in enumerate(sim_list):
+        nx = ns//ncol
+        ny = ns%ncol
+        this_sim=sim.corral[sim_name]
+        this_sim.read_avg_quan()
+
+        time = this_sim.quan_time['time']+0
+        print("%10s max %0.2f tdyn %0.3f t/tdyn %0.3f"%(sim_name,time.max(), this_sim.tdyn, time.max()/ this_sim.tdyn))
+        time /= this_sim.tdyn
+        #time = nar(range(len(raq.quan_time[sim]['time'])))
+        #print(time)
+        QQQ = this_sim.quan_time
+        #vx_avg = QQQ['vx_avg']
+        #vy_avg = QQQ['vy_avg']
+        #vz_avg = QQQ['vz_avg']
+        #vmag = (vx_avg**2+vy_avg**2+vz_avg**2)
+        ax[nx][ny].plot(time,QQQ['vrms']/np.sqrt(3), c=this_sim.color)
+        ms = this_sim.quan_mean['msavg']/np.sqrt(3)
+        ax[nx][ny].axhline(ms, label="avg = %0.1f"%ms)
+        ax[nx][ny].axhline(this_sim.Ms_nom, label='Nominal = %0.1f'%this_sim.Ms_nom, c='r')
+        #ax[nx][ny].legend(loc=1)
+        #ax[nx][ny].set(xlabel='t/tdyn', ylabel='Mach')
+        if ny == 0:
+            ax[nx][ny].set(ylabel='1d Mach')
+        else:
+            ax[nx][ny].set(yticks=[])
+        if nx == nrow-1:
+            ax[nx][ny].set(xlabel='t/tdyn')
+        else:
+            ax[nx][ny].set(xticks=[])
+        #ax[nx][ny].set(ylim=[0,10])
+
+    fig.savefig('%s/all_mach'%plot_dir)
+
 def plot_quan(sim_list):
     plt.close('all')
     fig,ax=plt.subplots(2,4,figsize=(12,8))
