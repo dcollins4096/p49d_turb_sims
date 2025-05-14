@@ -67,6 +67,126 @@ def parse_athena_meta(fname):
             break
     return time
 
+def bulk_viscosity_estimate(directory,frame,out_directory=None,sim='SIM', clobber=False):
+    #outname = "%s/DD%04d.products/data%04d.BulkViscosity.h5"%(out_directory,frame,frame)
+    outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    #print("Bulk on frame",frame)
+    print("Add bulk to",outname)
+    optr = h5py.File(outname, 'r+')
+    if 'vorticity_avg' in optr and not clobber:
+        print( "Exists.  Skipping")
+        optr.close()
+        return
+    optr.close()
+    ds_name = "%s/DD%04d/data%04d"%(directory,frame,frame)
+    ds = yt.load(ds_name)
+    #yt.ProjectionPlot(ds,0,'vorticity_magnitude').save('%s/omega'%plot_dir)
+    ad = ds.all_data()
+    #ad = ds.region([0.5,0.5,0.5],[0.25,0.25,0.25],[0.75,0.75,0.75])
+    omega2 = ad['vorticity_magnitude']**2
+    div2   = ad['velocity_divergence']**2
+    optr = h5py.File(outname, 'r+')
+    try:
+        print('means')
+        optr['vorticity_avg'] = nar([omega2.mean().v])
+        optr['vorticity_std'] = nar([omega2.std().v])
+        optr['divergence_avg'] =nar([div2.mean().v])
+        optr['divergence_std'] =nar([div2.std().v])
+    except:
+        raise
+    finally:
+        optr.close()
+
+def make_ekin(directory,frame,out_directory=None,sim='SIM', clobber=False):
+    #outname = "%s/DD%04d.products/data%04d.BulkViscosity.h5"%(out_directory,frame,frame)
+    outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    #print("Bulk on frame",frame)
+    print("Add Ekin to",outname)
+    optr = h5py.File(outname, 'r+')
+    if 'Ekin' in optr and not clobber:
+        print( "Exists.  Skipping")
+        optr.close()
+        return
+    optr.close()
+    ds_name = "%s/DD%04d/data%04d"%(directory,frame,frame)
+    ds = yt.load(ds_name)
+    #yt.ProjectionPlot(ds,0,'vorticity_magnitude').save('%s/omega'%plot_dir)
+    ad = ds.all_data()
+    #ad = ds.region([0.5,0.5,0.5],[0.25,0.25,0.25],[0.75,0.75,0.75])
+
+    print('read vel')
+    vx = ad['x-velocity'].v
+    print('read vel')
+    vy = ad['y-velocity'].v
+    print('read vel')
+    vz = ad['z-velocity'].v
+    print('read den')
+    rho = ad['density'].v
+
+    Ekinetic = (0.5*rho*(vx**2+vy**2+vz**2)).sum()/rho.size
+
+    optr = h5py.File(outname, 'r+')
+    try:
+        optr['Ekin'] = nar([Ekinetic]) 
+    except:
+        raise
+    finally:
+        optr.close()
+
+def make_edot(directory,frame,out_directory=None,sim='SIM', clobber=False):
+    #outname = "%s/DD%04d.products/data%04d.BulkViscosity.h5"%(out_directory,frame,frame)
+    outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    #print("Bulk on frame",frame)
+    print("Add Edot to",outname)
+    optr = h5py.File(outname, 'r+')
+    #if 'Edot' in optr and not clobber:
+    #    print( "Exists.  Skipping")
+    #    optr.close()
+    #    return
+    optr.close()
+    ds_name = "%s/DD%04d/data%04d"%(directory,frame,frame)
+    ds = yt.load(ds_name)
+    #yt.ProjectionPlot(ds,0,'vorticity_magnitude').save('%s/omega'%plot_dir)
+    ad = ds.all_data()
+    #ad = ds.region([0.5,0.5,0.5],[0.25,0.25,0.25],[0.75,0.75,0.75])
+    print('read drive')
+    dx = ad['x-acceleration'].v
+    print('read drive')
+    dy = ad['y-acceleration'].v
+    print('read drive')
+    dz = ad['z-acceleration'].v
+
+    print('read vel')
+    vx = ad['x-velocity'].v
+    print('read vel')
+    vy = ad['y-velocity'].v
+    print('read vel')
+    vz = ad['z-velocity'].v
+    
+    print('read den')
+    rho = ad['density'].v
+    eta = ds['DrivingEfficiency']
+
+    Edot = (rho*(dx*vx+dy*vy+dz*vz+0.5*(dx**2+dy**2+dz**2))*eta).sum()/rho.size
+    Ekinetic = (0.5*rho*(vx**2+vy**2+vz**2)).sum()/rho.size
+    Driving = (0.5*rho*(dx**2+dy**2+dz**2)).sum()/rho.size
+    pdb.set_trace()
+
+    optr = h5py.File(outname, 'r+')
+    try:
+        if 'Edot' not in optr:
+            optr['Edot'] = nar([Edot]) 
+        if 'Ekin' not in optr:
+            optr['Ekin'] = nar([Ekinetic]) 
+    except:
+        raise
+    finally:
+        optr.close()
+
+
+
+
+
 
 def make_quan_athena(directory,frame, out_directory=None, clobber=False, sim='SIM', do_magnetic=True):
     #for athena.
@@ -127,7 +247,6 @@ def make_quan_athena(directory,frame, out_directory=None, clobber=False, sim='SI
         optr.close()
 
 
-    
 def make_quan(directory,frame, out_directory=None, clobber=False, sim='SIM', do_magnetic=True):
     #for enzo.
 
