@@ -269,6 +269,7 @@ class sim():
         frames=[]
         UNITS = root4pi
         UNITS = 1
+        all_fields=set()
         for frame in self.all_frames:
             frames.append(frame)
             fname = '%s/DD%04d.products/data%04d.AverageQuantities.h5'%(self.product_location,frame,frame)
@@ -277,7 +278,10 @@ class sim():
                 continue
             h5ptr=h5py.File(fname,'r')
             try:
+                fields_this_frame=set()
                 for field in h5ptr:
+                    all_fields.add(field)
+                    fields_this_frame.add(field)
                     if field.startswith('b') or field.startswith('alf'):
                         U = UNITS
                     else:
@@ -302,6 +306,9 @@ class sim():
                 raise
             finally:
                 h5ptr.close()
+            for field in all_fields-fields_this_frame:
+                self.quan_time[field] = np.concatenate([self.quan_time[field],nar([np.nan])])
+
         self.quan_time['frames']=frames
         self.quan_time['vrms']=vrms
         self.quan_time['brms']=brms
