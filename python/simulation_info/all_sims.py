@@ -12,6 +12,7 @@ reload(simulation_info.suite_2_256)
 import simulation_info.suite_p83
 import simulation_info.suite_3
 reload(simulation_info.suite_3)
+import simulation_info.small_test
 
 lists={}
 lists['suite1']=simulation_info.suite_1.simlist
@@ -26,3 +27,5 @@ lists['p83'] = ['4.7_3','4.7_4','x27_Ms8.0_Ma0.0_256']
 
 lists['suite2'] = simulation_info.suite_2.long_simlist
 lists['suite3'] = simulation_info.suite_3.long_simlist
+lists['p83'] = ['4.7_3','4.7_4', '4_3','4_4', '2_3','2_4', '3_3','3_4','5_3','5_4']
+lists['small'] = 'run2'
