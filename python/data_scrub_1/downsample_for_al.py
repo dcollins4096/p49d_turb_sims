@@ -6,11 +6,12 @@ import downsample.downsampler as DOON
 import simulation
 import data_locations as dl
 reload(DOON)
-
+print('wtf')
 import simulation_info.all_sims as all_sims
 #sim_list = all_sims.lists['suite1']
 sim_list = all_sims.lists['p83']
 for sim in sim_list:
+    print(sim)
     this_sim=simulation.corral[sim]
     #this_sim.load()
     for frame in this_sim.ann_frames[-1:]:
@@ -20,9 +21,9 @@ for sim in sim_list:
             print(source_fname)
             print('missing')
             continue
-        if 0:
-            dir_128 =  "%s/%s/DD%04d/"%(dl.p58_dir, sim, frame)
-            refine_by = 2
+        if 1:
+            dir_128 =  "%s/128/%s/DD%04d/"%(dl.p58_dir, sim, frame)
+            refine_by = 4
         else:
             dir_128 =  "%s/512/%s/DD%04d/"%(dl.p58_dir, sim, frame)
             refine_by = 1
