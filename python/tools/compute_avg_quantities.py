@@ -52,6 +52,38 @@ class alfv_meanie(meanie):
         self.var += (Q**2).mean()
         self.N1+=1
         self.N2+=1
+class Ekin_meanie(meanie):
+    def __init__(self,name,enzo_quantity):
+        super().__init__(name,enzo_quantity)
+    def __call__(self,grid):
+        d = grid['Density'][()]
+        #dx = grid['x-acceleration'][()]
+        #dy = grid['y-acceleration'][()]
+        #dz = grid['z-acceleration'][()]
+        vx = grid['x-velocity'][()]
+        vy = grid['y-velocity'][()]
+        vz = grid['z-velocity'][()]
+        Q = (0.5*d*(vx**2+vy**2+vz**2))
+        self.avg +=  Q.sum()
+        self.var += (Q**2).sum()
+        self.N1+=Q.size
+        self.N2+=Q.size
+class Edot_meanie(meanie):
+    def __init__(self,name,enzo_quantity):
+        super().__init__(name,enzo_quantity)
+    def __call__(self,grid):
+        d = grid['Density'][()]
+        dx = grid['x-acceleration'][()]
+        dy = grid['y-acceleration'][()]
+        dz = grid['z-acceleration'][()]
+        vx = grid['x-velocity'][()]
+        vy = grid['y-velocity'][()]
+        vz = grid['z-velocity'][()]
+        Q = (0.5*d*(vx*dx+vy*dy+vz*dz))
+        self.avg +=  Q.sum()
+        self.var += (Q**2).sum()
+        self.N1+=Q.size
+        self.N2+=Q.size
 
 import re
 def parse_athena_meta(fname):
@@ -139,10 +171,10 @@ def make_edot(directory,frame,out_directory=None,sim='SIM', clobber=False):
     #print("Bulk on frame",frame)
     print("Add Edot to",outname)
     optr = h5py.File(outname, 'r+')
-    #if 'Edot' in optr and not clobber:
-    #    print( "Exists.  Skipping")
-    #    optr.close()
-    #    return
+    if 'Edot' in optr and not clobber:
+        del optr['Edot']
+        optr.close()
+        #return
     optr.close()
     ds_name = "%s/DD%04d/data%04d"%(directory,frame,frame)
     ds = yt.load(ds_name)
@@ -167,10 +199,10 @@ def make_edot(directory,frame,out_directory=None,sim='SIM', clobber=False):
     rho = ad['density'].v
     eta = ds['DrivingEfficiency']
 
-    Edot = (rho*(dx*vx+dy*vy+dz*vz+0.5*(dx**2+dy**2+dz**2))*eta).sum()/rho.size
+    Edot = (rho*(dx*vx+dy*vy+dz*vz)*eta).sum()/rho.size
     Ekinetic = (0.5*rho*(vx**2+vy**2+vz**2)).sum()/rho.size
     Driving = (0.5*rho*(dx**2+dy**2+dz**2)).sum()/rho.size
-    pdb.set_trace()
+    #pdb.set_trace()
 
     optr = h5py.File(outname, 'r+')
     try:
@@ -185,6 +217,63 @@ def make_edot(directory,frame,out_directory=None,sim='SIM', clobber=False):
 
 
 
+def make_edot_faster(directory,frame,out_directory=None,sim='SIM', clobber=False):
+    #outname = "%s/DD%04d.products/data%04d.BulkViscosity.h5"%(out_directory,frame,frame)
+    outname = "%s/DD%04d.products/data%04d.AverageQuantities.h5"%(out_directory,frame,frame)
+    #print("Bulk on frame",frame)
+    print("Add Edot to",outname)
+    optr = h5py.File(outname, 'r+')
+    if 'Edot_avg' in optr:
+        print("Exists.  Skip.")
+        optr.close()
+        return
+        
+    #for Q in ['Ekin','Edot_avg','Edot_std','Ekin_avg','Ekin_std']:
+    #    if Q in optr and not clobber:
+    #        del optr[Q]
+    #        #return
+    optr.close()
+    submarine = {}
+    submarine['Ekin'] = Ekin_meanie('Ekin','Ekin')
+    submarine['Edot'] = Edot_meanie('Edot','Edot')
+
+    file_glob = "%s/DD%04d/data%04d.cpu*"%(directory,frame,frame)
+    file_list=sorted(glob.glob(file_glob))
+
+    #do all averages
+    total=len(file_list)
+    for n,fname in enumerate(file_list):
+        #print("     ",fname, "%d/%d"%(n,total))
+        fptr = h5py.File(fname,'r')
+        try:
+            for grid in fptr:
+                if grid.startswith('Meta'):
+                    continue
+                #pdb.set_trace()
+                for sub in submarine:
+                    submarine[sub](fptr[grid])
+
+        except:
+            raise
+        finally:
+            fptr.close()
+
+    for sub in submarine:
+        submarine[sub].finish()
+
+    optr = h5py.File(outname, 'r+')
+    try:
+        for sub in submarine:
+            name="%s_avg"%submarine[sub].name
+            if name not in optr:
+                optr[name]=nar([submarine[sub].avg])
+            name="%s_std"%submarine[sub].name
+            if name not in optr:
+                optr[name]=nar([submarine[sub].std])
+    except:
+        raise
+    finally:
+        optr.close()
 
 
 

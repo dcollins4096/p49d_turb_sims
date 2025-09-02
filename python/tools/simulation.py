@@ -207,13 +207,16 @@ class sim():
             if frame not in self.all_spectra:
                 self.all_spectra[frame]={}
 
-            k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','avgpower'])
-            k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','avgpower'])
+            #k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','avgpower'])
+            #k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','avgpower'])
+            k3d, density = dt.dpy('%s/DD%04d.products/power_density.h5'%(self.product_location,frame), ['k','power'])
+            k3d, velocity = dt.dpy('%s/DD%04d.products/power_velocity.h5'%(self.product_location,frame), ['k','power'])
             self.all_spectra[frame]['k3d']=k3d.real
             self.all_spectra[frame]['density']=density.real
             self.all_spectra[frame]['velocity']=velocity.real
             if self.do_magnetic:
-                k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','avgpower'])
+                #k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','avgpower'])
+                k3d, magnetic  = dt.dpy('%s/DD%04d.products/power_magnetic.h5'%(self.product_location,frame), ['k','power'])
                 self.all_spectra[frame]['magnetic']=magnetic.real
 
     def read_2d_spectra(self):

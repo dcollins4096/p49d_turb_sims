@@ -39,16 +39,17 @@ if 0:
 #this_list = ['half_half']
 #this_list = [sys.argv[1]]
 this_list = all_sims.lists['suite1'][::-1]
-this_list = ['run2']
+#this_list = ['run3']
+this_list = ['6_2']
 
+if 0:
+    caq.comp_all(this_list)
 if 0:
     caq.energy_cleaner(this_list)
 if 0:
     caq.comp_bulk(this_list)
-if 0:
+if 1:
     caq.comp_Edot(this_list)
 if 0:
     caq.comp_Ekin(this_list)
-if 1:
-    caq.comp_all(this_list)
 
