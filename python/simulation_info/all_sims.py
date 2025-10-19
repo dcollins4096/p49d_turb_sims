@@ -27,5 +27,9 @@ lists['p83'] = ['4.7_3','4.7_4','x27_Ms8.0_Ma0.0_256']
 
 lists['suite2'] = simulation_info.suite_2.long_simlist
 lists['suite3'] = simulation_info.suite_3.long_simlist
+<<<<<<< HEAD
 lists['p83'] = ['4.7_3','4.7_4', '4_3','4_4', '2_3','2_4', '3_3','3_4','5_3','5_4']
 lists['small'] = ['run2','run3']
+=======
+lists['suite4'] = ['d%02d'%n for n in range(32)]
+>>>>>>> fd54918 (tweaks for suite 4)
