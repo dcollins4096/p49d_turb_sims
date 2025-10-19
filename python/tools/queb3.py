@@ -451,6 +451,13 @@ class simulation_package():
             self.make_frbs(frame, do_magnetic=do_magnetic)#,ds=ds)
             if do_magnetic:
                 for axis in 'xyz':
+                    product_dir = "%s/DD%04d.products"%(self.product_directory,frame)
+                    frb_dir = product_dir
+                    xd=self.dataset_name
+                    Ef= "%s/%s%04d_E%s.fits"%(frb_dir,xd,frame,axis)
+                    if ( os.access(Ef, os.F_OK) ) :
+                        print( "E exists", Ef)
+                        continue
                     #read and/or compute E,B, and other harmon
                     this_proj=self.read_queb(frame,axis) 
                     this_proj.compute_harmonic_products()
