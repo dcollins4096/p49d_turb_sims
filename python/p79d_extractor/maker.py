@@ -99,4 +99,60 @@ if 1:
     half=0
     suffix='23456'
 if 1:
-    puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=half)
+    #sim_list = all_sims.lists['suite4']
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite4']):
+        if ns%4!=3:
+            sim_list.append(sim)
+    size=256
+    N_per_frame=5
+    rotate=False
+    target_res=64
+    los='xyz'
+    half=1
+    suffix='suite4_QU_'
+if 1:
+    #sim_list = all_sims.lists['suite4']
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite4']):
+        if ns%4!=3:
+            sim_list.append(sim)
+    size=256
+    N_per_frame=5
+    rotate=False
+    target_res=64
+    los='y'
+    half=0
+    suffix='fixed_mach_QU'
+if 1:
+    #sim_list = all_sims.lists['suite4']
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite4']):
+        if ns%4!=3:
+            sim_list.append(sim)
+    size=512
+    N_per_frame=5
+    rotate=False
+    target_res=64
+    los='y'
+    half=1
+    suffix='THQUEB'
+
+fields='THQUEB'
+if 1:
+    #sim_list = all_sims.lists['suite4']
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite4']):
+        if ns%4==3:
+            sim_list.append(sim)
+    size=512
+    N_per_frame=5
+    rotate=False
+    target_res=64
+    los='xyz'
+    half=0
+    suffix='T'
+    fields='T'
+print(sim_list)
+if 1:
+    puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=half, fields=fields)
