@@ -71,16 +71,20 @@ def launch_script():
         print('turb_maker.py -n %s -s %0.1f -a %0.1f -d 512'%(longname[sim][:3], Ms[sim], Ma[sim]))
 
 analysis_frames={}
+all_frames={}
 for sim in simlist:
-    analysis_frames[sim] = list(range(1,101))
+    analysis_frames[sim] = list(range(30,101))
+    all_frames[sim] = list(range(1,101))
     #analysis_frames[sim] = [1,30]
-analysis_frames['2_0'].pop(46)
+analysis_frames['2_0'].pop(analysis_frames['2_0'].index(47))
+all_frames['2_0'].pop(all_frames['2_0'].index(47))
+
 #analysis_frames[sim_from_key['c28']] = range(1,19)
 data_location = "/anvil/scratch/x-rabatinb/p83_turbulence/enzo"
-product_location = "/anvil/scratch/x-ux454321/suite_4_products/"
+product_location = "/data/cb1/Projects/P71_filaments/suite_4_products"
 for sim in simlist:
     simulation.sim(longname[sim], 
                    data_location="%s/%s"%(data_location,longname[sim]), 
                    product_location="%s/%s"%(product_location,longname[sim]), ms=Ms[sim], ma=Ma[sim],
                    color=color[sim],linestyle=linestyle[sim],marker=marker[sim],
-                   all_frames=analysis_frames[sim],framelist=analysis_frames[sim], code='Enzo')
+                   all_frames=all_frames[sim],framelist=analysis_frames[sim], code='Enzo')
