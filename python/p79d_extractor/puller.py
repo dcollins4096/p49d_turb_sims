@@ -5,6 +5,7 @@ import torch
 import simulation
 import torch.nn.functional as F
 from collections import defaultdict
+import tqdm
 
 def downsample_avg(x, M):
     if x.ndim == 2:   # [N, N]
@@ -45,6 +46,7 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
                 sl = slice(len(this_sim.ann_frames)//2, None)
 
 
+        print(len(this_sim.ann_frames))
         for frame in this_sim.ann_frames[sl]:
             for ilos,this_los in enumerate(los):
 
@@ -81,26 +83,27 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
                     quan['Ma_mean'].append( this_sim.Ma_mean)
                     quan['Ms_act'].append( this_sim.quan_time['vrms'][iq])
                     quan['Ma_act'].append( this_sim.quan_time['ma'][iq])
+                    #print('ms mean %0.2f ms act %0.2f'%(this_sim.Ms_mean, quan['Ms_act'][-1]))
                     quan['los'].append(ilos)
 
 
     Nsubs = len(output)
     total = np.zeros([Nsubs, len(fields), size, size])
+    total = torch.tensor(total,dtype=torch.float32)
     inds = np.arange(Nsubs)
     quan2 = {'Ms_mean':[],'Ma_mean':[],'Ms_act':[],'Ma_act':[],'los':[], 'frame':[]}
     print('randomize')
     import tqdm
     for n in tqdm.tqdm(inds):
         b = int((np.random.random()*len(output))//1)
-        total[n,...] = output.pop(b)
+        total[n,...] = torch.tensor(output.pop(b), dtype=torch.float32)
         for q in quan:
             quan2[q].append( quan[q].pop(b))
         #print(len(output))
-    total=np.array(total)
-    total = torch.tensor(total,dtype=torch.float32)
-    adder=""
     if target_res:
+        print('downsample')
         total = downsample_avg(total, target_res)
+    print('write')
     fptr = h5py.File(oname,'w')
     print(oname)
     fptr['subsets']=total
