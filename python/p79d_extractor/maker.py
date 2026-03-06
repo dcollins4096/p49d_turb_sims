@@ -165,8 +165,67 @@ if 1:
     target_res=128
     los='xyz'
     half=0
-    suffix='THQUEB_annfix'
-    fields='THQUEB'
-#print(sim_list)
+    suffix='T'
+    fields='T'
+if 1:
+    sim_list = all_sims.lists['suite5']
+    size=256
+    N_per_frame=1
+    rotate=False
+    target_res=64
+    los='xyz'
+    half=1
+    suffix='suite5'
+    fields='T'
+if 1:
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite5']):
+        if ns <= 9:
+            sim_list.append(sim)
+    size=256
+    N_per_frame=1
+    rotate=False
+    target_res=64
+    los='xyz'
+    half=1
+    suffix='suite5_machLE5'
+    fields='T'
+if 1:
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite7']):
+        sim_list.append(sim)
+    size=128
+    N_per_frame=5
+    rotate=False
+    target_res=None
+    los='xyz'
+    half=0
+    suffix='suite7c'
+    fields='T'
+if 1:
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite7']):
+        sim_list.append(sim)
+    size=128
+    N_per_frame=1
+    rotate=False
+    target_res=None
+    los='xyz'
+    half=0
+    suffix='suite7vs'
+    fields='TVS'
+if 1:
+    sim_list=[]
+    for ns,sim in enumerate(all_sims.lists['suite7']):
+        sim_list.append(sim)
+    size=128
+    N_per_frame=1
+    rotate=False
+    target_res=None
+    los='xyz'
+    half=0
+    suffix='suite7_thvsqu'
+    fields='THVSQU'
+print(sim_list)
 if 1:
     puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=half, fields=fields)

@@ -20,6 +20,7 @@ def downsample_avg(x, M):
 def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, los='xyz', half=None, fields='THQUEB'):
     output = []
     quan = defaultdict(list)
+    adder=''
     if target_res:
         adder = "_down_%d"%target_res
     if rotate:
@@ -53,6 +54,10 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
                         field_name = 'density_'
                     elif field == 'H':
                         field_name = 'magnetic_field_strength_'
+                    elif field == 'V':
+                        field_name = 'velocity_centroid_'
+                    elif field == 'S':
+                        field_name = 'velocity_variance_'
                     else:
                         field_name = field
                     frb_name = "%s/DD%04d.products/DD%04d_%s%s.fits"%(this_sim.product_location,frame,frame,field_name,this_los)
@@ -84,7 +89,8 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
     inds = np.arange(Nsubs)
     quan2 = {'Ms_mean':[],'Ma_mean':[],'Ms_act':[],'Ma_act':[],'los':[], 'frame':[]}
     print('randomize')
-    for n in inds:
+    import tqdm
+    for n in tqdm.tqdm(inds):
         b = int((np.random.random()*len(output))//1)
         total[n,...] = output.pop(b)
         for q in quan:
