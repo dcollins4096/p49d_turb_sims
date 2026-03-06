@@ -72,12 +72,15 @@ def launch_script():
 
 analysis_frames={}
 for sim in simlist:
-    analysis_frames[sim] = range(1,100)
+    analysis_frames[sim] = list(range(10,100))
     #analysis_frames[sim] = [1,30]
-analysis_frames[ sim_from_key['a22']] = range(1,28)
-analysis_frames[ sim_from_key['a26']] = range(1,77)
+analysis_frames[ sim_from_key['a22']] =list(range(10,28))
+analysis_frames[ sim_from_key['a26']] =list(range(10,77))
+analysis_frames[ sim_from_key['a20']] =list(range(10,75))
+sim_dir_base = '/data/cb1/Projects/P83_MHDTurb'
+product_dir_base = "/data/cb1/Projects/P83_MHDTurb"
 
 for sim in simlist:
-    simulation.sim(longname[sim], data_location="%s/Athena/maker/%s"%(dl.sim_dir_base,longname[sim]), product_location="%s/Athena/Products/%s"%(dl.product_dir_base,longname[sim]), ms=Ms[sim], ma=Ma[sim],
+    simulation.sim(longname[sim], data_location="%s/Athena/maker/%s"%(sim_dir_base,longname[sim]), product_location="%s/Athena/Products/%s"%(product_dir_base,longname[sim]), ms=Ms[sim], ma=Ma[sim],
                    color=color[sim],linestyle=linestyle[sim],marker=marker[sim],
                    all_frames=analysis_frames[sim],framelist=analysis_frames[sim], code='Athena')
