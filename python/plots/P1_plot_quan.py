@@ -3,7 +3,7 @@ reload(sim_colors)
 import data_locations as dl
 
 
-plotdir = dl.plotdir
+plotdir = dl.plot_dir
 
 #import read_avg_quan as raq
 #reload(raq)
@@ -41,9 +41,9 @@ def plot_all_mach(sim_list, ncol=4):
     fig,ax=plt.subplots(nrow,ncol,figsize=(12,8))
     fig.subplots_adjust(wspace=0, hspace=0)
     if len(sim_list)>1:
-        outname = '%s/avg_quan_multi.pdf'%(dl.plotdir)
+        outname = '%s/avg_quan_multi.pdf'%(plotdir)
     else:
-        outname = '%s/avg_quan_%s.pdf'%(dl.plotdir,sim_list[0])
+        outname = '%s/avg_quan_%s.pdf'%(plotdir,sim_list[0])
     for ns,sim_name in enumerate(sim_list):
         nx = ns//ncol
         ny = ns%ncol
@@ -82,9 +82,9 @@ def plot_quan(sim_list):
     plt.close('all')
     fig,ax=plt.subplots(2,4,figsize=(12,8))
     if len(sim_list)>1:
-        outname = '%s/avg_quan_multi.pdf'%(dl.plotdir)
+        outname = '%s/avg_quan_multi.pdf'%(plotdir)
     else:
-        outname = '%s/avg_quan_%s.pdf'%(dl.plotdir,sim_list[0])
+        outname = '%s/avg_quan_%s.pdf'%(plotdir,sim_list[0])
     for ns,sim_name in enumerate(sim_list):
         this_sim=sim.corral[sim_name]
         this_sim.read_avg_quan()
