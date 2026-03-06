@@ -5,6 +5,7 @@ import sys
 import os
 import interpo
 from optparse import OptionParser
+import sys
 parser = OptionParser()
 parser.add_option("-s","--ms", dest="ms", action='store', help='sonic mach', type="float")
 parser.add_option("-a","--ma", dest="ma", action='store', help='alfven mach', type="float")
@@ -39,7 +40,7 @@ args['tstop']=N_dynamical_times*tdyn
 args['dt'] = tdyn/10
 
 
-outdir = "%s_Ms%0.1f_Ma%0.1f_%d"%(options.name,mach,alfmach,options.dims)
+outdir = "%s_Ms%0.1f_Ma%0.1f_%d"%(options.name,mach_nom,alfmach,options.dims)
 
 if not os.path.exists(outdir):
     os.makedirs(outdir)
