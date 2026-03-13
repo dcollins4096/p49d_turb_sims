@@ -442,14 +442,14 @@ class simulation_package():
                 this_proj.write()
     def EBall(self, do_magnetic=True):
         print(self.frames)
-        print('srsly wtf')
         """compute all EB products and save them into the frb directory"""
         for frame in self.frames:
             print('try',frame)
             #ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
             #p49_fields.add_QU(ds)
             self.make_frbs(frame, do_magnetic=do_magnetic)#,ds=ds)
-            if do_magnetic:
+            print("Kludge: no EB frb produced")
+            if do_magnetic and False:
                 for axis in 'xyz':
                     product_dir = "%s/DD%04d.products"%(self.product_directory,frame)
                     frb_dir = product_dir
@@ -463,7 +463,7 @@ class simulation_package():
                     this_proj.compute_harmonic_products()
                     this_proj.write()
 
-    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=True):
+    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=False, do_pos=True):
         fields=[]
         for axis in axes:
             fields.append( (axis,'density') )
@@ -474,6 +474,10 @@ class simulation_package():
             if do_velocity:
                 fields.append( (axis,'velocity_centroid'))
                 fields.append( (axis,'velocity_variance'))
+            if do_pos:
+                fields.append( (axis,'H_VERT'))
+                fields.append( (axis,'H_HORIZ'))
+                fields.append( (axis,'H_POS'))
 
         cg = None
         for axis, field in fields :
@@ -521,15 +525,14 @@ class simulation_package():
                     if do_magnetic:
                         p49_fields.add_QU(ds)
                 #res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
-                if not field.startswith('velocity'):
+                if not field.startswith('velocity') and not field.startswith('H_'):
                     res = ds.domain_dimensions[0]
                     proj = ds.proj(field,axis)
                     frb = proj.to_frb(1,res)
                     hdu = pyfits.PrimaryHDU(frb[field])
                 if field.startswith('velocity_centroid'):
                     res = ds.domain_dimensions[0]
-                    if cg is None:
-                        cg = ds.covering_grid(0,[0.0]*3,[res]*3)
+                    cg = ds.covering_grid(0,[0.0]*3,[res]*3)
                     density = cg['density']
                     vel = cg['velocity_%s'%axis]
                     axnum = 'xyz'.index(axis)
@@ -537,10 +540,13 @@ class simulation_package():
                     S1 = (density*vel).sum(axis=axnum)
                     centroid = S1/S0
                     hdu = pyfits.PrimaryHDU(centroid)
+                    del density, vel, S0, S1, centroid, cg
+                    print('gc')
+                    import gc
+                    gc.collect()
                 if field.startswith('velocity_variance'):
                     res = ds.domain_dimensions[0]
-                    if cg is None:
-                        cg = ds.covering_grid(0,[0.0]*3,[res]*3)
+                    cg = ds.covering_grid(0,[0.0]*3,[res]*3)
                     density = cg['density']
                     vel = cg['velocity_%s'%axis]
                     axnum = 'xyz'.index(axis)
@@ -550,6 +556,35 @@ class simulation_package():
                     vc = S1/S0
                     variance = S2/S0-vc*vc
                     hdu = pyfits.PrimaryHDU(variance)
+                    del density, vel, S0, S1, cg
+                    print('gc')
+                    import gc
+                    gc.collect()
+                if field.startswith('H_VERT'):
+                    print('hvert')
+                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
+                    res = ds.domain_dimensions[0]
+                    print('proj')
+                    proj = ds.proj(field_vertical,axis, weight_field='density')
+                    print('frb')
+                    frb = proj.to_frb(1,res)
+                    the_field_vertical = frb[field_vertical]
+                    print('hdu')
+                    hdu = pyfits.PrimaryHDU(the_field_vertical)
+                if field.startswith('H_HORIZ'):
+                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
+                    res = ds.domain_dimensions[0]
+                    proj = ds.proj(field_horizontal,axis, weight_field='density')
+                    frb = proj.to_frb(1,res)
+                    the_field_horizontal = frb[field_horizontal]
+                    hdu = pyfits.PrimaryHDU(the_field_horizontal)
+                if field.startswith('H_POS'):
+                    the_field_pos = np.sqrt( the_field_vertical**2 + the_field_horizontal**2)
+                    hdu = pyfits.PrimaryHDU(the_field_pos)
+
+
 
                 hdulist = pyfits.HDUList([hdu])
                 hdulist.writeto(outfile,overwrite=True)
