@@ -12,7 +12,7 @@ import simulation_info.suite_5
 import simulation_info.suite_6_256
 import simulation_info.suite_7_128
 #this_list = simulation_info.suite_6_256.list_from_key[sys.argv[1]]
-this_list = [simulation_info.suite_7_128.longname_from_key[sys.argv[1]]]
+this_list = [sys.argv[1]]
 
 #this_simname="1_1"
 #this_simname="4s_dev"
