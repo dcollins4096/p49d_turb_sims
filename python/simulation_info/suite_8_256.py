@@ -4,8 +4,8 @@ reload(simulation)
 import sim_colors
 
 if 1:
-    sim_ms_f = np.arange(0.5,5.25,0.25)
-    sim_ma_f = nar([0])
+    sim_ms_f = [1,2,3,4,5,6,7,8]
+    sim_ma_f = nar([0.5, 1, 3])
 
 
 
@@ -27,9 +27,9 @@ for counter,sim in enumerate(simlist):
     ms,ma = vals_from_sim(sim)
     ms_list.append( ms)
     ma_list.append(ma)
-    longname[sim] = 'b%02d_Ms%0.1f_Ma%0.1f_128'%(counter, ms, ma)
+    longname[sim] = 'h%02d_Ms%0.1f_Ma%0.1f_256'%(counter, ms, ma)
     longnamelist.append(longname[sim])
-    longname_from_key['b%02d'%counter]=longname[sim]
+    longname_from_key['h%02d'%counter]=longname[sim]
 ms_list=nar(ms_list)
 ma_list=nar(ma_list)
 Ms = dict(zip(simlist,ms_list))
@@ -44,8 +44,8 @@ analysis_frames={}
 for sim in simlist:
     analysis_frames[sim] = range(1000)
 
-data_base = "/anvil/scratch/x-ux454321/Paper83/suite_8_128_athena/"
-product_base = "/anvil/scratch/x-ux454321/Paper83/suite_8_128_athena/products"
+data_base = "/anvil/scratch/x-ux454321/Paper83/suite_8_256_athena/"
+product_base = "/anvil/scratch/x-ux454321/Paper83/suite_8_256_athena/products"
 
 for sim in simlist:
     simulation.sim(longname[sim], data_location="%s/%s"%(data_base,longname[sim]), 

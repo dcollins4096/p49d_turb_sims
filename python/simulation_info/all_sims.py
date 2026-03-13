@@ -16,6 +16,7 @@ import simulation_info.suite_4 as suite_4
 import simulation_info.suite_5 as suite_5
 import simulation_info.suite_6_256 as suite_6
 import simulation_info.suite_7_128 as suite_7
+import simulation_info.suite_8_256 as suite_8
 
 
 lists={}
