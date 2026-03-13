@@ -55,7 +55,8 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
                     if field == 'T':
                         field_name = 'density_'
                     elif field == 'H':
-                        field_name = 'magnetic_field_strength_'
+                        #field_name = 'magnetic_field_strength_'
+                        field_name = "H_POS_"
                     elif field == 'V':
                         field_name = 'velocity_centroid_'
                     elif field == 'S':
