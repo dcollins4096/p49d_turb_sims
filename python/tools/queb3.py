@@ -463,7 +463,7 @@ class simulation_package():
                     this_proj.compute_harmonic_products()
                     this_proj.write()
 
-    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=False, do_pos=True):
+    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=True, do_pos=True):
         fields=[]
         for axis in axes:
             fields.append( (axis,'density') )
