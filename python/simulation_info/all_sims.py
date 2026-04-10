@@ -12,11 +12,12 @@ reload(simulation_info.suite_2_256)
 import simulation_info.suite_p83
 import simulation_info.suite_3
 reload(simulation_info.suite_3)
-import simulation_info.suite_4 as suite_4
-import simulation_info.suite_5 as suite_5
+#import simulation_info.suite_4 as suite_4
+#import simulation_info.suite_5 as suite_5
 import simulation_info.suite_6_256 as suite_6
 import simulation_info.suite_7_128 as suite_7
 import simulation_info.suite_8_256 as suite_8
+import simulation_info.brano_suite as suite_brano
 
 
 lists={}
@@ -34,7 +35,7 @@ lists['suite2'] = simulation_info.suite_2.long_simlist
 lists['suite3'] = simulation_info.suite_3.long_simlist
 lists['p83'] = ['4.7_3','4.7_4', '4_3','4_4', '2_3','2_4', '3_3','3_4','5_3','5_4']
 lists['small'] = ['run2','run3']
-lists['suite4'] = [suite_4.long_from_key['d%02d'%n] for n in range(32)]
-lists['suite5'] = [suite_5.long_from_key['d%02d'%n] for n in range(16)]
+#lists['suite4'] = [suite_4.long_from_key['d%02d'%n] for n in range(32)]
+#lists['suite5'] = [suite_5.long_from_key['d%02d'%n] for n in range(16)]
 lists['suite6'] = suite_6.longnamelist
 lists['suite7'] = suite_7.longnamelist
