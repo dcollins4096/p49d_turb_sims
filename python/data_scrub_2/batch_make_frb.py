@@ -3,14 +3,9 @@ from  GL import *
 import simulation
 import simulation_info
 import simulation_info.all_sims as all_sims
-<<<<<<< HEAD
-#import simulation_info.suite_5 as s5
-#import simulation_info.suite_7_128 as s7
-=======
 import simulation_info.suite_5 as s5
 import simulation_info.suite_7_128 as s7
 import simulation_info.suite_8_256 as s8
->>>>>>> 842d371 (tweak make frb)
 
 import data_scrub_2.make_quan as caq
 import data_scrub_2.make_2d_spectra as m2d
