@@ -48,8 +48,8 @@ list_and_frames = [["xi_0.25_mach112", 300],
                    ["xi_1_mach80", 38],
                    ["xi_1_mach94", 300]]
 rrr = re.compile(r'xi_(.*)_mach(.*)')
-sim_dir_base = "/anvil/scratch/x-ux454321/Paper83/256_mach_grid"
-product_dir_base = "/anvil/scratch/x-ux454321/Paper83/256_mach_grid/products"
+sim_dir_base = "/data/cb1/Projects/P79d_ML/simulations/mach_grid"
+product_dir_base = "/data/cb1/Projects/P79d_ML/simulations/mach_grid/products"
 full_list=[]
 for sim, nframe in list_and_frames:
     full_list.append(sim)
@@ -57,7 +57,8 @@ for sim, nframe in list_and_frames:
     #short = match.group(1)
     ms = float(match.group(2))
     ma = 0
+    frames = list(range(1,nframe+1))
     simulation.sim(sim, data_location="%s/%s"%(sim_dir_base,sim),
                    product_location="%s/%s"%(product_dir_base,sim),
-                   ms=ms,ma=ma,framelist=list(range(1,nframe+1)))
+                   ms=ms,ma=ma,framelist=frames, all_frames=frames)
 
