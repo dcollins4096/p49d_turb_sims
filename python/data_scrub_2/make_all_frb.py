@@ -24,8 +24,13 @@ def make_all(simlist):
             do_magnetic=False
 
 #a thing that describes the simulation
-        prefix = this_sim.name
-        pack = queb3.simulation_package( directory=this_sim.data_location,frames=this_sim.all_frames,prefix=prefix, 
-                                        product_directory=this_sim.product_location, simname=sim, code=this_sim.code)
+
+        for frame in this_sim.ann_frames:
+            prefix = this_sim.name
+            pack = queb3.simulation_package( directory=this_sim.data_location,frames=[frame],prefix=prefix, 
+                                            product_directory=this_sim.product_location, simname=sim, code=this_sim.code)
 #produce all QUEB products.
-        pack.EBall(do_magnetic=do_magnetic)
+            pack.EBall(do_magnetic=do_magnetic)
+            del pack
+            import gc
+            gc.collect()
