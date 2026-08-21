@@ -18,7 +18,7 @@ def downsample_avg(x, M):
         raise ValueError("Input must be [N, N] or [B, C, N, N]")
 
 
-def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, los='xyz', half=None, fields='THQUEB'):
+def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, los='xyz', half=None, fields='THQUEB', get_xi=False):
     output = []
     quan = defaultdict(list)
     adder=''
@@ -41,9 +41,9 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
         sl = slice(None)
         if half is not None:
             if half==0:
-                sl = slice(0,len(this_sim.ann_frames)//2)
+                sl = slice(0,(3*len(this_sim.ann_frames))//4)
             if half==1:
-                sl = slice(len(this_sim.ann_frames)//2, None)
+                sl = slice(len(this_sim.ann_frames)//4, None)
 
 
         print(len(this_sim.ann_frames))
@@ -87,6 +87,15 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
                     quan['Ma_act'].append( this_sim.quan_time['ma'][iq])
                     #print('ms mean %0.2f ms act %0.2f'%(this_sim.Ms_mean, quan['Ms_act'][-1]))
                     quan['los'].append(ilos)
+                    if get_xi:
+                        name = this_sim.name
+                        rrr = re.compile(r'xi_(.*)_mach(.*)')
+                        match = rrr.match(name)
+                        if match is None:
+                            pdb.set_trace()
+                            print('xi formatting error')
+                        xi = match.group(1)
+                        quan['xi'].append(xi)
 
 
     Nsubs = len(output)
@@ -94,6 +103,8 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
     total = torch.tensor(total,dtype=torch.float32)
     inds = np.arange(Nsubs)
     quan2 = {'Ms_mean':[],'Ma_mean':[],'Ms_act':[],'Ma_act':[],'los':[], 'frame':[]}
+    if get_xi:
+        quan2['xi']=[]
     print('randomize')
     import tqdm
     for n in tqdm.tqdm(inds):
