@@ -23,7 +23,7 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
     quan = defaultdict(list)
     adder=''
     if target_res:
-        adder = "_down_%d"%target_res
+        adder = "down_%d"%target_res
     if rotate:
         adder += "_rot"
     whichhalf=''
@@ -32,7 +32,7 @@ def pull(simlist, size, N_per_frame, target_res = None,suffix="", rotate=False, 
             whichhalf = '_first'
         if half==1:
             whichhalf='_second'
-    oname = "p79d_subsets_S%d_N%d_%s_%s%s%s.h5"%(size,N_per_frame,los, adder, suffix,whichhalf)
+    oname = "p79d_dataset_S%d_N%d_%s_%s_%s%s.h5"%(size,N_per_frame,los, adder, suffix,whichhalf)
     print(oname)
     for sim in simlist:
         print(sim)
