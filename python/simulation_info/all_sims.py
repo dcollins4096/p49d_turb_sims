@@ -18,9 +18,11 @@ import simulation_info.suite_6_256 as suite_6
 import simulation_info.suite_7_128 as suite_7
 import simulation_info.suite_8_256 as suite_8
 import simulation_info.brano_suite as suite_brano
+import simulation_info.mach_grid as mach_grid
 
 
 lists={}
+lists['brano'] = suite_brano.full_list
 lists['suite1']=simulation_info.suite_1.simlist
 lists['suite1a'] = ['half_half', 'half_1', 'half_2', 
                     '1_half', '1_1', '1_2', 
@@ -39,3 +41,4 @@ lists['small'] = ['run2','run3']
 #lists['suite5'] = [suite_5.long_from_key['d%02d'%n] for n in range(16)]
 lists['suite6'] = suite_6.longnamelist
 lists['suite7'] = suite_7.longnamelist
+lists['mach_grid'] = mach_grid.full_list

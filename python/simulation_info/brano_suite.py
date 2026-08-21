@@ -12,12 +12,11 @@ sim_dir_base = "/anvil/scratch/x-ux454321/Paper83/brano"
 product_dir_base = "/anvil/scratch/x-ux454321/Paper83/brano/products"
 for sim in full_list:
     match = rrr.match(sim)
-    print(match.group(3))
     name = match.group(0)
     #short = match.group(1)
     ms = float(match.group(2))
     ma = float(match.group(3))
     simulation.sim(sim, data_location="%s/%s"%(sim_dir_base,name),
                    product_location="%s/%s"%(product_dir_base,name),
-                   ms=ms,ma=ma,framelist=list(range(102)))
+                   ms=ms,ma=ma,framelist=list(range(10,102)))
 
