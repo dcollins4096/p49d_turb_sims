@@ -228,6 +228,7 @@ if 0:
     half=1
     suffix='suite1_tvsquhp'
     fields='TVSQUHP'
+<<<<<<< HEAD
 if 0:
     sim_list=all_sims.lists['brano']
     #for ns,sim in enumerate(all_sims.lists['suite1']):
@@ -249,13 +250,24 @@ if 1:
     #        continue
     #    sim_list.append(sim)
     size=256
+if 1:
+    sim_list1=all_sims.lists['brano_suite']
+    rrr = re.compile(r'(...)_Ms(...)_Ma(...)_512')
+    sim_list=[]
+    for sim in sim_list1:
+        match = rrr.match(sim)
+        if match.group(3) != '0.0':
+            sim_list.append(sim)
+            print( match.group(3))
+
+
+    size=128
     N_per_frame=5
     rotate=False
     target_res=128
     los='xyz'
     half=1
-    suffix='mach_grid_tvs_missingOne'
-    fields='TVS'
+
 print(sim_list)
 if 1:
     puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=0, fields=fields)
