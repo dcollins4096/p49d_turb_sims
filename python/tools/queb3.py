@@ -474,7 +474,7 @@ class simulation_package():
             if do_velocity:
                 fields.append( (axis,'velocity_centroid'))
                 fields.append( (axis,'velocity_variance'))
-            if do_pos:
+            if do_pos and do_magnetic:
                 fields.append( (axis,'H_VERT'))
                 fields.append( (axis,'H_HORIZ'))
                 fields.append( (axis,'H_POS'))
@@ -581,6 +581,10 @@ class simulation_package():
                     the_field_horizontal = frb[field_horizontal]
                     hdu = pyfits.PrimaryHDU(the_field_horizontal)
                 if field.startswith('H_POS'):
+                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
+                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
+                    the_field_horizontal = frb[field_horizontal]
+                    the_field_vertical = frb[field_vertical]
                     the_field_pos = np.sqrt( the_field_vertical**2 + the_field_horizontal**2)
                     hdu = pyfits.PrimaryHDU(the_field_pos)
 
