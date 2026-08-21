@@ -19,6 +19,7 @@ import simulation_info.suite_7_128 as suite_7
 import simulation_info.suite_8_256 as suite_8
 import simulation_info.brano_suite as suite_brano
 import simulation_info.mach_grid as mach_grid
+import simulation_info.brano_suite as brano_suite
 
 
 lists={}
@@ -42,3 +43,4 @@ lists['small'] = ['run2','run3']
 lists['suite6'] = suite_6.longnamelist
 lists['suite7'] = suite_7.longnamelist
 lists['mach_grid'] = mach_grid.full_list
+lists['brano_suite'] = brano_suite.full_list
