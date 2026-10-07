@@ -474,7 +474,7 @@ class simulation_package():
             if do_velocity:
                 fields.append( (axis,'velocity_centroid'))
                 fields.append( (axis,'velocity_variance'))
-            if do_pos and do_magnetic:
+            if do_pos:
                 fields.append( (axis,'H_VERT'))
                 fields.append( (axis,'H_HORIZ'))
                 fields.append( (axis,'H_POS'))
@@ -517,6 +517,7 @@ class simulation_package():
 
                 fptr = open(outfile,'w')
                 fptr.close()
+                axnum = 'xyz'.index(axis)
                 if ds is None:
                     if self.code == 'Enzo':
                         ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
@@ -526,22 +527,22 @@ class simulation_package():
                         p49_fields.add_QU(ds)
                 #res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
                 if not field.startswith('velocity') and not field.startswith('H_'):
-                    res = ds.domain_dimensions[0]
-                    proj = ds.proj(field,axis)
-                    frb = proj.to_frb(1,res)
-                    hdu = pyfits.PrimaryHDU(frb[field])
+                    #proj = ds.proj(field,axis)
+                    #frb = proj.to_frb(1,res)
+                    res = ds.domain_dimensions
+                    cg = ds.covering_grid(0,[0.0]*3,res)
+                    output = cg[field].sum(axis=axnum)
+                    hdu = pyfits.PrimaryHDU(output)
                 if field.startswith('velocity_centroid'):
-                    res = ds.domain_dimensions[0]
-                    cg = ds.covering_grid(0,[0.0]*3,[res]*3)
+                    res = ds.domain_dimensions
+                    cg = ds.covering_grid(0,[0.0]*3,res)
                     density = cg['density']
                     vel = cg['velocity_%s'%axis]
-                    axnum = 'xyz'.index(axis)
                     S0 = density.sum(axis=axnum)
                     S1 = (density*vel).sum(axis=axnum)
                     centroid = S1/S0
                     hdu = pyfits.PrimaryHDU(centroid)
                     del density, vel, S0, S1, centroid, cg
-                    print('gc')
                     import gc
                     gc.collect()
                 if field.startswith('velocity_variance'):
@@ -549,7 +550,6 @@ class simulation_package():
                     cg = ds.covering_grid(0,[0.0]*3,[res]*3)
                     density = cg['density']
                     vel = cg['velocity_%s'%axis]
-                    axnum = 'xyz'.index(axis)
                     S0 = density.sum(axis=axnum)
                     S1 = (density*vel).sum(axis=axnum)
                     S2 = (density*vel*vel).sum(axis=axnum)
@@ -557,34 +557,29 @@ class simulation_package():
                     variance = S2/S0-vc*vc
                     hdu = pyfits.PrimaryHDU(variance)
                     del density, vel, S0, S1, cg
-                    print('gc')
                     import gc
                     gc.collect()
                 if field.startswith('H_VERT'):
-                    print('hvert')
                     field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
                     field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    res = ds.domain_dimensions[0]
-                    print('proj')
-                    proj = ds.proj(field_vertical,axis, weight_field='density')
-                    print('frb')
-                    frb = proj.to_frb(1,res)
-                    the_field_vertical = frb[field_vertical]
-                    print('hdu')
-                    hdu = pyfits.PrimaryHDU(the_field_vertical)
+                    res = ds.domain_dimensions
+                    cg = ds.covering_grid(0,[0.0]*3,res)
+                    output = cg[field_vertical].sum(axis=axnum)
+                    hdu = pyfits.PrimaryHDU(output)
                 if field.startswith('H_HORIZ'):
                     field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
                     field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    res = ds.domain_dimensions[0]
-                    proj = ds.proj(field_horizontal,axis, weight_field='density')
-                    frb = proj.to_frb(1,res)
-                    the_field_horizontal = frb[field_horizontal]
-                    hdu = pyfits.PrimaryHDU(the_field_horizontal)
+                    res = ds.domain_dimensions
+                    cg = ds.covering_grid(0,[0.0]*3,res)
+                    output = cg[field_horizontal].sum(axis=axnum)
+                    hdu = pyfits.PrimaryHDU(output)
                 if field.startswith('H_POS'):
                     field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
                     field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    the_field_horizontal = frb[field_horizontal]
-                    the_field_vertical = frb[field_vertical]
+                    res = ds.domain_dimensions
+                    cg = ds.covering_grid(0,[0.0]*3,res)
+                    the_field_horizontal = cg[field_horizontal].sum(axis=axnum)
+                    the_field_vertical =   cg[field_vertical].sum(axis=axnum)
                     the_field_pos = np.sqrt( the_field_vertical**2 + the_field_horizontal**2)
                     hdu = pyfits.PrimaryHDU(the_field_pos)
 
