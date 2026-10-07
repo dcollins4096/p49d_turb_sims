@@ -3,9 +3,6 @@ from  GL import *
 import simulation
 import simulation_info
 import simulation_info.all_sims as all_sims
-import simulation_info.suite_5 as s5
-import simulation_info.suite_7_128 as s7
-import simulation_info.suite_8_256 as s8
 
 import data_scrub_2.make_quan as caq
 import data_scrub_2.make_2d_spectra as m2d
@@ -14,6 +11,7 @@ import data_scrub_2.make_all_frb as maf
 #this_list = simulation_info.suite_2.list_from_key[sys.argv[1]]
 #this_list = [s5.long_from_key[sys.argv[1]]]
 
+this_list = all_sims.lists['brano']
 this_list = [sys.argv[1]]
 #pdb.set_trace()
 #this_simname="1_1"
