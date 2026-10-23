@@ -243,7 +243,7 @@ if 0:
     suffix='brano_tvsquhp'
     fields='TVSQUHP'
 get_xi = False
-if 1:     
+if 0:     
     sim_list=all_sims.lists['mach_grid']
     #for ns,sim in enumerate(all_sims.lists['suite1']):
     #    if sim[0] not in ['4','5','6']:
@@ -259,9 +259,25 @@ if 1:
     fields='TVS'
     get_xi = True
 
+if 1:     
+    sim_list=all_sims.lists['mach_grid_borked']
+    #for ns,sim in enumerate(all_sims.lists['suite1']):
+    #    if sim[0] not in ['4','5','6']:
+    #        continue
+    #    sim_list.append(sim)
+    size=256 
+    N_per_frame=1
+    rotate=False
+    target_res=128
+    los='xyz'
+    half=1
+    suffix='mach_grid_borked_tvs'
+    fields='TVS'
+    get_xi = True
 
 
 print(sim_list)
 if 1:
-    puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=0, fields=fields, get_xi=get_xi)
-    puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=1, fields=fields, get_xi=get_xi)
+    puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=None, fields=fields, get_xi=get_xi)
+    #puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=0, fields=fields, get_xi=get_xi)
+    #puller.pull(sim_list, size, N_per_frame, target_res = target_res, suffix=suffix, rotate=rotate, los=los,half=1, fields=fields, get_xi=get_xi)
