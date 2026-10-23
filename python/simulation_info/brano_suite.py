@@ -11,6 +11,9 @@ rrr = re.compile(r'(...)_Ms(...)_Ma(...)_512')
 if os.environ['machine'] == 'cloudbreak':
     sim_dir_base = '/data/cb1/Projects/P79d_ML/simulations/brano_suite'
     product_dir_base = '/data/cb1/Projects/P79d_ML/simulations/brano_suite/products'
+elif os.environ['machine'] == 'anvil':
+    sim_dir_base = '/anvil/scratch/x-ux454321/Paper83/brano'
+    product_dir_base = '/anvil/scratch/x-ux454321/Paper83/brano/products'
 else:
     sim_dir_base = dl.sim_dir_base
     product_dir_base = dl.product_dir_base
