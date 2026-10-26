@@ -27,6 +27,9 @@ import p49_QU2EB
 import p49_fields
 import cmbtools
 from scipy.optimize import leastsq
+import gc
+import socket
+import time
 import davetools as dt
 import matplotlib.colors as colors
 reload(dt)
@@ -463,7 +466,9 @@ class simulation_package():
                     this_proj.compute_harmonic_products()
                     this_proj.write()
 
-    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=True, do_pos=True):
+    def make_frbs(self,frame, axes=['x','y','z'], ds=None, do_magnetic=True, do_velocity=True, do_pos=True, do_faraday=True):
+        """Line-of-sight averages (mean, not sum) of fields, written to DDNNNN.products/.
+        Files are tagged with PROJ='mean' in the header; older untagged (summed) files are regenerated."""
         fields=[]
         for axis in axes:
             fields.append( (axis,'density') )
@@ -474,50 +479,97 @@ class simulation_package():
             if do_velocity:
                 fields.append( (axis,'velocity_centroid'))
                 fields.append( (axis,'velocity_variance'))
-            if do_pos:
+            if do_pos and do_magnetic:
                 fields.append( (axis,'H_VERT'))
                 fields.append( (axis,'H_HORIZ'))
                 fields.append( (axis,'H_POS'))
+            if do_faraday and do_magnetic:
+                fields.append( (axis,'faraday'))
 
+        field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}
+        field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}
+
+        #One covering grid per frame.  The 3d density is kept; other 3d fields are dropped
+        #after use to bound memory.  2d projections shared between products are memoized.
         cg = None
+        density3d = None
+        proj2d = {}
+        def get_cg():
+            nonlocal cg, density3d
+            if cg is None:
+                cg = ds.covering_grid(0, ds.domain_left_edge, ds.domain_dimensions)
+                density3d = cg['density']
+            return cg
+        def los_mean(axis, name):
+            """mean along the line of sight of a 3d field, memoized."""
+            key = (axis, name)
+            if key not in proj2d:
+                axnum = 'xyz'.index(axis)
+                grid = get_cg()
+                if name == 'density':
+                    arr = density3d
+                elif name.startswith('rho_'):
+                    #rho_<field> or rho_<field>_sq: density-weighted moments
+                    sub = name[4:]
+                    if sub.endswith('_sq'):
+                        f3 = grid[sub[:-3]]
+                        arr = density3d*f3*f3
+                    else:
+                        arr = density3d*grid[sub]
+                else:
+                    arr = grid[name]
+                proj2d[key] = arr.mean(axis=axnum)
+                del arr
+                grid.field_data.clear()
+                gc.collect()
+            return proj2d[key]
+
+        outputdir = self.product_directory
+        if not os.access(outputdir, os.F_OK):
+            os.makedirs(outputdir, exist_ok=True)
+        output_frame_dir=outputdir+"/DD%0.4d.products/" %(frame)
+        os.makedirs(output_frame_dir, exist_ok=True)
+
         for axis, field in fields :
-            outputdir = self.product_directory
-            if not os.access(outputdir, os.F_OK):
-                os.makedirs(outputdir)
             #fix names; Q and U have the name in the field, but others don't.
             if field[0] in 'QU' and field[1] in 'xyz':
                 field_name = field
             else:
                 field_name = field + "_"+axis
-            output_frame_dir=outputdir+"/DD%0.4d.products/" %(frame)
-            if not os.path.exists(output_frame_dir):
-                if len(glob.glob(output_frame_dir)) == 0:
-                    try:
-                        os.makedirs(output_frame_dir)
-                    except:
-                        pass
 
             product_name = "./%s/DD%0.4d.products/DD%.4d_%s.fits" %(self.simname,frame,frame,field_name)
-
-
             outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
-            #outfile = outputdir+"/DD%0.4d.products/DD%.4d_%s.fits" %(frame,frame,field_name)
-            if (os.access(outfile, os.F_OK) or check_finished(product_name)) and not self.clobber:
-                print("FRB exists: %s"%outfile)
-                continue
+            if not self.clobber:
+                if os.access(outfile, os.F_OK):
+                    try:
+                        is_mean = pyfits.getheader(outfile).get('PROJ') == 'mean'
+                    except Exception:
+                        is_mean = False
+                    if is_mean:
+                        print("FRB exists: %s"%outfile)
+                        continue
+                    print("FRB exists but is old (summed) or broken, regenerating: %s"%outfile)
+                elif check_finished(product_name):
+                    print("FRB listed as finished: %s"%product_name)
+                    continue
+
+            #flag file so no other process starts working on this projection.
+            #Old versions left empty flags behind forever; those are stale and get removed.
             outfile_flag = outfile + ".flag"
-            if  os.path.exists(outfile_flag):
+            if (os.path.exists(outfile_flag) and os.path.getsize(outfile_flag) == 0 and
+                time.time() - os.path.getmtime(outfile_flag) > 60):
+                print("Removing stale flag: %s"%outfile_flag)
+                os.remove(outfile_flag)
+            try:
+                fd = os.open(outfile_flag, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, ("%s %d\n"%(socket.gethostname(), os.getpid())).encode())
+                os.close(fd)
+            except FileExistsError:
+                print("FRB in progress elsewhere: %s"%outfile)
                 continue
-            fptr = open(outfile_flag,'w')
-            fptr.close()
 
-            if 1:
+            try:
                 print("FRB being produced: %s"%outfile)
-                #create a dummy empty file so no other process starts working on this projection
-
-                fptr = open(outfile,'w')
-                fptr.close()
-                axnum = 'xyz'.index(axis)
                 if ds is None:
                     if self.code == 'Enzo':
                         ds = yt.load("%s/DD%04d/data%04d"%(self.directory,frame,frame))
@@ -525,69 +577,36 @@ class simulation_package():
                         ds = yt.load("%s/parthenon.prim.%05d.phdf"%(self.directory,frame))
                     if do_magnetic:
                         p49_fields.add_QU(ds)
-                #res = ds.parameters['TopGridDimensions'][0] #2 + ord('x') - ord(axis)]
-                if not field.startswith('velocity') and not field.startswith('H_'):
-                    #proj = ds.proj(field,axis)
-                    #frb = proj.to_frb(1,res)
-                    res = ds.domain_dimensions
-                    cg = ds.covering_grid(0,[0.0]*3,res)
-                    output = cg[field].sum(axis=axnum)
-                    hdu = pyfits.PrimaryHDU(output)
-                if field.startswith('velocity_centroid'):
-                    res = ds.domain_dimensions
-                    cg = ds.covering_grid(0,[0.0]*3,res)
-                    density = cg['density']
-                    vel = cg['velocity_%s'%axis]
-                    S0 = density.sum(axis=axnum)
-                    S1 = (density*vel).sum(axis=axnum)
-                    centroid = S1/S0
-                    hdu = pyfits.PrimaryHDU(centroid)
-                    del density, vel, S0, S1, centroid, cg
-                    import gc
-                    gc.collect()
-                if field.startswith('velocity_variance'):
-                    res = ds.domain_dimensions[0]
-                    cg = ds.covering_grid(0,[0.0]*3,[res]*3)
-                    density = cg['density']
-                    vel = cg['velocity_%s'%axis]
-                    S0 = density.sum(axis=axnum)
-                    S1 = (density*vel).sum(axis=axnum)
-                    S2 = (density*vel*vel).sum(axis=axnum)
-                    vc = S1/S0
-                    variance = S2/S0-vc*vc
-                    hdu = pyfits.PrimaryHDU(variance)
-                    del density, vel, S0, S1, cg
-                    import gc
-                    gc.collect()
-                if field.startswith('H_VERT'):
-                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
-                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    res = ds.domain_dimensions
-                    cg = ds.covering_grid(0,[0.0]*3,res)
-                    output = cg[field_vertical].sum(axis=axnum)
-                    hdu = pyfits.PrimaryHDU(output)
-                if field.startswith('H_HORIZ'):
-                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
-                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    res = ds.domain_dimensions
-                    cg = ds.covering_grid(0,[0.0]*3,res)
-                    output = cg[field_horizontal].sum(axis=axnum)
-                    hdu = pyfits.PrimaryHDU(output)
-                if field.startswith('H_POS'):
-                    field_horizontal = {'x':'magnetic_field_y','y':'magnetic_field_z','z':'magnetic_field_x'}[axis]
-                    field_vertical   = {'x':'magnetic_field_z','y':'magnetic_field_x','z':'magnetic_field_y'}[axis]
-                    res = ds.domain_dimensions
-                    cg = ds.covering_grid(0,[0.0]*3,res)
-                    the_field_horizontal = cg[field_horizontal].sum(axis=axnum)
-                    the_field_vertical =   cg[field_vertical].sum(axis=axnum)
-                    the_field_pos = np.sqrt( the_field_vertical**2 + the_field_horizontal**2)
-                    hdu = pyfits.PrimaryHDU(the_field_pos)
 
+                if field == 'velocity_centroid':
+                    vel = 'velocity_%s'%axis
+                    output = los_mean(axis,'rho_'+vel)/los_mean(axis,'density')
+                elif field == 'velocity_variance':
+                    vel = 'velocity_%s'%axis
+                    S0 = los_mean(axis,'density')
+                    vc = los_mean(axis,'rho_'+vel)/S0
+                    output = los_mean(axis,'rho_'+vel+'_sq')/S0 - vc*vc
+                elif field == 'H_VERT':
+                    output = los_mean(axis, field_vertical[axis])
+                elif field == 'H_HORIZ':
+                    output = los_mean(axis, field_horizontal[axis])
+                elif field == 'H_POS':
+                    output = np.sqrt( los_mean(axis, field_vertical[axis])**2 +
+                                      los_mean(axis, field_horizontal[axis])**2 )
+                elif field == 'faraday':
+                    output = los_mean(axis, 'rho_magnetic_field_%s'%axis)
+                else:
+                    output = los_mean(axis, field)
 
-
-                hdulist = pyfits.HDUList([hdu])
-                hdulist.writeto(outfile,overwrite=True)
+                hdu = pyfits.PrimaryHDU(output)
+                hdu.header['PROJ'] = ('mean', 'line of sight mean, not sum')
+                #write to a temp name and rename, so a crash never leaves a partial file.
+                tmpfile = outfile + ".tmp"
+                pyfits.HDUList([hdu]).writeto(tmpfile, overwrite=True)
+                os.replace(tmpfile, outfile)
                 print("wrote", outfile)
+            finally:
+                os.remove(outfile_flag)
 
     def make_spectra(self,frame):
         """This makes 3d power spectra of velocity, acceleration, 
